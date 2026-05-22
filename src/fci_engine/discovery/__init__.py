@@ -4,6 +4,7 @@ from fci_engine.discovery.orientation import (
     find_unshielded_triples,
     orient_unshielded_colliders,
 )
+from fci_engine.discovery.pdsep import possible_dsep, refine_skeleton_with_pdsep
 from fci_engine.discovery.skeleton import create_complete_pag, learn_initial_skeleton
 
 __all__ = [
@@ -11,4 +12,6 @@ __all__ = [
     "find_unshielded_triples",
     "learn_initial_skeleton",
     "orient_unshielded_colliders",
+    "possible_dsep",
+    "refine_skeleton_with_pdsep",
 ]

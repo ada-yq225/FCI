@@ -1,0 +1,103 @@
+import numpy as np
+
+from fci_engine.ci import CITest, CITestResult
+from fci_engine.discovery.pdsep import possible_dsep, refine_skeleton_with_pdsep
+from fci_engine.graph import Endpoint, PAG
+
+
+class OracleCITest(CITest):
+    def __init__(
+        self,
+        independencies: set[tuple[frozenset[int], frozenset[int]]],
+    ) -> None:
+        super().__init__(alpha=0.05)
+        self.independencies = independencies
+
+    def test(
+        self,
+        data: np.ndarray,
+        x: int,
+        y: int,
+        cond_set: tuple[int, ...],
+    ) -> CITestResult:
+        key = (frozenset((x, y)), frozenset(cond_set))
+        independent = key in self.independencies
+        return CITestResult(
+            independent=independent,
+            p_value=0.9 if independent else 0.001,
+            statistic=None,
+            method="oracle",
+            n_samples=data.shape[0],
+        )
+
+
+def make_reachable_pds_graph() -> PAG:
+    graph = PAG(["X", "Y", "A", "B", "C"])
+    graph.add_circle_edge("X", "Y")
+    graph.add_edge("X", "A", Endpoint.CIRCLE, Endpoint.ARROW)
+    graph.add_edge("A", "B", Endpoint.ARROW, Endpoint.ARROW)
+    graph.add_edge("B", "C", Endpoint.ARROW, Endpoint.CIRCLE)
+    return graph
+
+
+def test_possible_dsep_excludes_endpoints() -> None:
+    graph = make_reachable_pds_graph()
+
+    candidates = possible_dsep(graph, "X", "Y")
+
+    assert "X" not in candidates
+    assert "Y" not in candidates
+    assert {"A", "B", "C"}.issubset(candidates)
+
+
+def test_possible_dsep_does_not_simply_return_all_nodes_for_blocked_paths() -> None:
+    graph = PAG(["X", "Y", "A", "B"])
+    graph.add_circle_edge("X", "Y")
+    graph.add_circle_edge("X", "A")
+    graph.add_circle_edge("A", "B")
+
+    assert possible_dsep(graph, "X", "Y") == {"A"}
+
+
+def test_possible_dsep_max_path_length_limits_search() -> None:
+    graph = make_reachable_pds_graph()
+
+    assert possible_dsep(graph, "X", "Y", max_path_length=1) == {"A"}
+    assert possible_dsep(graph, "X", "Y", max_path_length=2) == {"A", "B"}
+
+
+def test_pdsep_refinement_removes_edge_with_pds_conditioning_set() -> None:
+    data = np.ones((20, 5))
+    graph = make_reachable_pds_graph()
+    sepsets = {}
+    oracle = OracleCITest({(frozenset((0, 1)), frozenset((3,)))})
+
+    refined, updated_sepsets = refine_skeleton_with_pdsep(
+        data,
+        graph,
+        sepsets,
+        oracle,
+        max_cond_set_size=1,
+    )
+
+    assert not refined.is_adjacent("X", "Y")
+    assert updated_sepsets[("X", "Y")] == {"B"}
+    assert updated_sepsets[("Y", "X")] == {"B"}
+
+
+def test_pdsep_refinement_updates_existing_sepsets() -> None:
+    data = np.ones((20, 5))
+    graph = make_reachable_pds_graph()
+    sepsets = {("X", "Y"): {"A"}, ("Y", "X"): {"A"}}
+    oracle = OracleCITest({(frozenset((0, 1)), frozenset((3,)))})
+
+    _, updated_sepsets = refine_skeleton_with_pdsep(
+        data,
+        graph,
+        sepsets,
+        oracle,
+        max_cond_set_size=1,
+    )
+
+    assert updated_sepsets[("X", "Y")] == {"B"}
+    assert updated_sepsets[("Y", "X")] == {"B"}

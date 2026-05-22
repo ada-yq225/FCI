@@ -6,6 +6,8 @@ from collections.abc import Hashable, Sequence
 from itertools import combinations
 from typing import Optional
 
+import numpy as np
+
 from fci_engine.ci import CITest
 from fci_engine.graph import PAG
 from fci_engine.utils.validation import validate_numeric_data
@@ -40,23 +42,7 @@ def learn_initial_skeleton(
     if max_cond_set_size is not None and max_cond_set_size < 0:
         raise ValueError("max_cond_set_size must be non-negative.")
 
-    normalized_data, variable_names = validate_numeric_data(data)
-    if normalized_data.shape[1] != len(graph.nodes):
-        raise ValueError(
-            "data column count must match the number of graph nodes "
-            f"({normalized_data.shape[1]} != {len(graph.nodes)})."
-        )
-
-    graph_node_names = [str(node) for node in graph.nodes]
-    if set(variable_names) == set(graph_node_names) and len(set(graph_node_names)) == len(
-        graph_node_names
-    ):
-        column_index = {name: index for index, name in enumerate(variable_names)}
-        normalized_data = normalized_data[
-            :, [column_index[name] for name in graph_node_names]
-        ]
-
-    node_to_index = {node: index for index, node in enumerate(graph.nodes)}
+    normalized_data, node_to_index = _prepare_data_for_graph(data, graph)
     sepsets: SepsetMap = {}
     cond_size = 0
 
@@ -95,3 +81,27 @@ def learn_initial_skeleton(
         cond_size += 1
 
     return graph, sepsets
+
+
+def _prepare_data_for_graph(
+    data: object,
+    graph: PAG,
+) -> tuple[np.ndarray, dict[Hashable, int]]:
+    normalized_data, variable_names = validate_numeric_data(data)
+    if normalized_data.shape[1] != len(graph.nodes):
+        raise ValueError(
+            "data column count must match the number of graph nodes "
+            f"({normalized_data.shape[1]} != {len(graph.nodes)})."
+        )
+
+    graph_node_names = [str(node) for node in graph.nodes]
+    if set(variable_names) == set(graph_node_names) and len(set(graph_node_names)) == len(
+        graph_node_names
+    ):
+        column_index = {name: index for index, name in enumerate(variable_names)}
+        normalized_data = normalized_data[
+            :, [column_index[name] for name in graph_node_names]
+        ]
+
+    node_to_index = {node: index for index, node in enumerate(graph.nodes)}
+    return normalized_data, node_to_index
