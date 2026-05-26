@@ -174,6 +174,41 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
     border-radius: 999px;
     background: currentColor;
   }}
+  .summary-grid {{
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+  }}
+  .metric-card {{
+    border: 1px solid #eaecf0;
+    border-radius: 8px;
+    padding: 10px;
+    background: #fbfcfe;
+  }}
+  .metric-label {{
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 4px;
+  }}
+  .metric-value {{
+    font-size: 18px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }}
+  .winner {{
+    display: inline-flex;
+    border-radius: 999px;
+    padding: 3px 8px;
+    font-size: 12px;
+    font-weight: 800;
+  }}
+  .winner-engine {{ color: #047857; background: #ecfdf3; }}
+  .winner-r {{ color: #b42318; background: #fff1f0; }}
+  .winner-tie {{ color: #475467; background: #f2f4f7; }}
+  .delta-pos {{ color: #047857; font-weight: 800; }}
+  .delta-neg {{ color: #b42318; font-weight: 800; }}
+  .delta-zero {{ color: #475467; font-weight: 800; }}
   table {{
     width: 100%;
     border-collapse: collapse;
@@ -201,19 +236,24 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
   svg text {{ font-family: inherit; }}
   @media (max-width: 1000px) {{
     main {{ width: min(100vw - 24px, 900px); }}
-    .grid, .graph-row, .diff-row {{ grid-template-columns: 1fr; }}
+    .grid, .graph-row, .diff-row, .summary-grid {{ grid-template-columns: 1fr; }}
   }}
 </style>
 </head>
 <body>
 <header>
-  <h1>FCI Realistic Oracle Benchmark</h1>
-  <p>{len(cases)} hand-written oracle cases. Scores compare learned PAGs with
-  known expected shapes; causal-learn and pcalg are references, not ground truth.</p>
+  <h1>FCI+ vs R pcalg Oracle Benchmark</h1>
+  <p>{len(cases)} hand-written oracle cases. The primary comparison is
+  fci_engine FCI+ against R pcalg::fciPlus; causal-learn remains in the lower
+  score table as context, not as ground truth.</p>
 </header>
 <main>
   <section>
-    <h2>Aggregate Accuracy</h2>
+    <h2>Head-To-Head: fci_engine FCI+ vs R pcalg::fciPlus</h2>
+    {render_pcalg_head_to_head(cases, results)}
+  </section>
+  <section>
+    <h2>Aggregate Accuracy Context</h2>
     {render_aggregate_chart(aggregates)}
   </section>
   <section>
@@ -292,6 +332,194 @@ def render_aggregate_chart(aggregates: list[BenchmarkAggregate]) -> str:
             )
     svg.append("</svg>")
     return "\n".join(svg)
+
+
+def render_pcalg_head_to_head(
+    cases: list[OracleCase],
+    results: list[BenchmarkResult],
+) -> str:
+    rows = []
+    compared = 0
+    engine_wins = 0
+    r_wins = 0
+    ties = 0
+    semantic_deltas = []
+    exact_deltas = []
+
+    for case in cases:
+        engine = _preferred_engine_result(case, results)
+        pcalg = _pcalg_result(case, results)
+        if engine is None:
+            rows.append(
+                _head_to_head_skip_row(case.name, "fci_engine FCI+ result missing")
+            )
+            continue
+        if pcalg is None:
+            rows.append(_head_to_head_skip_row(case.name, "R pcalg result missing"))
+            continue
+        if pcalg.skipped:
+            rows.append(
+                _head_to_head_skip_row(
+                    case.name,
+                    f"R pcalg skipped: {pcalg.skipped_reason or 'skipped'}",
+                )
+            )
+            continue
+        if engine.skipped:
+            rows.append(
+                _head_to_head_skip_row(
+                    case.name,
+                    f"fci_engine skipped: {engine.skipped_reason or 'skipped'}",
+                )
+            )
+            continue
+
+        assert engine.comparison is not None
+        assert engine.semantic_comparison is not None
+        assert pcalg.comparison is not None
+        assert pcalg.semantic_comparison is not None
+
+        compared += 1
+        semantic_delta = (
+            engine.semantic_comparison.semantic_edge_f1
+            - pcalg.semantic_comparison.semantic_edge_f1
+        )
+        exact_delta = (
+            engine.comparison.exact_edge_f1 - pcalg.comparison.exact_edge_f1
+        )
+        skeleton_delta = (
+            engine.comparison.skeleton_f1 - pcalg.comparison.skeleton_f1
+        )
+        endpoint_delta = (
+            engine.comparison.endpoint_accuracy - pcalg.comparison.endpoint_accuracy
+        )
+        semantic_deltas.append(semantic_delta)
+        exact_deltas.append(exact_delta)
+        winner = _head_to_head_winner(engine, pcalg)
+        if winner == "fci_engine":
+            engine_wins += 1
+        elif winner == "r_pcalg":
+            r_wins += 1
+        else:
+            ties += 1
+
+        rows.append(
+            "<tr>"
+            f"<td>{_esc(case.name)}</td>"
+            f"<td>{_winner_chip(winner)}</td>"
+            f"<td class='score'>{engine.semantic_comparison.semantic_edge_f1:.3f}</td>"
+            f"<td class='score'>{pcalg.semantic_comparison.semantic_edge_f1:.3f}</td>"
+            f"<td class='score'>{_delta_span(semantic_delta)}</td>"
+            f"<td class='score'>{engine.comparison.exact_edge_f1:.3f}</td>"
+            f"<td class='score'>{pcalg.comparison.exact_edge_f1:.3f}</td>"
+            f"<td class='score'>{_delta_span(exact_delta)}</td>"
+            f"<td class='score'>{_delta_span(skeleton_delta)}</td>"
+            f"<td class='score'>{_delta_span(endpoint_delta)}</td>"
+            "</tr>"
+        )
+
+    return (
+        f"{_head_to_head_summary(compared, engine_wins, ties, r_wins, semantic_deltas, exact_deltas)}"
+        "<table>"
+        "<thead><tr>"
+        "<th>Case</th><th>Winner</th>"
+        "<th>Our Semantic F1</th><th>R Semantic F1</th><th>Semantic Δ</th>"
+        "<th>Our Exact F1</th><th>R Exact F1</th><th>Exact Δ</th>"
+        "<th>Skeleton Δ</th><th>Endpoint Δ</th>"
+        "</tr></thead>"
+        f"<tbody>{''.join(rows)}</tbody></table>"
+    )
+
+
+def _head_to_head_skip_row(case_name: str, reason: str) -> str:
+    return (
+        "<tr>"
+        f"<td>{_esc(case_name)}</td>"
+        "<td><span class='winner winner-tie'>unavailable</span></td>"
+        f"<td colspan='8'>{_esc(reason)}</td>"
+        "</tr>"
+    )
+
+
+def _head_to_head_summary(
+    compared: int,
+    engine_wins: int,
+    ties: int,
+    r_wins: int,
+    semantic_deltas: list[float],
+    exact_deltas: list[float],
+) -> str:
+    mean_semantic_delta = _mean(semantic_deltas)
+    mean_exact_delta = _mean(exact_deltas)
+    return (
+        "<div class='summary-grid'>"
+        f"{_metric_card('Compared cases', str(compared))}"
+        f"{_metric_card('fci_engine wins', str(engine_wins), 'delta-pos')}"
+        f"{_metric_card('Ties', str(ties), 'delta-zero')}"
+        f"{_metric_card('R pcalg wins', str(r_wins), 'delta-neg')}"
+        f"{_metric_card('Mean semantic Δ', _signed(mean_semantic_delta), _delta_class(mean_semantic_delta))}"
+        f"{_metric_card('Mean exact Δ', _signed(mean_exact_delta), _delta_class(mean_exact_delta))}"
+        "</div>"
+    )
+
+
+def _metric_card(label: str, value: str, value_class: str = "") -> str:
+    return (
+        "<div class='metric-card'>"
+        f"<div class='metric-label'>{_esc(label)}</div>"
+        f"<div class='metric-value {value_class}'>{_esc(value)}</div>"
+        "</div>"
+    )
+
+
+def _head_to_head_winner(engine: BenchmarkResult, pcalg: BenchmarkResult) -> str:
+    assert engine.comparison is not None
+    assert engine.semantic_comparison is not None
+    assert pcalg.comparison is not None
+    assert pcalg.semantic_comparison is not None
+    engine_score = (
+        engine.semantic_comparison.semantic_edge_f1,
+        engine.comparison.exact_edge_f1,
+        engine.comparison.endpoint_accuracy,
+        engine.comparison.skeleton_f1,
+    )
+    pcalg_score = (
+        pcalg.semantic_comparison.semantic_edge_f1,
+        pcalg.comparison.exact_edge_f1,
+        pcalg.comparison.endpoint_accuracy,
+        pcalg.comparison.skeleton_f1,
+    )
+    if all(abs(left - right) <= 1e-12 for left, right in zip(engine_score, pcalg_score)):
+        return "tie"
+    return "fci_engine" if engine_score > pcalg_score else "r_pcalg"
+
+
+def _winner_chip(winner: str) -> str:
+    labels = {
+        "fci_engine": ("fci_engine", "winner-engine"),
+        "r_pcalg": ("R pcalg", "winner-r"),
+        "tie": ("tie", "winner-tie"),
+    }
+    label, class_name = labels.get(winner, ("unknown", "winner-tie"))
+    return f"<span class='winner {class_name}'>{_esc(label)}</span>"
+
+
+def _delta_span(value: float) -> str:
+    return f"<span class='{_delta_class(value)}'>{_signed(value)}</span>"
+
+
+def _delta_class(value: float) -> str:
+    if value > 1e-12:
+        return "delta-pos"
+    if value < -1e-12:
+        return "delta-neg"
+    return "delta-zero"
+
+
+def _signed(value: float) -> str:
+    if abs(value) <= 1e-12:
+        value = 0.0
+    return f"{value:+.3f}"
 
 
 def render_score_table(results: list[BenchmarkResult]) -> str:
@@ -710,6 +938,12 @@ def _algorithm_chip(algorithm: str) -> str:
 
 def _color(algorithm: str) -> str:
     return COLORS.get(algorithm, "#475467")
+
+
+def _mean(values: list[float]) -> float:
+    if not values:
+        return 0.0
+    return sum(values) / len(values)
 
 
 def _endpoint_name(endpoint: object) -> str:

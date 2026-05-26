@@ -116,6 +116,41 @@
     border-radius: 999px;
     background: currentColor;
   }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .metric-card {
+    border: 1px solid #eaecf0;
+    border-radius: 8px;
+    padding: 10px;
+    background: #fbfcfe;
+  }
+  .metric-label {
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+  .metric-value {
+    font-size: 18px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .winner {
+    display: inline-flex;
+    border-radius: 999px;
+    padding: 3px 8px;
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .winner-engine { color: #047857; background: #ecfdf3; }
+  .winner-r { color: #b42318; background: #fff1f0; }
+  .winner-tie { color: #475467; background: #f2f4f7; }
+  .delta-pos { color: #047857; font-weight: 800; }
+  .delta-neg { color: #b42318; font-weight: 800; }
+  .delta-zero { color: #475467; font-weight: 800; }
   table {
     width: 100%;
     border-collapse: collapse;
@@ -143,19 +178,24 @@
   svg text { font-family: inherit; }
   @media (max-width: 1000px) {
     main { width: min(100vw - 24px, 900px); }
-    .grid, .graph-row, .diff-row { grid-template-columns: 1fr; }
+    .grid, .graph-row, .diff-row, .summary-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
 <header>
-  <h1>FCI Realistic Oracle Benchmark</h1>
-  <p>14 hand-written oracle cases. Scores compare learned PAGs with
-  known expected shapes; causal-learn and pcalg are references, not ground truth.</p>
+  <h1>FCI+ vs R pcalg Oracle Benchmark</h1>
+  <p>14 hand-written oracle cases. The primary comparison is
+  fci_engine FCI+ against R pcalg::fciPlus; causal-learn remains in the lower
+  score table as context, not as ground truth.</p>
 </header>
 <main>
   <section>
-    <h2>Aggregate Accuracy</h2>
+    <h2>Head-To-Head: fci_engine FCI+ vs R pcalg::fciPlus</h2>
+    <div class='summary-grid'><div class='metric-card'><div class='metric-label'>Compared cases</div><div class='metric-value '>14</div></div><div class='metric-card'><div class='metric-label'>fci_engine wins</div><div class='metric-value delta-pos'>1</div></div><div class='metric-card'><div class='metric-label'>Ties</div><div class='metric-value delta-zero'>13</div></div><div class='metric-card'><div class='metric-label'>R pcalg wins</div><div class='metric-value delta-neg'>0</div></div><div class='metric-card'><div class='metric-label'>Mean semantic Δ</div><div class='metric-value delta-pos'>+0.014</div></div><div class='metric-card'><div class='metric-label'>Mean exact Δ</div><div class='metric-value delta-pos'>+0.014</div></div></div><table><thead><tr><th>Case</th><th>Winner</th><th>Our Semantic F1</th><th>R Semantic F1</th><th>Semantic Δ</th><th>Our Exact F1</th><th>R Exact F1</th><th>Exact Δ</th><th>Skeleton Δ</th><th>Endpoint Δ</th></tr></thead><tbody><tr><td>independent_noise</td><td><span class='winner winner-tie'>tie</span></td><td class='score'>1.000</td><td class='score'>1.000</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'>1.000</td><td class='score'>1.000</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td></tr><tr><td>latent_medical</td><td><span class='winner winner-tie'>tie</span></td><td class='score'>1.000</td><td class='score'>1.000</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'>1.000</td><td class='score'>1.000</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td></tr><tr><td>nonlinear_common_cause</td><td><span class='winner winner-engine'>fci_engine</span></td><td class='score'>1.000</td><td class='score'>0.800</td><td class='score'><span class='delta-pos'>+0.200</span></td><td class='score'>1.000</td><td class='score'>0.800</td><td class='score'><span class='delta-pos'>+0.200</span></td><td class='score'><span class='delta-pos'>+0.200</span></td><td class='score'><span class='delta-pos'>+0.333</span></td></tr><tr><td>sparse_two_latent</td><td><span class='winner winner-tie'>tie</span></td><td class='score'>1.000</td><td class='score'>1.000</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'>0.667</td><td class='score'>0.667</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td></tr><tr><td>hospital_triage_r1</td><td><span class='winner winner-tie'>tie</span></td><td class='score'>0.857</td><td class='score'>0.857</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'>0.571</td><td class='score'>0.571</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td></tr><tr><td>microservice_incident_r1</td><td><span class='winner winner-tie'>tie</span></td><td class='score'>0.923</td><td class='score'>0.923</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'>0.462</td><td class='score'>0.462</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td></tr><tr><td>finance_risk_r1</td><td><span class='winner winner-tie'>tie</span></td><td class='score'>1.000</td><td class='score'>1.000</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'>0.571</td><td class='score'>0.571</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td></tr><tr><td>manufacturing_quality_r1</td><td><span class='winner winner-tie'>tie</span></td><td class='score'>1.000</td><td class='score'>1.000</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'>0.571</td><td class='score'>0.571</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td></tr><tr><td>enterprise_monitoring_r1</td><td><span class='winner winner-tie'>tie</span></td><td class='score'>1.000</td><td class='score'>1.000</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'>0.538</td><td class='score'>0.538</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td></tr><tr><td>hospital_triage_r2</td><td><span class='winner winner-tie'>tie</span></td><td class='score'>0.857</td><td class='score'>0.857</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'>0.571</td><td class='score'>0.571</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td></tr><tr><td>microservice_incident_r2</td><td><span class='winner winner-tie'>tie</span></td><td class='score'>0.923</td><td class='score'>0.923</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'>0.462</td><td class='score'>0.462</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td></tr><tr><td>finance_risk_r2</td><td><span class='winner winner-tie'>tie</span></td><td class='score'>1.000</td><td class='score'>1.000</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'>0.571</td><td class='score'>0.571</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td></tr><tr><td>manufacturing_quality_r2</td><td><span class='winner winner-tie'>tie</span></td><td class='score'>0.923</td><td class='score'>0.923</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'>0.462</td><td class='score'>0.462</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td></tr><tr><td>enterprise_monitoring_r2</td><td><span class='winner winner-tie'>tie</span></td><td class='score'>1.000</td><td class='score'>1.000</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'>0.538</td><td class='score'>0.538</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td></tr></tbody></table>
+  </section>
+  <section>
+    <h2>Aggregate Accuracy Context</h2>
     <svg viewBox="0 0 1120 554" width="100%" height="554" role="img" aria-label="Aggregate benchmark scores">
 <rect width="100%" height="100%" fill="#ffffff"/>
 <text x="10" y="22" font-size="13" fill="#667085">Algorithm</text>
@@ -178,7 +218,7 @@
 <rect x="880" y="42" width="170" height="16" rx="4" fill="#eef2f6"/>
 <rect x="880" y="42" width="170.00" height="16" rx="4" fill="#f59e0b"/>
 <text x="1060" y="55" font-size="13" fill="#344054">1.000</text>
-<text x="440" y="84" font-size="12" fill="#667085">mean time: 0.0308s</text>
+<text x="440" y="84" font-size="12" fill="#667085">mean time: 0.0318s</text>
 <line x1="0" y1="102" x2="1120" y2="102" stroke="#eaecf0"/>
 <circle cx="16" cy="130" r="5" fill="#a855f7"/>
 <text x="30" y="134" font-size="14" font-weight="700" fill="#101827">fci_engine.fci_plus.kernel</text>
@@ -195,7 +235,7 @@
 <rect x="880" y="116" width="170.00" height="16" rx="4" fill="#a855f7"/>
 <text x="1060" y="129" font-size="13" fill="#344054">1.000</text>
 <text x="250" y="158" font-size="12" fill="#667085">mean CI tests: 6.0</text>
-<text x="440" y="158" font-size="12" fill="#667085">mean time: 0.0839s</text>
+<text x="440" y="158" font-size="12" fill="#667085">mean time: 0.0782s</text>
 <line x1="0" y1="176" x2="1120" y2="176" stroke="#eaecf0"/>
 <circle cx="16" cy="204" r="5" fill="#7c3aed"/>
 <text x="30" y="208" font-size="14" font-weight="700" fill="#101827">fci_engine.fci.kernel</text>
@@ -212,7 +252,7 @@
 <rect x="880" y="190" width="170.00" height="16" rx="4" fill="#7c3aed"/>
 <text x="1060" y="203" font-size="13" fill="#344054">1.000</text>
 <text x="250" y="232" font-size="12" fill="#667085">mean CI tests: 10.0</text>
-<text x="440" y="232" font-size="12" fill="#667085">mean time: 0.0882s</text>
+<text x="440" y="232" font-size="12" fill="#667085">mean time: 0.0817s</text>
 <line x1="0" y1="250" x2="1120" y2="250" stroke="#eaecf0"/>
 <circle cx="16" cy="278" r="5" fill="#d97706"/>
 <text x="30" y="282" font-size="14" font-weight="700" fill="#101827">causal-learn.fci.fisherz</text>
@@ -245,7 +285,7 @@
 <rect x="880" y="338" width="132.30" height="16" rx="4" fill="#059669"/>
 <text x="1060" y="351" font-size="13" fill="#344054">0.778</text>
 <text x="250" y="380" font-size="12" fill="#667085">mean CI tests: 245.1</text>
-<text x="440" y="380" font-size="12" fill="#667085">mean time: 0.0149s</text>
+<text x="440" y="380" font-size="12" fill="#667085">mean time: 0.0164s</text>
 <line x1="0" y1="398" x2="1120" y2="398" stroke="#eaecf0"/>
 <circle cx="16" cy="426" r="5" fill="#dc2626"/>
 <text x="30" y="430" font-size="14" font-weight="700" fill="#101827">pcalg.fciPlus</text>
@@ -261,7 +301,7 @@
 <rect x="880" y="412" width="170" height="16" rx="4" fill="#eef2f6"/>
 <rect x="880" y="412" width="132.30" height="16" rx="4" fill="#dc2626"/>
 <text x="1060" y="425" font-size="13" fill="#344054">0.778</text>
-<text x="440" y="454" font-size="12" fill="#667085">mean time: 0.4742s</text>
+<text x="440" y="454" font-size="12" fill="#667085">mean time: 0.4731s</text>
 <line x1="0" y1="472" x2="1120" y2="472" stroke="#eaecf0"/>
 <circle cx="16" cy="500" r="5" fill="#2563eb"/>
 <text x="30" y="504" font-size="14" font-weight="700" fill="#101827">fci_engine.fci</text>
@@ -278,7 +318,7 @@
 <rect x="880" y="486" width="128.83" height="16" rx="4" fill="#2563eb"/>
 <text x="1060" y="499" font-size="13" fill="#344054">0.758</text>
 <text x="250" y="528" font-size="12" fill="#667085">mean CI tests: 368.6</text>
-<text x="440" y="528" font-size="12" fill="#667085">mean time: 0.0200s</text>
+<text x="440" y="528" font-size="12" fill="#667085">mean time: 0.0186s</text>
 </svg>
   </section>
   <section>
