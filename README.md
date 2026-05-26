@@ -97,7 +97,13 @@ If you prefer `scikit-learn`-style usage:
 from fci_engine import FCI, FCIConfig
 
 # Configure the solver (Try alpha="auto" for dynamic thresholding!)
-config = FCIConfig(alpha="auto", max_cond_set_size=3, do_pdsep=True)
+config = FCIConfig(
+    alpha="auto",
+    max_cond_set_size=3,
+    do_pdsep=True,
+    skeleton_stable=True,
+    pdsep_stable=True,
+)
 estimator = FCI(config)
 
 # Run solver

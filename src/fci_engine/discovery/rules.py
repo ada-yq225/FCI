@@ -1005,6 +1005,8 @@ def _orient_arrowhead_if_circle(
 
     current = graph.get_endpoint(x, y)
     if current is Endpoint.CIRCLE:
+        if has_directed_path(graph, y, x, excluded_edge=(x, y)):
+            return False
         before_edge = graph.edge_repr(x, y)
         graph.orient_arrowhead(x, y)
         if trace is not None:

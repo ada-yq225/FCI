@@ -85,6 +85,29 @@ def test_pdsep_refinement_removes_edge_with_pds_conditioning_set() -> None:
     assert updated_sepsets[("Y", "X")] == {"B"}
 
 
+def test_pdsep_refinement_uses_candidates_from_both_edge_directions() -> None:
+    data = np.ones((20, 3))
+    graph = PAG(["X", "Y", "A"])
+    graph.add_circle_edge("X", "Y")
+    graph.add_circle_edge("Y", "A")
+    sepsets = {}
+    oracle = OracleCITest({(frozenset((0, 1)), frozenset((2,)))})
+
+    refined, updated_sepsets = refine_skeleton_with_pdsep(
+        data,
+        graph,
+        sepsets,
+        oracle,
+        max_cond_set_size=1,
+    )
+
+    assert possible_dsep(graph, "X", "Y") == set()
+    assert possible_dsep(graph, "Y", "X") == {"A"}
+    assert not refined.is_adjacent("X", "Y")
+    assert updated_sepsets[("X", "Y")] == {"A"}
+    assert updated_sepsets[("Y", "X")] == {"A"}
+
+
 def test_pdsep_refinement_updates_existing_sepsets() -> None:
     data = np.ones((20, 5))
     graph = make_reachable_pds_graph()
@@ -101,3 +124,58 @@ def test_pdsep_refinement_updates_existing_sepsets() -> None:
 
     assert updated_sepsets[("X", "Y")] == {"B"}
     assert updated_sepsets[("Y", "X")] == {"B"}
+
+
+def make_order_dependent_pds_graph() -> PAG:
+    graph = PAG(["X", "Y", "A", "B"])
+    graph.add_edge("X", "Y", Endpoint.ARROW, Endpoint.CIRCLE)
+    graph.add_edge("A", "X", Endpoint.CIRCLE, Endpoint.ARROW)
+    graph.add_circle_edge("A", "B")
+    return graph
+
+
+def test_stable_pdsep_uses_start_of_stage_candidate_snapshot() -> None:
+    data = np.ones((20, 4))
+    graph = make_order_dependent_pds_graph()
+    oracle = OracleCITest(
+        {
+            (frozenset((0, 1)), frozenset()),
+            (frozenset((2, 3)), frozenset((1,))),
+        }
+    )
+
+    refined, updated_sepsets = refine_skeleton_with_pdsep(
+        data,
+        graph,
+        {},
+        oracle,
+        max_cond_set_size=1,
+    )
+
+    assert not refined.is_adjacent("X", "Y")
+    assert not refined.is_adjacent("A", "B")
+    assert updated_sepsets[("A", "B")] == {"Y"}
+
+
+def test_order_dependent_pdsep_kept_for_explicit_compatibility() -> None:
+    data = np.ones((20, 4))
+    graph = make_order_dependent_pds_graph()
+    oracle = OracleCITest(
+        {
+            (frozenset((0, 1)), frozenset()),
+            (frozenset((2, 3)), frozenset((1,))),
+        }
+    )
+
+    refined, updated_sepsets = refine_skeleton_with_pdsep(
+        data,
+        graph,
+        {},
+        oracle,
+        max_cond_set_size=1,
+        stable=False,
+    )
+
+    assert not refined.is_adjacent("X", "Y")
+    assert refined.is_adjacent("A", "B")
+    assert ("A", "B") not in updated_sepsets

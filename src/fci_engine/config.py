@@ -25,6 +25,8 @@ class FCIConfig:
         do_pdsep: Whether to refine skeleton using Possible-D-SEP.
         skeleton_stable: Snapshot adjacency sets within each conditioning depth
             to avoid order-dependent skeleton deletion.
+        pdsep_stable: Snapshot the PAG at the start of Possible-D-SEP refinement
+            to avoid order-dependent candidate search.
         background_knowledge: Required and forbidden orientation constraints.
         verbose: Enable detailed logging output.
     """
@@ -35,6 +37,7 @@ class FCIConfig:
     max_path_length: Optional[int] = None
     do_pdsep: bool = True
     skeleton_stable: bool = True
+    pdsep_stable: bool = True
     background_knowledge: Optional[BackgroundKnowledge] = None
     verbose: bool = False
 

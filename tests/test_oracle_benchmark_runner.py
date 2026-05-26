@@ -1,3 +1,5 @@
+import pytest
+
 from fci_engine.metrics.benchmark import (
     _parse_pcalg_edges,
     aggregate_benchmark_results,
@@ -7,6 +9,7 @@ from fci_engine.metrics.benchmark import (
     run_pcalg_fci_plus,
 )
 from fci_engine.simulation import (
+    default_oracle_cases,
     make_independent_noise_case,
     make_latent_medical_case,
 )
@@ -73,6 +76,31 @@ def test_pcalg_runner_skips_cleanly_without_rscript() -> None:
         assert "Rscript" in result.skipped_reason or "pcalg" in result.skipped_reason
     else:
         assert result.comparison is not None
+
+
+def test_fci_plus_oracle_accuracy_matches_or_exceeds_pcalg_when_available() -> None:
+    results = run_oracle_benchmark(
+        default_oracle_cases(),
+        include_causal_learn=False,
+        include_pcalg=True,
+        include_kernel_ci=False,
+    )
+    pcalg_results = [
+        result for result in results if result.algorithm == "pcalg.fciPlus"
+    ]
+    if any(result.skipped for result in pcalg_results):
+        pytest.skip("pcalg is not available in this environment.")
+
+    aggregates = {
+        aggregate.algorithm: aggregate
+        for aggregate in aggregate_benchmark_results(results)
+    }
+    engine = aggregates["fci_engine.fci_plus"]
+    pcalg = aggregates["pcalg.fciPlus"]
+
+    assert engine.mean_exact_edge_f1 >= pcalg.mean_exact_edge_f1
+    assert engine.mean_skeleton_f1 >= pcalg.mean_skeleton_f1
+    assert engine.mean_endpoint_accuracy >= pcalg.mean_endpoint_accuracy
 
 
 def test_parse_pcalg_pag_edges() -> None:

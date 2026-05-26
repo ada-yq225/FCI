@@ -80,6 +80,7 @@ def refine_skeleton_with_pdsep(
     max_path_length: Optional[int] = None,
     verbose: bool = False,
     sepset_sources: Optional[SepsetSourceMap] = None,
+    stable: bool = True,
 ) -> tuple[PAG, SepsetMap]:
     """Refine the current skeleton by searching Possible-D-Sep sets."""
 
@@ -88,17 +89,35 @@ def refine_skeleton_with_pdsep(
 
     normalized_data, node_to_index = _prepare_data_for_graph(data, graph)
 
-    for x, y in list(graph.edges()):
-        if not graph.is_adjacent(x, y):
+    search_graph = graph.copy() if stable else graph
+    pending_removals: list[tuple[Hashable, Hashable, set[Hashable]]] = []
+    marked_for_removal: set[frozenset[Hashable]] = set()
+
+    for x, y in list(search_graph.edges()):
+        edge_key = frozenset((x, y))
+        if edge_key in marked_for_removal or not graph.is_adjacent(x, y):
             continue
 
-        candidates = possible_dsep(graph, x, y, max_path_length=max_path_length)
+        candidates = possible_dsep(
+            search_graph,
+            x,
+            y,
+            max_path_length=max_path_length,
+        )
+        candidates.update(
+            possible_dsep(
+                search_graph,
+                y,
+                x,
+                max_path_length=max_path_length,
+            )
+        )
         candidate_nodes = [node for node in graph.nodes if node in candidates]
         max_size = len(candidate_nodes)
         if max_cond_set_size is not None:
             max_size = min(max_size, max_cond_set_size)
 
-        removed = False
+        separating_set: Optional[set[Hashable]] = None
         for cond_size in range(max_size + 1):
             if len(candidate_nodes) < cond_size:
                 continue
@@ -115,19 +134,55 @@ def refine_skeleton_with_pdsep(
                     print(f"PDS-CI({x}, {y} | {set(cond_set)}) -> {status}")
 
                 if result.independent:
-                    graph.remove_edge(x, y)
-                    sepset = set(cond_set)
-                    sepsets[(x, y)] = sepset
-                    sepsets[(y, x)] = set(sepset)
-                    if sepset_sources is not None:
-                        sepset_sources[(x, y)] = "pdsep"
-                        sepset_sources[(y, x)] = "pdsep"
-                    removed = True
+                    separating_set = set(cond_set)
                     break
-            if removed:
+            if separating_set is not None:
                 break
 
+        if separating_set is None:
+            continue
+
+        if stable:
+            marked_for_removal.add(edge_key)
+            pending_removals.append((x, y, separating_set))
+        else:
+            _remove_edge_with_pdsep(
+                graph,
+                sepsets,
+                x,
+                y,
+                separating_set,
+                sepset_sources=sepset_sources,
+            )
+
+    for x, y, sepset in pending_removals:
+        _remove_edge_with_pdsep(
+            graph,
+            sepsets,
+            x,
+            y,
+            sepset,
+            sepset_sources=sepset_sources,
+        )
+
     return graph, sepsets
+
+
+def _remove_edge_with_pdsep(
+    graph: PAG,
+    sepsets: SepsetMap,
+    x: Hashable,
+    y: Hashable,
+    sepset: set[Hashable],
+    sepset_sources: Optional[SepsetSourceMap] = None,
+) -> None:
+    if graph.is_adjacent(x, y):
+        graph.remove_edge(x, y)
+    sepsets[(x, y)] = sepset
+    sepsets[(y, x)] = set(sepset)
+    if sepset_sources is not None:
+        sepset_sources[(x, y)] = "pdsep"
+        sepset_sources[(y, x)] = "pdsep"
 
 
 def _is_pds_step_allowed(

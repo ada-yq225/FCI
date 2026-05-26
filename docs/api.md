@@ -45,6 +45,8 @@ Configuration options:
 - `do_pdsep`: whether to run Possible-D-Sep refinement
 - `skeleton_stable`: snapshot adjacency sets within each conditioning depth and
   defer removals until the depth is complete, reducing order dependence
+- `pdsep_stable`: snapshot the PAG at the start of Possible-D-Sep refinement
+  so candidate paths are not affected by earlier removals in the same stage
 - `background_knowledge`: required and forbidden orientation constraints
 - `verbose`: print CI and orientation progress
 

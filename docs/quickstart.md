@@ -58,6 +58,7 @@ estimator = FCI(
     max_path_length=4,
     do_pdsep=True,
     skeleton_stable=True,
+    pdsep_stable=True,
     verbose=False,
 )
 result = estimator.fit(data)
@@ -66,7 +67,8 @@ result = estimator.fit(data)
 The default conditional independence test is Fisher-Z, intended for continuous
 Gaussian-style data. Stable skeleton search is enabled by default so edge
 removals within one conditioning depth do not change later candidate sets at
-the same depth.
+the same depth. Stable Possible-D-Sep refinement is also enabled by default so
+later PDS candidate paths use a start-of-stage PAG snapshot.
 
 ## Run FCI+
 

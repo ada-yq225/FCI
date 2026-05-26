@@ -95,6 +95,7 @@ class FCI:
                 max_path_length=resolved_config.max_path_length,
                 verbose=resolved_config.verbose,
                 sepset_sources=sepset_sources,
+                stable=resolved_config.pdsep_stable,
             )
             reset_endpoint_marks(graph)
             orientation_trace.clear()

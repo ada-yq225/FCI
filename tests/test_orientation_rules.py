@@ -4,6 +4,7 @@ from fci_engine.discovery.orientation import (
     is_unshielded_triple,
 )
 from fci_engine.discovery.rules import (
+    _orient_arrowhead_if_circle,
     apply_orientation_rules,
     find_discriminating_paths,
     rule_avoid_directed_cycles,
@@ -133,6 +134,18 @@ def test_rules_do_not_create_endpoint_contradictions() -> None:
     assert graph.edge_repr("A", "C") == "A <-> C"
     assert graph.get_endpoint("A", "C") is Endpoint.ARROW
     assert graph.get_endpoint("C", "A") is Endpoint.ARROW
+
+
+def test_rules_do_not_add_arrowhead_to_definite_ancestor() -> None:
+    graph = PAG(["A", "B", "C"])
+    graph.add_edge("A", "B", Endpoint.TAIL, Endpoint.ARROW)
+    graph.add_edge("B", "C", Endpoint.TAIL, Endpoint.ARROW)
+    graph.add_circle_edge("A", "C")
+
+    changed = _orient_arrowhead_if_circle(graph, "C", "A")
+
+    assert not changed
+    assert graph.edge_repr("A", "C") == "A o-o C"
 
 
 def test_find_discriminating_paths_detects_r4_path() -> None:

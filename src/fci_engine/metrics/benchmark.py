@@ -210,7 +210,8 @@ def run_causal_learn_fci(case: OracleCase, method: str = "fisherz") -> Benchmark
 def run_pcalg_fci_plus(case: OracleCase, timeout: int = 60) -> BenchmarkResult:
     """Run R pcalg::fciPlus if Rscript and pcalg are available."""
 
-    if shutil.which("Rscript") is None:
+    rscript = _find_rscript()
+    if rscript is None:
         return _skipped(case, "pcalg.fciPlus", "Rscript not available")
 
     with tempfile.TemporaryDirectory(prefix="fci_engine_pcalg_") as tmpdir:
@@ -222,7 +223,7 @@ def run_pcalg_fci_plus(case: OracleCase, timeout: int = 60) -> BenchmarkResult:
 
         start = perf_counter()
         completed = subprocess.run(
-            ["Rscript", str(script_path)],
+            [rscript, str(script_path)],
             capture_output=True,
             text=True,
             timeout=timeout,
@@ -242,6 +243,23 @@ def run_pcalg_fci_plus(case: OracleCase, timeout: int = 60) -> BenchmarkResult:
         edges=edges,
         elapsed_time=elapsed,
     )
+
+
+def _find_rscript() -> Optional[str]:
+    """Return an Rscript executable path from PATH or common local installs."""
+
+    rscript = shutil.which("Rscript")
+    if rscript is not None:
+        return rscript
+
+    for candidate in (
+        Path("/opt/homebrew/bin/Rscript"),
+        Path("/usr/local/bin/Rscript"),
+        Path("/Library/Frameworks/R.framework/Resources/bin/Rscript"),
+    ):
+        if candidate.exists():
+            return str(candidate)
+    return None
 
 
 def format_benchmark_results(results: list[BenchmarkResult]) -> str:
