@@ -6,7 +6,7 @@ import argparse
 import html
 import math
 from pathlib import Path
-from typing import Iterable, Optional
+from typing import Optional
 
 from fci_engine.metrics import (
     BenchmarkAggregate,
@@ -103,9 +103,22 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px;
   }}
+  .graph-gallery {{
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }}
+  .case-card {{
+    border-top: 1px solid #eaecf0;
+    padding-top: 16px;
+  }}
+  .case-card:first-child {{
+    border-top: 0;
+    padding-top: 0;
+  }}
   .graph-row {{
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 16px;
   }}
   .case-title {{
@@ -130,6 +143,17 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
     color: #16a34a;
     font-size: 13px;
     font-weight: 700;
+  }}
+  .diff-row {{
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 12px;
+  }}
+  .diff-title {{
+    font-size: 13px;
+    font-weight: 800;
+    margin-bottom: 6px;
   }}
   .legend {{
     display: flex;
@@ -177,7 +201,7 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
   svg text {{ font-family: inherit; }}
   @media (max-width: 1000px) {{
     main {{ width: min(100vw - 24px, 900px); }}
-    .grid, .graph-row {{ grid-template-columns: 1fr; }}
+    .grid, .graph-row, .diff-row {{ grid-template-columns: 1fr; }}
   }}
 </style>
 </head>
@@ -197,7 +221,7 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
     {render_score_table(results)}
   </section>
   <section>
-    <h2>True Graph vs FCI+ Output</h2>
+    <h2>True Graph vs FCI+ vs R pcalg</h2>
     {render_graph_gallery(selected_cases, results)}
   </section>
 </main>
@@ -319,8 +343,9 @@ def render_graph_gallery(
         learned = _preferred_engine_result(case, results)
         if learned is None:
             continue
+        pcalg = _pcalg_result(case, results)
         cards.append(
-            "<section>"
+            "<div class='case-card'>"
             f"<div class='case-title'>{_esc(case.name)}</div>"
             f"<p>{_esc(case.notes)}</p>"
             "<div class='graph-row' style='margin-top:14px'>"
@@ -332,9 +357,16 @@ def render_graph_gallery(
             f"{render_pag_svg(learned.edges, list(case.data.columns), learned.algorithm, case.oracle_shape, 'learned')}"
             f"<div class='caption'>Learned output: {_esc(learned.algorithm)}</div>"
             "</div>"
+            "<div>"
+            f"{render_result_svg(case, pcalg, 'R pcalg::fciPlus')}"
+            f"<div class='caption'>{render_result_caption(pcalg)}</div>"
             "</div>"
-            f"{render_difference_table(case, learned)}"
-            "</section>"
+            "</div>"
+            "<div class='diff-row'>"
+            f"{render_difference_table(case, learned, 'FCI+ edge differences')}"
+            f"{render_difference_table(case, pcalg, 'R pcalg edge differences')}"
+            "</div>"
+            "</div>"
         )
     legend = (
         "<div class='legend'>"
@@ -344,17 +376,85 @@ def render_graph_gallery(
         "<span class='legend-item' style='color:#475467'><span class='legend-line'></span>not compared</span>"
         "</div>"
     )
-    return legend + "<div class='grid'>" + "".join(cards) + "</div>"
+    return legend + "<div class='graph-gallery'>" + "".join(cards) + "</div>"
 
 
-def render_difference_table(case: OracleCase, learned: BenchmarkResult) -> str:
+def render_result_svg(
+    case: OracleCase,
+    result: Optional[BenchmarkResult],
+    title: str,
+) -> str:
+    if result is None:
+        return render_placeholder_svg(title, "No pcalg result was produced.")
+    if result.skipped:
+        return render_placeholder_svg(title, result.skipped_reason or "Skipped")
+    return render_pag_svg(
+        result.edges,
+        list(case.data.columns),
+        result.algorithm,
+        case.oracle_shape,
+        "learned",
+    )
+
+
+def render_result_caption(result: Optional[BenchmarkResult]) -> str:
+    if result is None:
+        return "R pcalg output unavailable"
+    if result.skipped:
+        return f"R pcalg skipped: {_esc(result.skipped_reason or 'skipped')}"
+    return f"R package output: {_esc(result.algorithm)}"
+
+
+def render_placeholder_svg(
+    title: str,
+    message: str,
+    width: int = 540,
+    height: int = 380,
+) -> str:
+    return (
+        f'<svg viewBox="0 0 {width} {height}" width="100%" height="{height}" '
+        f'role="img" aria-label="{_esc(title)} unavailable">'
+        '<rect width="100%" height="100%" rx="8" fill="#ffffff" stroke="#d0d5dd"/>'
+        f'<text x="16" y="26" font-size="15" font-weight="800" '
+        f'fill="#101827">{_esc(title)}</text>'
+        f'<text x="{width / 2:.1f}" y="{height / 2:.1f}" text-anchor="middle" '
+        'font-size="13" fill="#667085">'
+        f'{_esc(message)}</text>'
+        "</svg>"
+    )
+
+
+def render_difference_table(
+    case: OracleCase,
+    learned: Optional[BenchmarkResult],
+    title: str,
+) -> str:
+    if learned is None:
+        return (
+            "<div>"
+            f"<div class='diff-title'>{_esc(title)}</div>"
+            "<div class='caption'>No result was produced.</div>"
+            "</div>"
+        )
+    if learned.skipped:
+        return (
+            "<div>"
+            f"<div class='diff-title'>{_esc(title)}</div>"
+            f"<div class='caption'>{_esc(learned.skipped_reason or 'Skipped')}</div>"
+            "</div>"
+        )
     differences = explain_pag_differences(
         case.oracle_shape,
         learned.edges,
         learned.orientation_trace,
     )
     if not differences:
-        return "<div class='diff-empty'>No edge-level differences for this output.</div>"
+        return (
+            "<div>"
+            f"<div class='diff-title'>{_esc(title)}</div>"
+            "<div class='diff-empty'>No edge-level differences for this output.</div>"
+            "</div>"
+        )
 
     rows = []
     for diff in differences[:12]:
@@ -376,6 +476,7 @@ def render_difference_table(case: OracleCase, learned: BenchmarkResult) -> str:
     more = "" if len(differences) <= 12 else f"<p class='caption'>+{len(differences) - 12} more differences omitted.</p>"
     return (
         "<div class='diff-table'>"
+        f"<div class='diff-title'>{_esc(title)}</div>"
         "<table><thead><tr><th>Kind</th><th>Edge</th><th>Expected</th>"
         "<th>Actual</th><th>Endpoint Status</th><th>Orientation Rules</th>"
         "</tr></thead>"
@@ -465,6 +566,16 @@ def _preferred_engine_result(
     )
     for result in results:
         if result.case_name == case.name and result.algorithm == preferred:
+            return result
+    return None
+
+
+def _pcalg_result(
+    case: OracleCase,
+    results: list[BenchmarkResult],
+) -> Optional[BenchmarkResult]:
+    for result in results:
+        if result.case_name == case.name and result.algorithm == "pcalg.fciPlus":
             return result
     return None
 
