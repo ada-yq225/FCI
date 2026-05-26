@@ -145,6 +145,382 @@ def make_sparse_latent_case(
     )
 
 
+def make_hospital_triage_case(
+    n_samples: int = 9000,
+    seed: int = 101,
+) -> OracleCase:
+    """Clinical triage-style graph with latent illness severity."""
+
+    rng = np.random.default_rng(seed)
+    latent_severity = rng.normal(size=n_samples)
+    genetic_risk = rng.normal(size=n_samples)
+    protocol = rng.normal(size=n_samples)
+    comorbidity = rng.normal(size=n_samples)
+
+    inflammation = (
+        0.75 * genetic_risk
+        + 0.70 * latent_severity
+        + 0.35 * comorbidity
+        + rng.normal(scale=0.35, size=n_samples)
+    )
+    oxygen = 0.75 * latent_severity + rng.normal(scale=0.35, size=n_samples)
+    treatment = (
+        0.75 * protocol
+        + 0.55 * inflammation
+        + rng.normal(scale=0.40, size=n_samples)
+    )
+    recovery = (
+        0.70 * treatment
+        - 0.55 * oxygen
+        + rng.normal(scale=0.40, size=n_samples)
+    )
+
+    data = pd.DataFrame(
+        {
+            "GeneticRisk": genetic_risk,
+            "Protocol": protocol,
+            "Comorbidity": comorbidity,
+            "Inflammation": inflammation,
+            "Oxygen": oxygen,
+            "Treatment": treatment,
+            "Recovery": recovery,
+        }
+    )
+    return OracleCase(
+        name="hospital_triage",
+        data=data,
+        oracle_shape={
+            ("GeneticRisk", "Inflammation"): ("CIRCLE", "ARROW"),
+            ("Comorbidity", "Inflammation"): ("CIRCLE", "ARROW"),
+            ("Protocol", "Treatment"): ("CIRCLE", "ARROW"),
+            ("Inflammation", "Oxygen"): ("ARROW", "ARROW"),
+            ("Inflammation", "Treatment"): ("CIRCLE", "ARROW"),
+            ("Oxygen", "Recovery"): ("CIRCLE", "ARROW"),
+            ("Treatment", "Recovery"): ("TAIL", "ARROW"),
+        },
+        alpha=0.001,
+        max_cond_set_size=3,
+        max_path_length=4,
+        notes=(
+            "Observed risk/protocol variables, latent illness severity "
+            "confounding inflammation and oxygen, and treatment -> recovery."
+        ),
+    )
+
+
+def make_microservice_incident_case(
+    n_samples: int = 10000,
+    seed: int = 202,
+) -> OracleCase:
+    """Microservice monitoring graph with a hidden network incident."""
+
+    rng = np.random.default_rng(seed)
+    hidden_network = rng.normal(size=n_samples)
+    traffic = rng.normal(size=n_samples)
+    deploy = rng.normal(size=n_samples)
+    cache = rng.normal(size=n_samples)
+
+    queue = 0.80 * traffic + rng.normal(scale=0.35, size=n_samples)
+    auth_latency = (
+        0.75 * queue
+        + 0.65 * hidden_network
+        + rng.normal(scale=0.35, size=n_samples)
+    )
+    payment_latency = (
+        0.70 * cache
+        + 0.65 * hidden_network
+        + rng.normal(scale=0.35, size=n_samples)
+    )
+    error_rate = (
+        0.65 * auth_latency
+        + 0.55 * payment_latency
+        + 0.45 * deploy
+        + rng.normal(scale=0.40, size=n_samples)
+    )
+
+    data = pd.DataFrame(
+        {
+            "Traffic": traffic,
+            "Deploy": deploy,
+            "CacheHit": cache,
+            "QueueDepth": queue,
+            "AuthLatency": auth_latency,
+            "PaymentLatency": payment_latency,
+            "ErrorRate": error_rate,
+        }
+    )
+    return OracleCase(
+        name="microservice_incident",
+        data=data,
+        oracle_shape={
+            ("Traffic", "QueueDepth"): ("CIRCLE", "ARROW"),
+            ("CacheHit", "PaymentLatency"): ("CIRCLE", "ARROW"),
+            ("Deploy", "ErrorRate"): ("CIRCLE", "ARROW"),
+            ("QueueDepth", "AuthLatency"): ("CIRCLE", "ARROW"),
+            ("AuthLatency", "PaymentLatency"): ("ARROW", "ARROW"),
+            ("AuthLatency", "ErrorRate"): ("CIRCLE", "ARROW"),
+            ("PaymentLatency", "ErrorRate"): ("CIRCLE", "ARROW"),
+        },
+        alpha=0.001,
+        max_cond_set_size=3,
+        max_path_length=4,
+        notes=(
+            "Traffic and cache affect service metrics while an unobserved "
+            "network incident confounds auth/payment latency."
+        ),
+    )
+
+
+def make_finance_risk_case(
+    n_samples: int = 10000,
+    seed: int = 303,
+) -> OracleCase:
+    """Financial risk graph with a hidden market factor."""
+
+    rng = np.random.default_rng(seed)
+    market_factor = rng.normal(size=n_samples)
+    rate_shock = rng.normal(size=n_samples)
+    liquidity = rng.normal(size=n_samples)
+    leverage = rng.normal(size=n_samples)
+
+    credit_spread = (
+        0.75 * rate_shock
+        + 0.65 * market_factor
+        + rng.normal(scale=0.35, size=n_samples)
+    )
+    equity_vol = (
+        0.70 * liquidity
+        + 0.65 * market_factor
+        + rng.normal(scale=0.35, size=n_samples)
+    )
+    default_prob = (
+        0.70 * credit_spread
+        + 0.55 * leverage
+        + rng.normal(scale=0.40, size=n_samples)
+    )
+    loss = 0.75 * default_prob + 0.45 * equity_vol + rng.normal(
+        scale=0.40,
+        size=n_samples,
+    )
+
+    data = pd.DataFrame(
+        {
+            "RateShock": rate_shock,
+            "Liquidity": liquidity,
+            "Leverage": leverage,
+            "CreditSpread": credit_spread,
+            "EquityVol": equity_vol,
+            "DefaultProb": default_prob,
+            "Loss": loss,
+        }
+    )
+    return OracleCase(
+        name="finance_risk",
+        data=data,
+        oracle_shape={
+            ("RateShock", "CreditSpread"): ("CIRCLE", "ARROW"),
+            ("Liquidity", "EquityVol"): ("CIRCLE", "ARROW"),
+            ("Leverage", "DefaultProb"): ("CIRCLE", "ARROW"),
+            ("CreditSpread", "EquityVol"): ("ARROW", "ARROW"),
+            ("CreditSpread", "DefaultProb"): ("CIRCLE", "ARROW"),
+            ("DefaultProb", "Loss"): ("CIRCLE", "ARROW"),
+            ("EquityVol", "Loss"): ("CIRCLE", "ARROW"),
+        },
+        alpha=0.001,
+        max_cond_set_size=3,
+        max_path_length=4,
+        notes="Market factor is hidden; credit/equity risk share latent exposure.",
+    )
+
+
+def make_manufacturing_quality_case(
+    n_samples: int = 9000,
+    seed: int = 404,
+) -> OracleCase:
+    """Manufacturing quality graph with hidden ambient conditions."""
+
+    rng = np.random.default_rng(seed)
+    ambient = rng.normal(size=n_samples)
+    setpoint = rng.normal(size=n_samples)
+    maintenance = rng.normal(size=n_samples)
+    operator = rng.normal(size=n_samples)
+
+    chamber_temp = (
+        0.75 * setpoint
+        + 0.65 * ambient
+        + rng.normal(scale=0.35, size=n_samples)
+    )
+    vibration = (
+        0.70 * maintenance
+        + 0.65 * ambient
+        + rng.normal(scale=0.35, size=n_samples)
+    )
+    pressure = 0.70 * operator + rng.normal(scale=0.35, size=n_samples)
+    defect_rate = (
+        0.65 * chamber_temp
+        + 0.55 * vibration
+        + 0.45 * pressure
+        + rng.normal(scale=0.40, size=n_samples)
+    )
+
+    data = pd.DataFrame(
+        {
+            "Setpoint": setpoint,
+            "Maintenance": maintenance,
+            "Operator": operator,
+            "ChamberTemp": chamber_temp,
+            "Vibration": vibration,
+            "Pressure": pressure,
+            "DefectRate": defect_rate,
+        }
+    )
+    return OracleCase(
+        name="manufacturing_quality",
+        data=data,
+        oracle_shape={
+            ("Setpoint", "ChamberTemp"): ("CIRCLE", "ARROW"),
+            ("Maintenance", "Vibration"): ("CIRCLE", "ARROW"),
+            ("Operator", "Pressure"): ("CIRCLE", "ARROW"),
+            ("ChamberTemp", "Vibration"): ("ARROW", "ARROW"),
+            ("ChamberTemp", "DefectRate"): ("CIRCLE", "ARROW"),
+            ("Vibration", "DefectRate"): ("CIRCLE", "ARROW"),
+            ("Pressure", "DefectRate"): ("CIRCLE", "ARROW"),
+        },
+        alpha=0.001,
+        max_cond_set_size=3,
+        max_path_length=4,
+        notes="Unobserved ambient conditions confound temperature and vibration.",
+    )
+
+
+def make_enterprise_monitoring_case(
+    n_samples: int = 12000,
+    seed: int = 505,
+) -> OracleCase:
+    """Larger monitoring graph with two hidden operational factors."""
+
+    rng = np.random.default_rng(seed)
+    platform_load = rng.normal(size=n_samples)
+    network_jitter = rng.normal(size=n_samples)
+    deploy_a = rng.normal(size=n_samples)
+    deploy_b = rng.normal(size=n_samples)
+    marketing = rng.normal(size=n_samples)
+    cache_policy = rng.normal(size=n_samples)
+
+    api_cpu = (
+        0.75 * deploy_a
+        + 0.65 * platform_load
+        + rng.normal(scale=0.35, size=n_samples)
+    )
+    db_cpu = (
+        0.70 * deploy_b
+        + 0.65 * platform_load
+        + rng.normal(scale=0.35, size=n_samples)
+    )
+    search_qps = 0.75 * marketing + rng.normal(scale=0.35, size=n_samples)
+    cache_miss = 0.75 * cache_policy + rng.normal(scale=0.35, size=n_samples)
+    api_latency = (
+        0.65 * api_cpu
+        + 0.45 * search_qps
+        + 0.65 * network_jitter
+        + rng.normal(scale=0.40, size=n_samples)
+    )
+    db_latency = (
+        0.65 * db_cpu
+        + 0.45 * cache_miss
+        + 0.65 * network_jitter
+        + rng.normal(scale=0.40, size=n_samples)
+    )
+    checkout_latency = (
+        0.60 * api_latency
+        + 0.60 * db_latency
+        + rng.normal(scale=0.40, size=n_samples)
+    )
+    error_budget = 0.75 * checkout_latency + rng.normal(
+        scale=0.40,
+        size=n_samples,
+    )
+
+    data = pd.DataFrame(
+        {
+            "DeployA": deploy_a,
+            "DeployB": deploy_b,
+            "Marketing": marketing,
+            "CachePolicy": cache_policy,
+            "ApiCPU": api_cpu,
+            "DbCPU": db_cpu,
+            "SearchQPS": search_qps,
+            "CacheMiss": cache_miss,
+            "ApiLatency": api_latency,
+            "DbLatency": db_latency,
+            "CheckoutLatency": checkout_latency,
+            "ErrorBudget": error_budget,
+        }
+    )
+    return OracleCase(
+        name="enterprise_monitoring",
+        data=data,
+        oracle_shape={
+            ("DeployA", "ApiCPU"): ("CIRCLE", "ARROW"),
+            ("DeployB", "DbCPU"): ("CIRCLE", "ARROW"),
+            ("Marketing", "SearchQPS"): ("CIRCLE", "ARROW"),
+            ("CachePolicy", "CacheMiss"): ("CIRCLE", "ARROW"),
+            ("ApiCPU", "DbCPU"): ("ARROW", "ARROW"),
+            ("ApiCPU", "ApiLatency"): ("CIRCLE", "ARROW"),
+            ("DbCPU", "DbLatency"): ("CIRCLE", "ARROW"),
+            ("SearchQPS", "ApiLatency"): ("CIRCLE", "ARROW"),
+            ("CacheMiss", "DbLatency"): ("CIRCLE", "ARROW"),
+            ("ApiLatency", "DbLatency"): ("ARROW", "ARROW"),
+            ("ApiLatency", "CheckoutLatency"): ("CIRCLE", "ARROW"),
+            ("DbLatency", "CheckoutLatency"): ("CIRCLE", "ARROW"),
+            ("CheckoutLatency", "ErrorBudget"): ("TAIL", "ARROW"),
+        },
+        alpha=0.001,
+        max_cond_set_size=3,
+        max_path_length=4,
+        notes=(
+            "Larger operational graph with hidden platform load and network "
+            "jitter creating two latent-confounded metric pairs."
+        ),
+    )
+
+
+def realistic_oracle_cases(
+    n_repeats: int = 1,
+    n_samples: Optional[int] = None,
+) -> list[OracleCase]:
+    """Return realistic synthetic benchmark cases with hand-written PAG shapes."""
+
+    factories = [
+        make_hospital_triage_case,
+        make_microservice_incident_case,
+        make_finance_risk_case,
+        make_manufacturing_quality_case,
+        make_enterprise_monitoring_case,
+    ]
+    cases: list[OracleCase] = []
+    for repeat in range(n_repeats):
+        seed_offset = 1000 * repeat
+        for factory in factories:
+            kwargs = {"seed": seed_offset + _base_seed_for_factory(factory)}
+            if n_samples is not None:
+                kwargs["n_samples"] = n_samples
+            case = factory(**kwargs)
+            if n_repeats > 1:
+                case = OracleCase(
+                    name=f"{case.name}_r{repeat + 1}",
+                    data=case.data,
+                    oracle_shape=case.oracle_shape,
+                    alpha=case.alpha,
+                    max_cond_set_size=case.max_cond_set_size,
+                    max_path_length=case.max_path_length,
+                    use_kernel_ci=case.use_kernel_ci,
+                    notes=case.notes,
+                )
+            cases.append(case)
+    return cases
+
+
 def default_oracle_cases() -> list[OracleCase]:
     """Return the default benchmark suite."""
 
@@ -154,3 +530,14 @@ def default_oracle_cases() -> list[OracleCase]:
         make_nonlinear_common_cause_case(),
         make_sparse_latent_case(),
     ]
+
+
+def _base_seed_for_factory(factory: object) -> int:
+    seeds = {
+        make_hospital_triage_case: 101,
+        make_microservice_incident_case: 202,
+        make_finance_risk_case: 303,
+        make_manufacturing_quality_case: 404,
+        make_enterprise_monitoring_case: 505,
+    }
+    return seeds[factory]

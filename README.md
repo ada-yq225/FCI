@@ -16,7 +16,10 @@ This package provides a modern Pythonic API, heavily optimizing CI-test caching,
 * **FCI+ Variant**: Provides `fci_plus(...)` / `FCIPlus` with a sparse hierarchical D-SEP refinement inspired by Claassen, Mooij, and Heskes (2013).
 * **Order-Stable Skeleton Search**: The initial PC-style skeleton stage snapshots adjacency sets per conditioning depth and applies removals after the depth completes, reducing order dependence.
 * **Accuracy-First Sepset Selection**: By default, when several separating sets at the same depth work, the engine keeps the one with the strongest CI p-value instead of whichever candidate appeared first.
+* **Conservative Orientation Mode**: `conservative_orientation=True` keeps arrowhead evidence while skipping tail-producing propagation rules for audits where under-orientation is preferred to over-commitment.
 * **Exceptional Explainability**: Built-in tracking of `OrientationEvent` and `CITraceEvent`. Allows you to easily debug *why* a specific algorithmic decision (e.g., directing an arrow) was made.
+* **Semantic PAG Scoring**: Benchmark metrics distinguish exact matches, compatible over-orientation, compatible under-orientation, and true endpoint contradictions.
+* **Oracle Case Tooling**: `CausalGraphSpec` and preset realistic cases make it easier to test against known structures instead of treating external libraries as ground truth.
 * **Performance Optimizations**: Out-of-the-box `CITestCache` radically cuts down redundant Conditional Independence tests.
 
 ## 📦 Installation
@@ -106,6 +109,7 @@ config = FCIConfig(
     pdsep_stable=True,
     sepset_selection="max_pvalue",
     conservative_colliders=True,
+    conservative_orientation=False,
 )
 estimator = FCI(config)
 
@@ -214,6 +218,17 @@ from fci_engine import (
 results = run_oracle_benchmark(default_oracle_cases())
 print(format_benchmark_results(results))
 print(format_benchmark_leaderboard(results))
+```
+
+The benchmark output includes both strict exact-edge F1 and compatibility-aware
+semantic F1. Semantic scoring is useful for PAGs because `o->` versus `-->`
+can be a compatible certainty difference rather than a contradiction.
+
+You can generate the visual benchmark report with highlighted true/learned
+differences and per-edge orientation-rule traces:
+
+```bash
+PYTHONPATH=src python examples/08_visual_benchmark_report.py
 ```
 
 ## Current Scope And Limitations

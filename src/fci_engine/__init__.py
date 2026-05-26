@@ -8,12 +8,17 @@ from fci_engine.knowledge import BackgroundKnowledge
 from fci_engine.metrics import (
     BenchmarkAggregate,
     BenchmarkResult,
+    PAGDifference,
     PAGComparison,
+    PAGESemanticComparison,
     aggregate_benchmark_results,
     bootstrap_edge_frequencies,
     bootstrap_adjacency_frequencies,
+    compare_pag_shapes_semantic,
     compare_pag_shapes,
+    compare_pag_to_shape_semantic,
     compare_pag_to_shape,
+    explain_pag_differences,
     format_benchmark_leaderboard,
     format_benchmark_results,
     run_oracle_benchmark,
@@ -21,7 +26,12 @@ from fci_engine.metrics import (
     stable_fci,
 )
 from fci_engine.result import EdgeExplanation, FCIResult
-from fci_engine.simulation import OracleCase, default_oracle_cases
+from fci_engine.simulation import (
+    CausalGraphSpec,
+    OracleCase,
+    default_oracle_cases,
+    realistic_oracle_cases,
+)
 
 __version__ = "0.1.0"
 
@@ -34,19 +44,26 @@ __all__ = [
     "BackgroundKnowledge",
     "BenchmarkAggregate",
     "BenchmarkResult",
+    "CausalGraphSpec",
     "OracleCase",
+    "PAGDifference",
     "PAGComparison",
+    "PAGESemanticComparison",
     "PAG",
     "aggregate_benchmark_results",
     "bootstrap_adjacency_frequencies",
     "bootstrap_edge_frequencies",
+    "compare_pag_shapes_semantic",
     "compare_pag_shapes",
+    "compare_pag_to_shape_semantic",
     "compare_pag_to_shape",
     "default_oracle_cases",
+    "realistic_oracle_cases",
     "fci",
     "fci_plus",
     "format_benchmark_results",
     "format_benchmark_leaderboard",
+    "explain_pag_differences",
     "run_oracle_benchmark",
     "shape_from_pag",
     "stable_fci",

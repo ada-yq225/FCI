@@ -61,6 +61,7 @@ estimator = FCI(
     pdsep_stable=True,
     sepset_selection="max_pvalue",
     conservative_colliders=False,
+    conservative_orientation=False,
     verbose=False,
 )
 result = estimator.fit(data)
@@ -77,6 +78,8 @@ strongest separating set found at the first successful conditioning depth. Use
 Set `conservative_colliders=True` to use Conservative-FCI-style collider
 orientation and report ambiguous unshielded triples instead of forcing a
 direction.
+Set `conservative_orientation=True` when you want to keep arrowhead evidence
+but skip tail-producing propagation rules, producing a more cautious PAG.
 
 ## Run FCI+
 
@@ -93,3 +96,14 @@ FCI+ uses the same `FCIResult` and PAG representation as standard FCI. The
 difference is the refinement stage: standard FCI uses Possible-D-Sep search,
 while FCI+ uses a sparse hierarchical D-SEP search driven by separating sets
 already discovered in earlier stages.
+
+## Visual Oracle Report
+
+For a larger sanity check on known synthetic structures:
+
+```bash
+PYTHONPATH=src python examples/08_visual_benchmark_report.py
+```
+
+Open `examples/realistic_benchmark_report.html` to inspect aggregate scores,
+semantic PAG compatibility metrics, and side-by-side true versus learned PAGs.

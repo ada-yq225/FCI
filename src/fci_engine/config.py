@@ -34,6 +34,9 @@ class FCIConfig:
         conservative_colliders: Use conservative unshielded-collider
             orientation by checking multiple separating sets and leaving
             ambiguous triples unoriented.
+        conservative_orientation: Skip tail-producing orientation propagation
+            rules after collider orientation. This favors keeping circle
+            endpoints over aggressive finite-sample orientation.
         background_knowledge: Required and forbidden orientation constraints.
         verbose: Enable detailed logging output.
     """
@@ -47,6 +50,7 @@ class FCIConfig:
     pdsep_stable: bool = True
     sepset_selection: str = "max_pvalue"
     conservative_colliders: bool = False
+    conservative_orientation: bool = False
     background_knowledge: Optional[BackgroundKnowledge] = None
     verbose: bool = False
 

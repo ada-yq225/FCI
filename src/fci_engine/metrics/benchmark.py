@@ -17,10 +17,13 @@ from typing import Callable, Optional, Union
 
 from fci_engine.ci import CITest, KernelCITest
 from fci_engine.api import fci, fci_plus
+from fci_engine.diagnostics import OrientationEvent
 from fci_engine.metrics.accuracy import (
     NormalizedShape,
     PAGComparison,
+    PAGESemanticComparison,
     compare_pag_shapes,
+    compare_pag_shapes_semantic,
     shape_from_pag,
 )
 from fci_engine.simulation.oracle_cases import OracleCase
@@ -33,10 +36,12 @@ class BenchmarkResult:
     case_name: str
     algorithm: str
     comparison: Optional[PAGComparison]
+    semantic_comparison: Optional[PAGESemanticComparison]
     edges: NormalizedShape
     elapsed_time: Optional[float]
     ci_test_count: Optional[int] = None
     cache_hits: Optional[int] = None
+    orientation_trace: Optional[list[OrientationEvent]] = None
     skipped_reason: Optional[str] = None
 
     @property
@@ -49,9 +54,11 @@ class BenchmarkResult:
         if self.skipped:
             return f"{self.case_name:24s} {self.algorithm:18s} skipped: {self.skipped_reason}"
         assert self.comparison is not None
+        assert self.semantic_comparison is not None
         return (
             f"{self.case_name:24s} {self.algorithm:18s} "
             f"{self.comparison.summary()} "
+            f"{self.semantic_comparison.summary()} "
             f"time={self.elapsed_time:.4f}s ci={self.ci_test_count}"
         )
 
@@ -64,6 +71,7 @@ class BenchmarkAggregate:
     n_cases: int
     skipped_cases: int
     mean_exact_edge_f1: float
+    mean_semantic_edge_f1: float
     mean_skeleton_f1: float
     mean_endpoint_accuracy: float
     mean_elapsed_time: Optional[float]
@@ -81,6 +89,7 @@ class BenchmarkAggregate:
         return (
             f"{self.algorithm:26s} "
             f"exact_f1={self.mean_exact_edge_f1:.3f} "
+            f"semantic_f1={self.mean_semantic_edge_f1:.3f} "
             f"skeleton_f1={self.mean_skeleton_f1:.3f} "
             f"endpoint_acc={self.mean_endpoint_accuracy:.3f} "
             f"time={elapsed} ci={ci_tests} "
@@ -156,10 +165,12 @@ def run_fci_engine(
         case_name=case.name,
         algorithm=algorithm_name,
         comparison=compare_pag_shapes(case.oracle_shape, edges),
+        semantic_comparison=compare_pag_shapes_semantic(case.oracle_shape, edges),
         edges=edges,
         elapsed_time=elapsed,
         ci_test_count=result.ci_test_count,
         cache_hits=result.cache_hits,
+        orientation_trace=result.orientation_trace,
     )
 
 
@@ -202,6 +213,7 @@ def run_causal_learn_fci(case: OracleCase, method: str = "fisherz") -> Benchmark
         case_name=case.name,
         algorithm=f"causal-learn.fci.{method}",
         comparison=compare_pag_shapes(case.oracle_shape, edges),
+        semantic_comparison=compare_pag_shapes_semantic(case.oracle_shape, edges),
         edges=edges,
         elapsed_time=elapsed,
     )
@@ -240,6 +252,7 @@ def run_pcalg_fci_plus(case: OracleCase, timeout: int = 60) -> BenchmarkResult:
         case_name=case.name,
         algorithm="pcalg.fciPlus",
         comparison=compare_pag_shapes(case.oracle_shape, edges),
+        semantic_comparison=compare_pag_shapes_semantic(case.oracle_shape, edges),
         edges=edges,
         elapsed_time=elapsed,
     )
@@ -281,6 +294,11 @@ def aggregate_benchmark_results(
         comparisons = [
             result.comparison for result in completed if result.comparison is not None
         ]
+        semantic_comparisons = [
+            result.semantic_comparison
+            for result in completed
+            if result.semantic_comparison is not None
+        ]
         elapsed_times = [
             result.elapsed_time for result in completed if result.elapsed_time is not None
         ]
@@ -294,6 +312,10 @@ def aggregate_benchmark_results(
                 skipped_cases=len(group) - len(completed),
                 mean_exact_edge_f1=_mean(
                     comparison.exact_edge_f1 for comparison in comparisons
+                ),
+                mean_semantic_edge_f1=_mean(
+                    comparison.semantic_edge_f1
+                    for comparison in semantic_comparisons
                 ),
                 mean_skeleton_f1=_mean(
                     comparison.skeleton_f1 for comparison in comparisons
@@ -310,6 +332,7 @@ def aggregate_benchmark_results(
         aggregates,
         key=lambda item: (
             item.mean_exact_edge_f1,
+            item.mean_semantic_edge_f1,
             item.mean_skeleton_f1,
             item.mean_endpoint_accuracy,
             -(item.mean_elapsed_time or float("inf")),
@@ -406,6 +429,7 @@ def _skipped(case: OracleCase, algorithm: str, reason: str) -> BenchmarkResult:
         case_name=case.name,
         algorithm=algorithm,
         comparison=None,
+        semantic_comparison=None,
         edges={},
         elapsed_time=None,
         skipped_reason=reason,

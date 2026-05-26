@@ -1,0 +1,639 @@
+"""Generate a visual HTML report for realistic FCI oracle benchmarks."""
+
+from __future__ import annotations
+
+import argparse
+import html
+import math
+from pathlib import Path
+from typing import Iterable, Optional
+
+from fci_engine.metrics import (
+    BenchmarkAggregate,
+    BenchmarkResult,
+    aggregate_benchmark_results,
+    explain_pag_differences,
+    run_oracle_benchmark,
+)
+from fci_engine.metrics.accuracy import Shape
+from fci_engine.simulation import OracleCase, default_oracle_cases, realistic_oracle_cases
+
+
+REPORT_PATH = Path(__file__).with_name("realistic_benchmark_report.html")
+COLORS = {
+    "fci_engine.fci": "#2563eb",
+    "fci_engine.fci_plus": "#059669",
+    "fci_engine.fci.kernel": "#7c3aed",
+    "fci_engine.fci_plus.kernel": "#a855f7",
+    "causal-learn.fci.fisherz": "#d97706",
+    "causal-learn.fci.kci": "#f59e0b",
+    "pcalg.fciPlus": "#dc2626",
+}
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--repeats", type=int, default=2)
+    parser.add_argument("--samples", type=int, default=6000)
+    parser.add_argument("--no-external", action="store_true")
+    parser.add_argument("--output", type=Path, default=REPORT_PATH)
+    args = parser.parse_args()
+
+    cases = [
+        *default_oracle_cases(),
+        *realistic_oracle_cases(n_repeats=args.repeats, n_samples=args.samples),
+    ]
+    results = run_oracle_benchmark(
+        cases,
+        include_causal_learn=not args.no_external,
+        include_pcalg=not args.no_external,
+    )
+    html_text = render_report(cases, results)
+    args.output.write_text(html_text, encoding="utf-8")
+    print(f"Wrote {args.output}")
+
+
+def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> str:
+    aggregates = aggregate_benchmark_results(results)
+    selected_cases = _selected_cases(cases)
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FCI Realistic Benchmark Report</title>
+<style>
+  :root {{
+    color-scheme: light;
+    --ink: #101827;
+    --muted: #667085;
+    --line: #d0d5dd;
+    --panel: #ffffff;
+    --band: #f3f6fa;
+  }}
+  * {{ box-sizing: border-box; }}
+  body {{
+    margin: 0;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", sans-serif;
+    background: var(--band);
+    color: var(--ink);
+  }}
+  header {{
+    padding: 28px 36px 20px;
+    background: #ffffff;
+    border-bottom: 1px solid var(--line);
+  }}
+  h1 {{ margin: 0 0 8px; font-size: 28px; line-height: 1.15; }}
+  h2 {{ margin: 0 0 14px; font-size: 18px; }}
+  p {{ margin: 0; color: var(--muted); line-height: 1.5; }}
+  main {{
+    width: min(1420px, calc(100vw - 48px));
+    margin: 24px auto 40px;
+  }}
+  section {{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    margin-bottom: 18px;
+    padding: 18px;
+  }}
+  .grid {{
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }}
+  .graph-row {{
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }}
+  .case-title {{
+    font-weight: 700;
+    margin-bottom: 6px;
+  }}
+  .caption {{
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 6px;
+  }}
+  .diff-table {{
+    margin-top: 12px;
+    font-size: 12px;
+  }}
+  .diff-table th, .diff-table td {{
+    white-space: normal;
+    vertical-align: top;
+  }}
+  .diff-empty {{
+    margin-top: 10px;
+    color: #16a34a;
+    font-size: 13px;
+    font-weight: 700;
+  }}
+  .legend {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 2px 0 14px;
+    color: var(--muted);
+    font-size: 13px;
+  }}
+  .legend-item {{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }}
+  .legend-line {{
+    width: 24px;
+    height: 3px;
+    border-radius: 999px;
+    background: currentColor;
+  }}
+  table {{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }}
+  th, td {{
+    text-align: left;
+    border-bottom: 1px solid #eaecf0;
+    padding: 8px 10px;
+    white-space: nowrap;
+  }}
+  th {{ color: #475467; font-weight: 700; background: #f9fafb; }}
+  .score {{ font-variant-numeric: tabular-nums; }}
+  .chip {{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }}
+  .dot {{
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    background: currentColor;
+  }}
+  svg text {{ font-family: inherit; }}
+  @media (max-width: 1000px) {{
+    main {{ width: min(100vw - 24px, 900px); }}
+    .grid, .graph-row {{ grid-template-columns: 1fr; }}
+  }}
+</style>
+</head>
+<body>
+<header>
+  <h1>FCI Realistic Oracle Benchmark</h1>
+  <p>{len(cases)} hand-written oracle cases. Scores compare learned PAGs with
+  known expected shapes; causal-learn and pcalg are references, not ground truth.</p>
+</header>
+<main>
+  <section>
+    <h2>Aggregate Accuracy</h2>
+    {render_aggregate_chart(aggregates)}
+  </section>
+  <section>
+    <h2>Per-Case Scores</h2>
+    {render_score_table(results)}
+  </section>
+  <section>
+    <h2>True Graph vs FCI+ Output</h2>
+    {render_graph_gallery(selected_cases, results)}
+  </section>
+</main>
+</body>
+</html>
+"""
+
+
+def render_aggregate_chart(aggregates: list[BenchmarkAggregate]) -> str:
+    row_height = 74
+    width = 1120
+    height = 36 + row_height * len(aggregates)
+    metric_width = 210
+    label_width = 250
+    svg = [
+        f'<svg viewBox="0 0 {width} {height}" width="100%" height="{height}" '
+        'role="img" aria-label="Aggregate benchmark scores">'
+    ]
+    svg.append('<rect width="100%" height="100%" fill="#ffffff"/>')
+    svg.append('<text x="10" y="22" font-size="13" fill="#667085">Algorithm</text>')
+    for index, label in enumerate(
+        ("Exact F1", "Semantic F1", "Skeleton F1", "Endpoint Acc")
+    ):
+        x = label_width + index * metric_width
+        svg.append(f'<text x="{x}" y="22" font-size="13" fill="#667085">{label}</text>')
+
+    for row, aggregate in enumerate(aggregates):
+        y = 42 + row * row_height
+        color = _color(aggregate.algorithm)
+        svg.append(f'<line x1="0" y1="{y - 14}" x2="{width}" y2="{y - 14}" stroke="#eaecf0"/>')
+        svg.append(f'<circle cx="16" cy="{y + 14}" r="5" fill="{color}"/>')
+        svg.append(
+            f'<text x="30" y="{y + 18}" font-size="14" font-weight="700" '
+            f'fill="#101827">{_esc(aggregate.algorithm)}</text>'
+        )
+        for index, value in enumerate(
+            (
+                aggregate.mean_exact_edge_f1,
+                aggregate.mean_semantic_edge_f1,
+                aggregate.mean_skeleton_f1,
+                aggregate.mean_endpoint_accuracy,
+            )
+        ):
+            x = label_width + index * metric_width
+            bar_width = 170
+            filled = bar_width * value
+            svg.append(
+                f'<rect x="{x}" y="{y}" width="{bar_width}" height="16" '
+                'rx="4" fill="#eef2f6"/>'
+            )
+            svg.append(
+                f'<rect x="{x}" y="{y}" width="{filled:.2f}" height="16" '
+                f'rx="4" fill="{color}"/>'
+            )
+            svg.append(
+                f'<text x="{x + bar_width + 10}" y="{y + 13}" font-size="13" '
+                f'fill="#344054">{value:.3f}</text>'
+            )
+        if aggregate.mean_ci_test_count is not None:
+            svg.append(
+                f'<text x="{label_width}" y="{y + 42}" font-size="12" '
+                f'fill="#667085">mean CI tests: {aggregate.mean_ci_test_count:.1f}</text>'
+            )
+        if aggregate.mean_elapsed_time is not None:
+            svg.append(
+                f'<text x="{label_width + 190}" y="{y + 42}" font-size="12" '
+                f'fill="#667085">mean time: {aggregate.mean_elapsed_time:.4f}s</text>'
+            )
+    svg.append("</svg>")
+    return "\n".join(svg)
+
+
+def render_score_table(results: list[BenchmarkResult]) -> str:
+    rows = []
+    for result in results:
+        if result.skipped:
+            rows.append(
+                "<tr>"
+                f"<td>{_esc(result.case_name)}</td>"
+                f"<td>{_algorithm_chip(result.algorithm)}</td>"
+                f"<td colspan='8'>{_esc(result.skipped_reason or 'skipped')}</td>"
+                "</tr>"
+            )
+            continue
+        assert result.comparison is not None
+        assert result.semantic_comparison is not None
+        comparison = result.comparison
+        semantic = result.semantic_comparison
+        rows.append(
+            "<tr>"
+            f"<td>{_esc(result.case_name)}</td>"
+            f"<td>{_algorithm_chip(result.algorithm)}</td>"
+            f"<td class='score'>{comparison.exact_edge_f1:.3f}</td>"
+            f"<td class='score'>{semantic.semantic_edge_f1:.3f}</td>"
+            f"<td class='score'>{comparison.skeleton_f1:.3f}</td>"
+            f"<td class='score'>{comparison.endpoint_accuracy:.3f}</td>"
+            f"<td class='score'>{semantic.compatible_endpoint_accuracy:.3f}</td>"
+            f"<td class='score'>{comparison.false_positive_edges}</td>"
+            f"<td class='score'>{comparison.false_negative_edges}</td>"
+            f"<td class='score'>{'' if result.ci_test_count is None else result.ci_test_count}</td>"
+            "</tr>"
+        )
+    return (
+        "<table>"
+        "<thead><tr><th>Case</th><th>Algorithm</th><th>Exact F1</th>"
+        "<th>Semantic F1</th><th>Skeleton F1</th><th>Endpoint Acc</th>"
+        "<th>Compatible Endpoint Acc</th><th>FP</th><th>FN</th>"
+        "<th>CI Tests</th></tr></thead>"
+        f"<tbody>{''.join(rows)}</tbody></table>"
+    )
+
+
+def render_graph_gallery(
+    cases: list[OracleCase],
+    results: list[BenchmarkResult],
+) -> str:
+    cards = []
+    for case in cases:
+        learned = _preferred_engine_result(case, results)
+        if learned is None:
+            continue
+        cards.append(
+            "<section>"
+            f"<div class='case-title'>{_esc(case.name)}</div>"
+            f"<p>{_esc(case.notes)}</p>"
+            "<div class='graph-row' style='margin-top:14px'>"
+            "<div>"
+            f"{render_pag_svg(case.oracle_shape, list(case.data.columns), 'Oracle PAG', learned.edges, 'oracle')}"
+            "<div class='caption'>Hand-written expected PAG</div>"
+            "</div>"
+            "<div>"
+            f"{render_pag_svg(learned.edges, list(case.data.columns), learned.algorithm, case.oracle_shape, 'learned')}"
+            f"<div class='caption'>Learned output: {_esc(learned.algorithm)}</div>"
+            "</div>"
+            "</div>"
+            f"{render_difference_table(case, learned)}"
+            "</section>"
+        )
+    legend = (
+        "<div class='legend'>"
+        "<span class='legend-item' style='color:#16a34a'><span class='legend-line'></span>exact match</span>"
+        "<span class='legend-item' style='color:#d97706'><span class='legend-line'></span>endpoint differs</span>"
+        "<span class='legend-item' style='color:#dc2626'><span class='legend-line'></span>missing or extra edge</span>"
+        "<span class='legend-item' style='color:#475467'><span class='legend-line'></span>not compared</span>"
+        "</div>"
+    )
+    return legend + "<div class='grid'>" + "".join(cards) + "</div>"
+
+
+def render_difference_table(case: OracleCase, learned: BenchmarkResult) -> str:
+    differences = explain_pag_differences(
+        case.oracle_shape,
+        learned.edges,
+        learned.orientation_trace,
+    )
+    if not differences:
+        return "<div class='diff-empty'>No edge-level differences for this output.</div>"
+
+    rows = []
+    for diff in differences[:12]:
+        rules = ", ".join(
+            sorted({str(event.get("rule", "")) for event in diff.orientation_events})
+        )
+        if not rules:
+            rules = "-"
+        rows.append(
+            "<tr>"
+            f"<td>{_esc(diff.kind)}</td>"
+            f"<td>{_esc(diff.edge[0])}-{_esc(diff.edge[1])}</td>"
+            f"<td>{_esc(_edge_text(diff.edge, diff.expected))}</td>"
+            f"<td>{_esc(_edge_text(diff.edge, diff.actual))}</td>"
+            f"<td>{_esc('/'.join(diff.endpoint_status))}</td>"
+            f"<td>{_esc(rules)}</td>"
+            "</tr>"
+        )
+    more = "" if len(differences) <= 12 else f"<p class='caption'>+{len(differences) - 12} more differences omitted.</p>"
+    return (
+        "<div class='diff-table'>"
+        "<table><thead><tr><th>Kind</th><th>Edge</th><th>Expected</th>"
+        "<th>Actual</th><th>Endpoint Status</th><th>Orientation Rules</th>"
+        "</tr></thead>"
+        f"<tbody>{''.join(rows)}</tbody></table>{more}</div>"
+    )
+
+
+def render_pag_svg(
+    shape: Shape,
+    nodes: list[str],
+    title: str,
+    reference_shape: Optional[Shape] = None,
+    comparison_side: str = "learned",
+    width: int = 540,
+    height: int = 380,
+) -> str:
+    positions = _circle_layout(nodes, width, height)
+    normalized_shape = _normalized_shape(shape)
+    normalized_reference = (
+        _normalized_shape(reference_shape) if reference_shape is not None else None
+    )
+    edge_parts = []
+    for (x, y), endpoints in sorted(shape.items()):
+        endpoint_x, endpoint_y = _endpoint_name(endpoints[0]), _endpoint_name(endpoints[1])
+        status = _edge_status(
+            (x, y),
+            normalized_shape,
+            normalized_reference,
+            comparison_side=comparison_side,
+        )
+        stroke, stroke_width, dasharray = _edge_style(status)
+        x1, y1 = positions[x]
+        x2, y2 = positions[y]
+        start, end = _trimmed_line((x1, y1), (x2, y2), 30)
+        edge_parts.append(
+            f'<line x1="{start[0]:.1f}" y1="{start[1]:.1f}" '
+            f'x2="{end[0]:.1f}" y2="{end[1]:.1f}" '
+            f'stroke="{stroke}" stroke-width="{stroke_width}"{dasharray}/>'
+        )
+        edge_parts.append(_endpoint_svg(endpoint_x, start, end, stroke))
+        edge_parts.append(_endpoint_svg(endpoint_y, end, start, stroke))
+
+    node_parts = []
+    for node in nodes:
+        x, y = positions[node]
+        node_parts.append(
+            f'<circle cx="{x:.1f}" cy="{y:.1f}" r="25" fill="#f8fafc" '
+            'stroke="#344054" stroke-width="1.5"/>'
+        )
+        node_parts.append(
+            f'<text x="{x:.1f}" y="{y + 4:.1f}" text-anchor="middle" '
+            'font-size="11" font-weight="700" fill="#101827">'
+            f"{_esc(node)}</text>"
+        )
+
+    return (
+        f'<svg viewBox="0 0 {width} {height}" width="100%" height="{height}" '
+        f'role="img" aria-label="{_esc(title)}">'
+        '<rect width="100%" height="100%" rx="8" fill="#ffffff" stroke="#d0d5dd"/>'
+        f'<text x="16" y="26" font-size="15" font-weight="800" '
+        f'fill="#101827">{_esc(title)}</text>'
+        f"{''.join(edge_parts)}"
+        f"{''.join(node_parts)}"
+        "</svg>"
+    )
+
+
+def _selected_cases(cases: list[OracleCase]) -> list[OracleCase]:
+    wanted = [
+        "latent_medical",
+        "nonlinear_common_cause",
+        "finance_risk_r1",
+        "enterprise_monitoring_r1",
+    ]
+    by_name = {case.name: case for case in cases}
+    return [by_name[name] for name in wanted if name in by_name]
+
+
+def _preferred_engine_result(
+    case: OracleCase,
+    results: list[BenchmarkResult],
+) -> Optional[BenchmarkResult]:
+    preferred = (
+        "fci_engine.fci_plus.kernel"
+        if case.use_kernel_ci
+        else "fci_engine.fci_plus"
+    )
+    for result in results:
+        if result.case_name == case.name and result.algorithm == preferred:
+            return result
+    return None
+
+
+def _circle_layout(
+    nodes: list[str],
+    width: int,
+    height: int,
+) -> dict[str, tuple[float, float]]:
+    center_x = width / 2
+    center_y = height / 2 + 12
+    radius = min(width, height) * 0.33
+    positions = {}
+    for index, node in enumerate(nodes):
+        angle = -math.pi / 2 + 2 * math.pi * index / max(len(nodes), 1)
+        positions[node] = (
+            center_x + radius * math.cos(angle),
+            center_y + radius * math.sin(angle),
+        )
+    return positions
+
+
+def _trimmed_line(
+    start: tuple[float, float],
+    end: tuple[float, float],
+    radius: float,
+) -> tuple[tuple[float, float], tuple[float, float]]:
+    dx = end[0] - start[0]
+    dy = end[1] - start[1]
+    distance = math.hypot(dx, dy)
+    if distance == 0:
+        return start, end
+    ux = dx / distance
+    uy = dy / distance
+    return (
+        (start[0] + ux * radius, start[1] + uy * radius),
+        (end[0] - ux * radius, end[1] - uy * radius),
+    )
+
+
+def _endpoint_svg(
+    endpoint: str,
+    point: tuple[float, float],
+    toward: tuple[float, float],
+    color: str = "#475467",
+) -> str:
+    dx = point[0] - toward[0]
+    dy = point[1] - toward[1]
+    distance = math.hypot(dx, dy)
+    if distance == 0:
+        return ""
+    ux = dx / distance
+    uy = dy / distance
+    px = -uy
+    py = ux
+    if endpoint == "CIRCLE":
+        return (
+            f'<circle cx="{point[0]:.1f}" cy="{point[1]:.1f}" r="5" '
+            f'fill="#ffffff" stroke="{color}" stroke-width="1.8"/>'
+        )
+    if endpoint == "ARROW":
+        tip = point
+        base_x = point[0] - ux * 13
+        base_y = point[1] - uy * 13
+        p1 = (base_x + px * 5, base_y + py * 5)
+        p2 = (base_x - px * 5, base_y - py * 5)
+        return (
+            f'<polygon points="{tip[0]:.1f},{tip[1]:.1f} '
+            f'{p1[0]:.1f},{p1[1]:.1f} {p2[0]:.1f},{p2[1]:.1f}" '
+            f'fill="{color}"/>'
+        )
+    if endpoint == "TAIL":
+        p1 = (point[0] + px * 7, point[1] + py * 7)
+        p2 = (point[0] - px * 7, point[1] - py * 7)
+        return (
+            f'<line x1="{p1[0]:.1f}" y1="{p1[1]:.1f}" '
+            f'x2="{p2[0]:.1f}" y2="{p2[1]:.1f}" '
+            f'stroke="{color}" stroke-width="2.4"/>'
+        )
+    return ""
+
+
+def _normalized_shape(
+    shape: Optional[Shape],
+) -> dict[tuple[str, str], tuple[str, str]]:
+    if shape is None:
+        return {}
+    normalized = {}
+    for (x, y), endpoints in shape.items():
+        normalized[(str(x), str(y))] = (
+            _endpoint_name(endpoints[0]),
+            _endpoint_name(endpoints[1]),
+        )
+    return normalized
+
+
+def _edge_status(
+    edge: tuple[str, str],
+    shape: dict[tuple[str, str], tuple[str, str]],
+    reference_shape: Optional[dict[tuple[str, str], tuple[str, str]]],
+    comparison_side: str,
+) -> str:
+    if reference_shape is None:
+        return "neutral"
+    if edge not in reference_shape:
+        return "missing" if comparison_side == "oracle" else "extra"
+    if shape[edge] == reference_shape[edge]:
+        return "match"
+    return "endpoint_diff"
+
+
+def _edge_style(status: str) -> tuple[str, str, str]:
+    styles = {
+        "match": ("#16a34a", "2.2", ""),
+        "endpoint_diff": ("#d97706", "2.6", ""),
+        "missing": ("#dc2626", "2.8", ' stroke-dasharray="7 5"'),
+        "extra": ("#dc2626", "2.8", ' stroke-dasharray="7 5"'),
+        "neutral": ("#475467", "1.8", ""),
+    }
+    return styles.get(status, styles["neutral"])
+
+
+def _algorithm_chip(algorithm: str) -> str:
+    color = _color(algorithm)
+    return (
+        f'<span class="chip" style="color:{color}">'
+        '<span class="dot"></span>'
+        f'<span style="color:#101827">{_esc(algorithm)}</span>'
+        "</span>"
+    )
+
+
+def _color(algorithm: str) -> str:
+    return COLORS.get(algorithm, "#475467")
+
+
+def _endpoint_name(endpoint: object) -> str:
+    return getattr(endpoint, "name", str(endpoint)).upper()
+
+
+def _edge_text(
+    edge: tuple[str, str],
+    endpoints: Optional[tuple[str, str]],
+) -> str:
+    if endpoints is None:
+        return "missing"
+    return f"{edge[0]} {_edge_mark(endpoints)} {edge[1]}"
+
+
+def _edge_mark(endpoints: tuple[str, str]) -> str:
+    left, right = endpoints
+    left_marks = {
+        "ARROW": "<",
+        "TAIL": "-",
+        "CIRCLE": "o",
+        "NONE": " ",
+    }
+    right_marks = {
+        "ARROW": ">",
+        "TAIL": "-",
+        "CIRCLE": "o",
+        "NONE": " ",
+    }
+    return f"{left_marks.get(left, '?')}-{right_marks.get(right, '?')}"
+
+
+def _esc(text: object) -> str:
+    return html.escape(str(text), quote=True)
+
+
+if __name__ == "__main__":
+    main()

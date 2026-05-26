@@ -12,6 +12,7 @@ from fci_engine.simulation import (
     default_oracle_cases,
     make_independent_noise_case,
     make_latent_medical_case,
+    realistic_oracle_cases,
 )
 
 
@@ -65,6 +66,24 @@ def test_benchmark_leaderboard_aggregates_by_algorithm() -> None:
     }
     assert all(aggregate.mean_exact_edge_f1 == 1.0 for aggregate in aggregates)
     assert "endpoint_acc" in formatted
+
+
+def test_realistic_oracle_cases_run_engine_algorithms() -> None:
+    cases = realistic_oracle_cases(n_repeats=1, n_samples=600)
+
+    results = run_oracle_benchmark(
+        cases[:2],
+        include_causal_learn=False,
+        include_pcalg=False,
+    )
+
+    assert len(cases) == 5
+    assert {case.name for case in cases} >= {
+        "hospital_triage",
+        "microservice_incident",
+    }
+    assert all(result.comparison is not None for result in results)
+    assert all(not result.skipped for result in results)
 
 
 def test_pcalg_runner_skips_cleanly_without_rscript() -> None:

@@ -138,6 +138,28 @@ def test_apply_orientation_rules_respects_ambiguous_triples_in_r1() -> None:
     assert graph.edge_repr("Z", "Y") == "Z o-o Y"
 
 
+def test_conservative_orientation_skips_tail_propagation_rules() -> None:
+    graph = PAG(["A", "B", "C"])
+    graph.add_edge("A", "B", Endpoint.TAIL, Endpoint.ARROW)
+    graph.add_edge("B", "C", Endpoint.TAIL, Endpoint.ARROW)
+    graph.add_edge("A", "C", Endpoint.CIRCLE, Endpoint.ARROW)
+
+    apply_orientation_rules(graph, {}, conservative_orientation=True)
+
+    assert graph.edge_repr("A", "C") == "A o-> C"
+
+
+def test_conservative_orientation_still_allows_arrowhead_rules() -> None:
+    graph = PAG(["A", "B", "C"])
+    graph.add_edge("A", "B", Endpoint.TAIL, Endpoint.ARROW)
+    graph.add_edge("B", "C", Endpoint.TAIL, Endpoint.ARROW)
+    graph.add_circle_edge("A", "C")
+
+    apply_orientation_rules(graph, {}, conservative_orientation=True)
+
+    assert graph.edge_repr("A", "C") == "A o-> C"
+
+
 def test_existing_arrowheads_are_preserved_by_rules() -> None:
     graph = PAG(["X", "Z", "Y"])
     graph.add_edge("X", "Z", Endpoint.ARROW, Endpoint.ARROW)

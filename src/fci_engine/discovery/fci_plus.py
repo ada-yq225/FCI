@@ -115,6 +115,7 @@ class FCIPlus:
             verbose=resolved_config.verbose,
             trace=orientation_trace,
             ambiguous_triples=ambiguous_triples,
+            conservative_orientation=resolved_config.conservative_orientation,
         )
 
         result = FCIResult(

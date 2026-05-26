@@ -28,6 +28,7 @@ def apply_orientation_rules(
     verbose: bool = False,
     trace: Optional[list[OrientationEvent]] = None,
     ambiguous_triples: Optional[Iterable[Triple]] = None,
+    conservative_orientation: bool = False,
 ) -> PAG:
     """Apply FCI orientation rules until convergence."""
 
@@ -36,31 +37,35 @@ def apply_orientation_rules(
     if max_path_length is not None and max_path_length < 0:
         raise ValueError("max_path_length must be non-negative.")
 
-    rules = [
+    arrowhead_rules = [
         rule_propagate_arrowheads,
         rule_double_triangle_arrowheads,
         rule_propagate_arrowheads_along_directed_paths,
+    ]
+    tail_rules = [
         rule_avoid_directed_cycles,
         rule_selection_bias_tail_from_undirected,
         rule_selection_bias_tail_from_noncollider,
         rule_orient_tail_along_directed_chain,
     ]
+    rules = arrowhead_rules if conservative_orientation else arrowhead_rules + tail_rules
 
     for iteration in range(max_iter):
         changed = False
-        rule_changed = rule_avoid_new_unshielded_colliders(
-            graph,
-            sepsets,
-            trace=trace,
-            iteration=iteration,
-            ambiguous_triples=ambiguous_triples,
-        )
-        if verbose and rule_changed:
-            print(
-                "rule_avoid_new_unshielded_colliders changed graph "
-                f"at iteration {iteration}."
+        if not conservative_orientation:
+            rule_changed = rule_avoid_new_unshielded_colliders(
+                graph,
+                sepsets,
+                trace=trace,
+                iteration=iteration,
+                ambiguous_triples=ambiguous_triples,
             )
-        changed = changed or rule_changed
+            if verbose and rule_changed:
+                print(
+                    "rule_avoid_new_unshielded_colliders changed graph "
+                    f"at iteration {iteration}."
+                )
+            changed = changed or rule_changed
         for rule in rules:
             rule_changed = rule(
                 graph,
@@ -77,6 +82,7 @@ def apply_orientation_rules(
             max_path_length=max_path_length,
             trace=trace,
             iteration=iteration,
+            conservative_orientation=conservative_orientation,
         )
         if verbose and rule_changed:
             print(
@@ -84,21 +90,25 @@ def apply_orientation_rules(
                 f"at iteration {iteration}."
             )
         changed = changed or rule_changed
-        for path_rule in (
-            rule_uncovered_circle_path_selection_bias,
-            rule_orient_tail_along_uncovered_pd_path,
-            rule_orient_tail_with_two_directed_parents,
-        ):
-            rule_changed = path_rule(
-                graph,
-                sepsets,
-                max_path_length=max_path_length,
-                trace=trace,
-                iteration=iteration,
-            )
-            if verbose and rule_changed:
-                print(f"{path_rule.__name__} changed graph at iteration {iteration}.")
-            changed = changed or rule_changed
+        if not conservative_orientation:
+            for path_rule in (
+                rule_uncovered_circle_path_selection_bias,
+                rule_orient_tail_along_uncovered_pd_path,
+                rule_orient_tail_with_two_directed_parents,
+            ):
+                rule_changed = path_rule(
+                    graph,
+                    sepsets,
+                    max_path_length=max_path_length,
+                    trace=trace,
+                    iteration=iteration,
+                )
+                if verbose and rule_changed:
+                    print(
+                        f"{path_rule.__name__} changed graph at iteration "
+                        f"{iteration}."
+                    )
+                changed = changed or rule_changed
         if not changed:
             break
     return graph
@@ -323,6 +333,7 @@ def rule_discriminating_paths(
     max_path_length: Optional[int] = None,
     trace: Optional[list[OrientationEvent]] = None,
     iteration: Optional[int] = None,
+    conservative_orientation: bool = False,
 ) -> bool:
     """R4: orient triples identified by definite discriminating paths."""
 
@@ -337,6 +348,8 @@ def rule_discriminating_paths(
             continue
 
         if b in sepset:
+            if conservative_orientation:
+                continue
             changed = (
                 _orient_tail_if_circle(
                     graph,

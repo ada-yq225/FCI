@@ -54,6 +54,9 @@ Configuration options:
 - `conservative_colliders`: use Conservative-FCI-style unshielded collider
   orientation; triples with conflicting separating sets are reported as
   ambiguous instead of being forced into a collider
+- `conservative_orientation`: keep arrowhead-producing orientation rules but
+  skip tail-producing propagation rules; useful when audits prefer a less
+  committed PAG over possible over-orientation
 - `background_knowledge`: required and forbidden orientation constraints
 - `verbose`: print CI and orientation progress
 
@@ -174,6 +177,31 @@ print(format_benchmark_leaderboard(results))
 The benchmark runner compares `fci_engine.fci`, `fci_engine.fci_plus`, optional
 causal-learn FCI, and optional R `pcalg::fciPlus`. If `Rscript` or `pcalg` is
 not installed, the pcalg row is returned with a skip reason instead of failing.
+
+Each completed row contains strict exact-edge metrics and semantic PAG metrics.
+The semantic score counts `o->` versus `-->` as a compatible certainty
+difference, while still reporting whether an endpoint was over-oriented,
+under-oriented, or contradicted.
+
+For hand-written oracle cases, use `CausalGraphSpec`:
+
+```python
+from fci_engine import CausalGraphSpec
+
+spec = CausalGraphSpec(
+    observed_nodes=["X", "Y"],
+    latent_nodes=["U"],
+    directed_edges=[("U", "X"), ("U", "Y")],
+)
+expected_pag_shape = spec.to_pag_shape()
+```
+
+To generate the HTML report with side-by-side true and learned PAGs plus
+edge-level difference explanations:
+
+```bash
+PYTHONPATH=src python examples/08_visual_benchmark_report.py
+```
 
 ## Background Knowledge
 
