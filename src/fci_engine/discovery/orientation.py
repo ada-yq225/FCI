@@ -6,6 +6,7 @@ from collections import deque
 from collections.abc import Hashable, Mapping
 from typing import Optional
 
+from fci_engine.diagnostics import OrientationEvent
 from fci_engine.graph import Endpoint, PAG
 
 
@@ -101,7 +102,11 @@ def definite_noncollider(
     return False
 
 
-def orient_unshielded_colliders(graph: PAG, sepsets: SepsetMap) -> PAG:
+def orient_unshielded_colliders(
+    graph: PAG,
+    sepsets: SepsetMap,
+    trace: Optional[list[OrientationEvent]] = None,
+) -> PAG:
     """Orient unshielded colliders as ``x *-> z <-* y``."""
 
     for x, z, y in find_unshielded_triples(graph):
@@ -109,8 +114,31 @@ def orient_unshielded_colliders(graph: PAG, sepsets: SepsetMap) -> PAG:
         if z in sepset:
             continue
 
-        _safe_orient_arrowhead(graph, x, z)
-        _safe_orient_arrowhead(graph, y, z)
+        reason = f"{z!r} not in sepset({x!r}, {y!r})"
+        _safe_orient_arrowhead(
+            graph,
+            x,
+            z,
+            trace=trace,
+            rule="orient_unshielded_colliders",
+            reason=reason,
+        )
+        _safe_orient_arrowhead(
+            graph,
+            y,
+            z,
+            trace=trace,
+            rule="orient_unshielded_colliders",
+            reason=reason,
+        )
+    return graph
+
+
+def reset_endpoint_marks(graph: PAG) -> PAG:
+    """Reset every remaining edge to ``circle-circle`` while preserving skeleton."""
+
+    for x, y in graph.edges():
+        graph.add_circle_edge(x, y)
     return graph
 
 
@@ -122,14 +150,35 @@ def _get_sepset(
     return sepsets.get((x, y), sepsets.get((y, x), set()))
 
 
-def _safe_orient_arrowhead(graph: PAG, x: Hashable, y: Hashable) -> None:
+def _safe_orient_arrowhead(
+    graph: PAG,
+    x: Hashable,
+    y: Hashable,
+    trace: Optional[list[OrientationEvent]] = None,
+    rule: str = "orient_unshielded_colliders",
+    reason: str = "",
+) -> None:
     """Put an arrowhead at ``y`` without erasing stronger endpoint marks."""
 
     current = graph.get_endpoint(x, y)
     if current is Endpoint.ARROW:
         return
     if current is Endpoint.CIRCLE:
+        before_edge = graph.edge_repr(x, y)
         graph.orient_arrowhead(x, y)
+        if trace is not None:
+            trace.append(
+                OrientationEvent(
+                    rule=rule,
+                    edge=(x, y),
+                    oriented_endpoint=y,
+                    before=current,
+                    after=Endpoint.ARROW,
+                    before_edge=before_edge,
+                    after_edge=graph.edge_repr(x, y),
+                    reason=reason,
+                )
+            )
         return
     if current in (Endpoint.NONE, Endpoint.TAIL):
         return

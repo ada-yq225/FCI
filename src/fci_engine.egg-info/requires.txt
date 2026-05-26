@@ -1,0 +1,14 @@
+numpy
+scipy
+pandas
+networkx
+
+[dev]
+pytest
+pytest-cov
+ruff
+black
+mypy
+
+[reference]
+causal-learn

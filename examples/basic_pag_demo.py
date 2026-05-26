@@ -1,8 +1,7 @@
-"""Show a small data-to-PAG demonstration.
+"""Show a small hand-specified data-to-PAG demonstration.
 
-This example uses synthetic data and a hand-specified expected PAG. It is meant
-to make the package output intuitive before the FCI discovery algorithm is
-implemented.
+This example keeps the PAG fixed to explain endpoint meanings. For a full FCI
+run from data, see ``examples/01_basic_fci.py``.
 """
 
 from __future__ import annotations

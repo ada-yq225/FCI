@@ -43,6 +43,9 @@ dev = [
   "black",
   "mypy",
 ]
+reference = [
+  "causal-learn",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

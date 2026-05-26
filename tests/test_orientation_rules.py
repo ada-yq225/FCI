@@ -1,5 +1,3 @@
-import pytest
-
 from fci_engine.discovery.orientation import (
     definite_noncollider,
     has_directed_path,
@@ -7,6 +5,7 @@ from fci_engine.discovery.orientation import (
 )
 from fci_engine.discovery.rules import (
     apply_orientation_rules,
+    find_discriminating_paths,
     rule_avoid_directed_cycles,
     rule_avoid_new_unshielded_colliders,
     rule_discriminating_paths,
@@ -51,7 +50,7 @@ def test_definite_noncollider_helper_uses_tail_or_sepset() -> None:
     assert definite_noncollider(graph, "X", "Z", "Y", {("X", "Y"): {"Z"}})
 
 
-def test_rule_avoid_new_unshielded_colliders_orients_tail_at_middle() -> None:
+def test_rule_avoid_new_unshielded_colliders_orients_away_from_collider() -> None:
     graph = PAG(["X", "Z", "Y"])
     graph.add_edge("X", "Z", Endpoint.CIRCLE, Endpoint.ARROW)
     graph.add_circle_edge("Z", "Y")
@@ -60,7 +59,7 @@ def test_rule_avoid_new_unshielded_colliders_orients_tail_at_middle() -> None:
 
     assert changed
     assert graph.edge_repr("X", "Z") == "X o-> Z"
-    assert graph.edge_repr("Z", "Y") == "Z --o Y"
+    assert graph.edge_repr("Z", "Y") == "Z --> Y"
 
 
 def test_rule_propagate_arrowheads_local_r2_pattern() -> None:
@@ -120,7 +119,7 @@ def test_existing_arrowheads_are_preserved_by_rules() -> None:
     apply_orientation_rules(graph, {})
 
     assert graph.edge_repr("X", "Z") == "X <-> Z"
-    assert graph.edge_repr("Z", "Y") == "Z --o Y"
+    assert graph.edge_repr("Z", "Y") == "Z --> Y"
 
 
 def test_rules_do_not_create_endpoint_contradictions() -> None:
@@ -136,18 +135,66 @@ def test_rules_do_not_create_endpoint_contradictions() -> None:
     assert graph.get_endpoint("C", "A") is Endpoint.ARROW
 
 
-def test_rule_discriminating_paths_is_explicit_todo() -> None:
-    graph = PAG(["A", "B"])
-    graph.add_circle_edge("A", "B")
+def test_find_discriminating_paths_detects_r4_path() -> None:
+    graph = PAG(["D", "A", "B", "C"])
+    graph.add_edge("D", "A", Endpoint.CIRCLE, Endpoint.ARROW)
+    graph.add_edge("A", "B", Endpoint.ARROW, Endpoint.CIRCLE)
+    graph.add_edge("A", "C", Endpoint.TAIL, Endpoint.ARROW)
+    graph.add_edge("B", "C", Endpoint.CIRCLE, Endpoint.ARROW)
 
-    assert not rule_discriminating_paths(graph, {})
+    assert find_discriminating_paths(graph) == [("D", "A", "B", "C")]
 
 
-@pytest.mark.skip(
-    reason=(
-        "TODO: standard FCI R4 discriminating path orientation needs a complete "
-        "discriminating-path search and endpoint update policy."
-    )
-)
-def test_discriminating_path_rule_r4_orients_endpoint() -> None:
-    raise AssertionError("R4 discriminating path orientation is not implemented yet.")
+def test_discriminating_path_rule_r4_orients_tail_when_center_in_sepset() -> None:
+    graph = PAG(["D", "A", "B", "C"])
+    graph.add_edge("D", "A", Endpoint.CIRCLE, Endpoint.ARROW)
+    graph.add_edge("A", "B", Endpoint.ARROW, Endpoint.CIRCLE)
+    graph.add_edge("A", "C", Endpoint.TAIL, Endpoint.ARROW)
+    graph.add_edge("B", "C", Endpoint.CIRCLE, Endpoint.ARROW)
+
+    changed = rule_discriminating_paths(graph, {("D", "C"): {"B"}})
+
+    assert changed
+    assert graph.edge_repr("B", "C") == "B --> C"
+
+
+def test_discriminating_path_rule_r4_orients_collider_when_center_not_in_sepset() -> None:
+    graph = PAG(["D", "A", "B", "C"])
+    graph.add_edge("D", "A", Endpoint.CIRCLE, Endpoint.ARROW)
+    graph.add_edge("A", "B", Endpoint.ARROW, Endpoint.CIRCLE)
+    graph.add_edge("A", "C", Endpoint.TAIL, Endpoint.ARROW)
+    graph.add_edge("B", "C", Endpoint.CIRCLE, Endpoint.ARROW)
+
+    changed = rule_discriminating_paths(graph, {("D", "C"): {"A"}})
+
+    assert changed
+    assert graph.edge_repr("A", "B") == "A <-> B"
+    assert graph.edge_repr("B", "C") == "B <-> C"
+
+
+def test_discriminating_path_rule_preserves_existing_endpoint_contradictions() -> None:
+    graph = PAG(["D", "A", "B", "C"])
+    graph.add_edge("D", "A", Endpoint.CIRCLE, Endpoint.ARROW)
+    graph.add_edge("A", "B", Endpoint.ARROW, Endpoint.TAIL)
+    graph.add_edge("A", "C", Endpoint.TAIL, Endpoint.ARROW)
+    graph.add_edge("B", "C", Endpoint.TAIL, Endpoint.ARROW)
+
+    changed = rule_discriminating_paths(graph, {("D", "C"): {"A"}})
+
+    assert not changed
+    assert graph.edge_repr("A", "B") == "A <-- B"
+    assert graph.edge_repr("B", "C") == "B --> C"
+
+
+def test_apply_orientation_rules_passes_max_path_length_to_r4() -> None:
+    graph = PAG(["D", "A", "B", "C"])
+    graph.add_edge("D", "A", Endpoint.CIRCLE, Endpoint.ARROW)
+    graph.add_edge("A", "B", Endpoint.ARROW, Endpoint.CIRCLE)
+    graph.add_edge("A", "C", Endpoint.TAIL, Endpoint.ARROW)
+    graph.add_edge("B", "C", Endpoint.CIRCLE, Endpoint.ARROW)
+    trace = []
+
+    apply_orientation_rules(graph, {("D", "C"): {"B"}}, max_path_length=2, trace=trace)
+
+    assert graph.edge_repr("B", "C") == "B --> C"
+    assert "R4" not in {event.rule for event in trace}

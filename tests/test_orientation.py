@@ -1,6 +1,7 @@
 from fci_engine.discovery import (
     find_unshielded_triples,
     orient_unshielded_colliders,
+    reset_endpoint_marks,
 )
 from fci_engine.graph import Endpoint, PAG
 
@@ -70,3 +71,15 @@ def test_existing_tail_is_not_overwritten_with_arrowhead() -> None:
 
     assert graph.get_endpoint("X", "Z") is Endpoint.TAIL
     assert graph.get_endpoint("Y", "Z") is Endpoint.ARROW
+
+
+def test_reset_endpoint_marks_preserves_skeleton_and_clears_orientations() -> None:
+    graph = PAG(["A", "B", "C"])
+    graph.add_edge("A", "B", Endpoint.TAIL, Endpoint.ARROW)
+    graph.add_edge("B", "C", Endpoint.ARROW, Endpoint.ARROW)
+
+    reset_endpoint_marks(graph)
+
+    assert graph.edges() == [("A", "B"), ("B", "C")]
+    assert graph.edge_repr("A", "B") == "A o-o B"
+    assert graph.edge_repr("B", "C") == "B o-o C"

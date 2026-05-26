@@ -14,6 +14,7 @@ from fci_engine.utils.validation import validate_numeric_data
 
 
 SepsetMap = dict[tuple[Hashable, Hashable], set[Hashable]]
+SepsetSourceMap = dict[tuple[Hashable, Hashable], str]
 
 
 def create_complete_pag(nodes: Sequence[Hashable]) -> PAG:
@@ -32,6 +33,7 @@ def learn_initial_skeleton(
     ci_test: CITest,
     max_cond_set_size: Optional[int] = None,
     verbose: bool = False,
+    sepset_sources: Optional[SepsetSourceMap] = None,
 ) -> tuple[PAG, SepsetMap]:
     """Learn the initial undirected PAG skeleton using CI tests.
 
@@ -53,27 +55,44 @@ def learn_initial_skeleton(
             if not graph.is_adjacent(x, y):
                 continue
 
-            candidate_neighbors = [node for node in graph.neighbors(x) if node != y]
-            if len(candidate_neighbors) < cond_size:
+            candidate_sets = _conditioning_candidate_sets(graph, x, y)
+            if all(
+                len(candidate_neighbors) < cond_size
+                for candidate_neighbors in candidate_sets
+            ):
                 continue
 
-            for cond_set in combinations(candidate_neighbors, cond_size):
-                found_candidate = True
-                result = ci_test.test(
-                    normalized_data,
-                    node_to_index[x],
-                    node_to_index[y],
-                    tuple(node_to_index[node] for node in cond_set),
-                )
-                if verbose:
-                    status = "independent" if result.independent else "dependent"
-                    print(f"CI({x}, {y} | {set(cond_set)}) -> {status}")
+            seen_conditioning_sets: set[frozenset[Hashable]] = set()
+            for candidate_neighbors in candidate_sets:
+                if len(candidate_neighbors) < cond_size:
+                    continue
 
-                if result.independent:
-                    graph.remove_edge(x, y)
-                    sepset = set(cond_set)
-                    sepsets[(x, y)] = sepset
-                    sepsets[(y, x)] = set(sepset)
+                for cond_set in combinations(candidate_neighbors, cond_size):
+                    frozen_cond_set = frozenset(cond_set)
+                    if frozen_cond_set in seen_conditioning_sets:
+                        continue
+                    seen_conditioning_sets.add(frozen_cond_set)
+                    found_candidate = True
+                    result = ci_test.test(
+                        normalized_data,
+                        node_to_index[x],
+                        node_to_index[y],
+                        tuple(node_to_index[node] for node in cond_set),
+                    )
+                    if verbose:
+                        status = "independent" if result.independent else "dependent"
+                        print(f"CI({x}, {y} | {set(cond_set)}) -> {status}")
+
+                    if result.independent:
+                        graph.remove_edge(x, y)
+                        sepset = set(cond_set)
+                        sepsets[(x, y)] = sepset
+                        sepsets[(y, x)] = set(sepset)
+                        if sepset_sources is not None:
+                            sepset_sources[(x, y)] = "initial"
+                            sepset_sources[(y, x)] = "initial"
+                        break
+                if not graph.is_adjacent(x, y):
                     break
 
         if not found_candidate:
@@ -81,6 +100,19 @@ def learn_initial_skeleton(
         cond_size += 1
 
     return graph, sepsets
+
+
+def _conditioning_candidate_sets(
+    graph: PAG,
+    x: Hashable,
+    y: Hashable,
+) -> list[list[Hashable]]:
+    """Return adjacency-based conditioning candidates from both edge endpoints."""
+
+    return [
+        [node for node in graph.neighbors(x) if node != y],
+        [node for node in graph.neighbors(y) if node != x],
+    ]
 
 
 def _prepare_data_for_graph(
