@@ -81,11 +81,14 @@ def refine_skeleton_with_pdsep(
     verbose: bool = False,
     sepset_sources: Optional[SepsetSourceMap] = None,
     stable: bool = True,
+    sepset_selection: str = "max_pvalue",
 ) -> tuple[PAG, SepsetMap]:
     """Refine the current skeleton by searching Possible-D-Sep sets."""
 
     if max_cond_set_size is not None and max_cond_set_size < 0:
         raise ValueError("max_cond_set_size must be non-negative.")
+    if sepset_selection not in {"first", "max_pvalue"}:
+        raise ValueError("sepset_selection must be 'first' or 'max_pvalue'.")
 
     normalized_data, node_to_index = _prepare_data_for_graph(data, graph)
 
@@ -122,6 +125,7 @@ def refine_skeleton_with_pdsep(
             if len(candidate_nodes) < cond_size:
                 continue
 
+            best_at_depth: Optional[tuple[float, set[Hashable]]] = None
             for cond_set in combinations(candidate_nodes, cond_size):
                 result = ci_test.test(
                     normalized_data,
@@ -134,8 +138,14 @@ def refine_skeleton_with_pdsep(
                     print(f"PDS-CI({x}, {y} | {set(cond_set)}) -> {status}")
 
                 if result.independent:
-                    separating_set = set(cond_set)
-                    break
+                    sepset = set(cond_set)
+                    if sepset_selection == "first":
+                        separating_set = sepset
+                        break
+                    if best_at_depth is None or result.p_value > best_at_depth[0]:
+                        best_at_depth = (result.p_value, sepset)
+            if best_at_depth is not None:
+                separating_set = best_at_depth[1]
             if separating_set is not None:
                 break
 

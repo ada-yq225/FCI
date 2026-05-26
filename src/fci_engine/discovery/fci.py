@@ -78,6 +78,7 @@ class FCI:
             verbose=resolved_config.verbose,
             sepset_sources=sepset_sources,
             stable=resolved_config.skeleton_stable,
+            sepset_selection=resolved_config.sepset_selection,
         )
 
         apply_background_knowledge(
@@ -108,6 +109,7 @@ class FCI:
                 verbose=resolved_config.verbose,
                 sepset_sources=sepset_sources,
                 stable=resolved_config.pdsep_stable,
+                sepset_selection=resolved_config.sepset_selection,
             )
             reset_endpoint_marks(graph)
             orientation_trace.clear()

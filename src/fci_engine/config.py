@@ -27,6 +27,10 @@ class FCIConfig:
             to avoid order-dependent skeleton deletion.
         pdsep_stable: Snapshot the PAG at the start of Possible-D-SEP refinement
             to avoid order-dependent candidate search.
+        sepset_selection: How to choose among multiple separating sets at the
+            same search depth. "max_pvalue" spends more CI tests to keep the
+            strongest independence evidence; "first" keeps traditional early
+            stopping behavior.
         conservative_colliders: Use conservative unshielded-collider
             orientation by checking multiple separating sets and leaving
             ambiguous triples unoriented.
@@ -41,6 +45,7 @@ class FCIConfig:
     do_pdsep: bool = True
     skeleton_stable: bool = True
     pdsep_stable: bool = True
+    sepset_selection: str = "max_pvalue"
     conservative_colliders: bool = False
     background_knowledge: Optional[BackgroundKnowledge] = None
     verbose: bool = False
@@ -56,3 +61,5 @@ class FCIConfig:
             raise ValueError("max_cond_set_size must be non-negative.")
         if self.max_path_length is not None and self.max_path_length < 0:
             raise ValueError("max_path_length must be non-negative.")
+        if self.sepset_selection not in {"first", "max_pvalue"}:
+            raise ValueError("sepset_selection must be 'first' or 'max_pvalue'.")

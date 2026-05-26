@@ -18,10 +18,12 @@ class OracleCITest(CITest):
         self,
         names: list[str],
         independencies: set[tuple[str, str, frozenset[str]]],
+        p_values=None,
     ):
         super().__init__(alpha=0.05)
         self.names = names
         self.independencies = independencies
+        self.p_values = p_values or {}
 
     def test(self, data, x, y, cond_set=()):
         x_name = self.names[x]
@@ -31,7 +33,7 @@ class OracleCITest(CITest):
         independent = key in self.independencies
         return CITestResult(
             independent=independent,
-            p_value=0.9 if independent else 0.001,
+            p_value=self.p_values.get(key, 0.9 if independent else 0.001),
             statistic=None,
             method="oracle",
             n_samples=len(data),
@@ -142,6 +144,45 @@ def test_fci_plus_dsep_refinement_uses_hierarchical_sepsets() -> None:
     assert not refined.is_adjacent("X", "Y")
     assert refined_sepsets[("X", "Y")] == {"A", "B", "Z"}
     assert sources[("X", "Y")] == "fci_plus_dsep"
+
+
+def test_fci_plus_dsep_selects_strongest_sepset_at_same_depth() -> None:
+    nodes = ["U", "X", "Y", "V", "A", "B", "C", "D"]
+    graph = PAG(nodes)
+    for edge in [
+        ("U", "X"),
+        ("X", "Y"),
+        ("Y", "V"),
+        ("X", "A"),
+        ("Y", "B"),
+        ("X", "C"),
+        ("Y", "D"),
+    ]:
+        graph.add_circle_edge(*edge)
+
+    weak = _oracle_key("X", "Y", frozenset({"A", "B"}))
+    strong = _oracle_key("X", "Y", frozenset({"C", "D"}))
+    oracle = OracleCITest(
+        nodes,
+        {weak, strong},
+        p_values={
+            weak: 0.13,
+            strong: 0.94,
+        },
+    )
+
+    refined, refined_sepsets = refine_skeleton_with_fci_plus_dsep(
+        np.zeros((20, len(nodes))),
+        graph,
+        {},
+        oracle,
+        max_degree=1,
+        sepset_selection="max_pvalue",
+    )
+
+    assert not refined.is_adjacent("X", "Y")
+    assert refined_sepsets[("X", "Y")] == {"C", "D"}
+    assert refined_sepsets[("Y", "X")] == {"C", "D"}
 
 
 def test_fci_plus_public_api_returns_result() -> None:

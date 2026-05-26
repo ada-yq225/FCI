@@ -15,6 +15,7 @@ This package provides a modern Pythonic API, heavily optimizing CI-test caching,
 * **Standard Zhang's Rules**: Fully and strictly implements J. Zhang's orientation rules (R1-R10) and Possible-D-SEP (PD-SEP) for rigorous soundness and completeness.
 * **FCI+ Variant**: Provides `fci_plus(...)` / `FCIPlus` with a sparse hierarchical D-SEP refinement inspired by Claassen, Mooij, and Heskes (2013).
 * **Order-Stable Skeleton Search**: The initial PC-style skeleton stage snapshots adjacency sets per conditioning depth and applies removals after the depth completes, reducing order dependence.
+* **Accuracy-First Sepset Selection**: By default, when several separating sets at the same depth work, the engine keeps the one with the strongest CI p-value instead of whichever candidate appeared first.
 * **Exceptional Explainability**: Built-in tracking of `OrientationEvent` and `CITraceEvent`. Allows you to easily debug *why* a specific algorithmic decision (e.g., directing an arrow) was made.
 * **Performance Optimizations**: Out-of-the-box `CITestCache` radically cuts down redundant Conditional Independence tests.
 
@@ -103,6 +104,7 @@ config = FCIConfig(
     do_pdsep=True,
     skeleton_stable=True,
     pdsep_stable=True,
+    sepset_selection="max_pvalue",
     conservative_colliders=True,
 )
 estimator = FCI(config)
@@ -147,7 +149,7 @@ A PAG contains several types of endpoints denoting sets of DAGs (Markov equivale
 ### FCI Stages
 
 The structural learning happens in four phases directly implemented in `fci-engine/discovery`:
-1.  **FAS (Fast Adjacency Search)**: Iteratively searches for Conditional Independence (CI) up to constraint length $N$ from both endpoints' current adjacency sets to remove structurally non-essential edges. Yields the un-oriented Skeleton and `Sepsets`.
+1.  **FAS (Fast Adjacency Search)**: Iteratively searches for Conditional Independence (CI) up to constraint length $N$ from both endpoints' current adjacency sets to remove structurally non-essential edges. Yields the un-oriented Skeleton and `Sepsets`. When multiple separating sets succeed at the same depth, the default `sepset_selection="max_pvalue"` keeps the strongest independence evidence for later orientation rules.
 2.  **Unshielded Colliders Discovery**: Orients V-structures ($X \circ\!\!\to Z \gets\!\!\circ Y$).
 3.  **Possible-D-SEP**: Generates larger condition tests specifically seeking structural confounds that earlier rounds might have missed out due to arbitrary graph topologies.
 4.  **Zhang's Orientation Rules (R1 - R10)**: Iteratively closes reasoning gaps over the generated graph by tracing causal endpoints to monotonic conclusions without cycles.

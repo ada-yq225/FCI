@@ -47,6 +47,10 @@ Configuration options:
   defer removals until the depth is complete, reducing order dependence
 - `pdsep_stable`: snapshot the PAG at the start of Possible-D-Sep refinement
   so candidate paths are not affected by earlier removals in the same stage
+- `sepset_selection`: choose how separating sets are recorded when several
+  candidate sets at the same search depth imply independence. The default
+  `"max_pvalue"` scans the full depth and keeps the strongest independence
+  evidence; `"first"` preserves early-stopping behavior.
 - `conservative_colliders`: use Conservative-FCI-style unshielded collider
   orientation; triples with conflicting separating sets are reported as
   ambiguous instead of being forced into a collider

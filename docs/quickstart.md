@@ -59,6 +59,7 @@ estimator = FCI(
     do_pdsep=True,
     skeleton_stable=True,
     pdsep_stable=True,
+    sepset_selection="max_pvalue",
     conservative_colliders=False,
     verbose=False,
 )
@@ -70,6 +71,9 @@ Gaussian-style data. Stable skeleton search is enabled by default so edge
 removals within one conditioning depth do not change later candidate sets at
 the same depth. Stable Possible-D-Sep refinement is also enabled by default so
 later PDS candidate paths use a start-of-stage PAG snapshot.
+The default `sepset_selection="max_pvalue"` spends extra CI tests to keep the
+strongest separating set found at the first successful conditioning depth. Use
+`sepset_selection="first"` if you need traditional early-stopping behavior.
 Set `conservative_colliders=True` to use Conservative-FCI-style collider
 orientation and report ambiguous unshielded triples instead of forcing a
 direction.

@@ -35,6 +35,7 @@ def learn_initial_skeleton(
     verbose: bool = False,
     sepset_sources: Optional[SepsetSourceMap] = None,
     stable: bool = True,
+    sepset_selection: str = "max_pvalue",
 ) -> tuple[PAG, SepsetMap]:
     """Learn the initial undirected PAG skeleton using CI tests.
 
@@ -47,6 +48,8 @@ def learn_initial_skeleton(
 
     if max_cond_set_size is not None and max_cond_set_size < 0:
         raise ValueError("max_cond_set_size must be non-negative.")
+    if sepset_selection not in {"first", "max_pvalue"}:
+        raise ValueError("sepset_selection must be 'first' or 'max_pvalue'.")
 
     normalized_data, node_to_index = _prepare_data_for_graph(data, graph)
     sepsets: SepsetMap = {}
@@ -81,6 +84,7 @@ def learn_initial_skeleton(
 
             seen_conditioning_sets: set[frozenset[Hashable]] = set()
             edge_marked_for_removal = False
+            best_separation: Optional[tuple[float, set[Hashable]]] = None
             for candidate_neighbors in candidate_sets:
                 if len(candidate_neighbors) < cond_size:
                     continue
@@ -103,21 +107,40 @@ def learn_initial_skeleton(
 
                     if result.independent:
                         sepset = set(cond_set)
-                        if stable:
-                            pending_removals.append((x, y, sepset))
-                            edge_marked_for_removal = True
-                        else:
-                            _remove_edge_with_sepset(
-                                graph,
-                                sepsets,
-                                x,
-                                y,
-                                sepset,
-                                sepset_sources,
-                            )
+                        if sepset_selection == "max_pvalue":
+                            if (
+                                best_separation is None
+                                or result.p_value > best_separation[0]
+                            ):
+                                best_separation = (result.p_value, sepset)
+                            continue
+
+                        edge_marked_for_removal = True
+                        _queue_or_apply_removal(
+                            graph,
+                            sepsets,
+                            pending_removals,
+                            x,
+                            y,
+                            sepset,
+                            sepset_sources,
+                            stable=stable,
+                        )
                         break
                 if edge_marked_for_removal or not graph.is_adjacent(x, y):
                     break
+
+            if best_separation is not None and graph.is_adjacent(x, y):
+                _queue_or_apply_removal(
+                    graph,
+                    sepsets,
+                    pending_removals,
+                    x,
+                    y,
+                    best_separation[1],
+                    sepset_sources,
+                    stable=stable,
+                )
 
         for x, y, sepset in pending_removals:
             if graph.is_adjacent(x, y):
@@ -135,6 +158,29 @@ def learn_initial_skeleton(
         cond_size += 1
 
     return graph, sepsets
+
+
+def _queue_or_apply_removal(
+    graph: PAG,
+    sepsets: SepsetMap,
+    pending_removals: list[tuple[Hashable, Hashable, set[Hashable]]],
+    x: Hashable,
+    y: Hashable,
+    sepset: set[Hashable],
+    sepset_sources: Optional[SepsetSourceMap],
+    stable: bool,
+) -> None:
+    if stable:
+        pending_removals.append((x, y, sepset))
+    else:
+        _remove_edge_with_sepset(
+            graph,
+            sepsets,
+            x,
+            y,
+            sepset,
+            sepset_sources,
+        )
 
 
 def _conditioning_candidate_sets(

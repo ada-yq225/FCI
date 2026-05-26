@@ -8,9 +8,11 @@ class OracleCITest(CITest):
     def __init__(
         self,
         independencies: set[tuple[frozenset[int], frozenset[int]]],
+        p_values=None,
     ) -> None:
         super().__init__(alpha=0.05)
         self.independencies = independencies
+        self.p_values = p_values or {}
         self.calls: list[tuple[frozenset[int], frozenset[int]]] = []
 
     def test(
@@ -25,7 +27,7 @@ class OracleCITest(CITest):
         independent = key in self.independencies
         return CITestResult(
             independent=independent,
-            p_value=0.9 if independent else 0.001,
+            p_value=self.p_values.get(key, 0.9 if independent else 0.001),
             statistic=None,
             method="oracle",
             n_samples=data.shape[0],
@@ -118,6 +120,58 @@ def test_stable_skeleton_defers_removals_within_conditioning_depth() -> None:
     assert not learned.is_adjacent("A", "D")
     assert not learned.is_adjacent("C", "D")
     assert sepsets[("C", "D")] == {"A"}
+
+
+def test_skeleton_selects_strongest_sepset_at_same_depth() -> None:
+    data = np.ones((20, 4))
+    graph = create_complete_pag(["X", "Y", "A", "B"])
+    weak = (frozenset((0, 1)), frozenset((2,)))
+    strong = (frozenset((0, 1)), frozenset((3,)))
+    oracle = OracleCITest(
+        {weak, strong},
+        p_values={
+            weak: 0.12,
+            strong: 0.93,
+        },
+    )
+
+    learned, sepsets = learn_initial_skeleton(
+        data,
+        graph,
+        oracle,
+        max_cond_set_size=1,
+        sepset_selection="max_pvalue",
+    )
+
+    assert not learned.is_adjacent("X", "Y")
+    assert sepsets[("X", "Y")] == {"B"}
+    assert sepsets[("Y", "X")] == {"B"}
+
+
+def test_skeleton_can_keep_first_sepset_for_compatibility() -> None:
+    data = np.ones((20, 4))
+    graph = create_complete_pag(["X", "Y", "A", "B"])
+    weak = (frozenset((0, 1)), frozenset((2,)))
+    strong = (frozenset((0, 1)), frozenset((3,)))
+    oracle = OracleCITest(
+        {weak, strong},
+        p_values={
+            weak: 0.12,
+            strong: 0.93,
+        },
+    )
+
+    learned, sepsets = learn_initial_skeleton(
+        data,
+        graph,
+        oracle,
+        max_cond_set_size=1,
+        sepset_selection="first",
+    )
+
+    assert not learned.is_adjacent("X", "Y")
+    assert sepsets[("X", "Y")] == {"A"}
+    assert sepsets[("Y", "X")] == {"A"}
 
 
 def test_order_dependent_skeleton_kept_for_explicit_compatibility() -> None:

@@ -131,11 +131,14 @@ def refine_skeleton_with_fci_plus_dsep(
     max_degree: Optional[int] = None,
     verbose: bool = False,
     sepset_sources: Optional[SepsetSourceMap] = None,
+    sepset_selection: str = "max_pvalue",
 ) -> tuple[PAG, SepsetMap]:
     """Refine the skeleton using the FCI+ hierarchical D-SEP search."""
 
     if max_degree is not None and max_degree < 0:
         raise ValueError("max_degree must be non-negative.")
+    if sepset_selection not in {"first", "max_pvalue"}:
+        raise ValueError("sepset_selection must be 'first' or 'max_pvalue'.")
 
     normalized_data, node_to_index = _prepare_data_for_graph(data, graph)
     tried_without_update: set[frozenset[Hashable]] = set()
@@ -159,6 +162,7 @@ def refine_skeleton_with_fci_plus_dsep(
 
         removed = False
         for subset_size in range(1, max_subset_size + 1):
+            best_at_depth: Optional[tuple[float, set[Hashable]]] = None
             for subset in combinations(base_union, subset_size):
                 if not set(subset) & set(base_x):
                     continue
@@ -192,32 +196,42 @@ def refine_skeleton_with_fci_plus_dsep(
                 if not result.independent:
                     continue
 
-                minimized = minimal_dsep(
-                    data,
-                    graph,
-                    x,
-                    y,
-                    set(cond_ordered),
-                    ci_test,
-                )
-                graph.remove_edge(x, y)
-                augmented.remove_edge(x, y)
-                sepsets[(x, y)] = set(minimized)
-                sepsets[(y, x)] = set(minimized)
-                if sepset_sources is not None:
-                    sepset_sources[(x, y)] = "fci_plus_dsep"
-                    sepset_sources[(y, x)] = "fci_plus_dsep"
+                cond_set = set(cond_ordered)
+                if sepset_selection == "first":
+                    best_at_depth = (result.p_value, cond_set)
+                    break
+                if best_at_depth is None or result.p_value > best_at_depth[0]:
+                    best_at_depth = (result.p_value, cond_set)
 
-                augmented = build_augmented_skeleton(
-                    graph,
-                    sepsets,
-                    normalized_data,
-                    ci_test,
-                )
-                candidates = possible_dsep_links(augmented)
-                tried_without_update.clear()
-                removed = True
-                break
+            if best_at_depth is None:
+                continue
+
+            minimized = minimal_dsep(
+                data,
+                graph,
+                x,
+                y,
+                best_at_depth[1],
+                ci_test,
+            )
+            graph.remove_edge(x, y)
+            augmented.remove_edge(x, y)
+            sepsets[(x, y)] = set(minimized)
+            sepsets[(y, x)] = set(minimized)
+            if sepset_sources is not None:
+                sepset_sources[(x, y)] = "fci_plus_dsep"
+                sepset_sources[(y, x)] = "fci_plus_dsep"
+
+            augmented = build_augmented_skeleton(
+                graph,
+                sepsets,
+                normalized_data,
+                ci_test,
+            )
+            candidates = possible_dsep_links(augmented)
+            tried_without_update.clear()
+            removed = True
+            break
 
         if not removed:
             tried_without_update.add(candidate_key)

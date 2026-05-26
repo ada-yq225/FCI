@@ -77,6 +77,7 @@ class FCIPlus:
             verbose=resolved_config.verbose,
             sepset_sources=sepset_sources,
             stable=resolved_config.skeleton_stable,
+            sepset_selection=resolved_config.sepset_selection,
         )
 
         graph, sepsets = refine_skeleton_with_fci_plus_dsep(
@@ -87,6 +88,7 @@ class FCIPlus:
             max_degree=resolved_config.max_cond_set_size,
             verbose=resolved_config.verbose,
             sepset_sources=sepset_sources,
+            sepset_selection=resolved_config.sepset_selection,
         )
 
         reset_endpoint_marks(graph)

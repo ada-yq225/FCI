@@ -83,6 +83,18 @@ The implementation also includes conservative Zhang-style R5-R10 rules:
 
 Each endpoint change can be inspected through `FCIResult.orientation_trace`.
 
+## Finite-Sample Sepset Selection
+
+In exact oracle CI, any valid separating set at the first successful
+conditioning depth is enough to remove an edge. With finite samples, however,
+the first successful set can be a near-threshold accident, and that recorded
+sepset later controls unshielded-collider orientation. For accuracy-first
+behavior, the default `sepset_selection="max_pvalue"` scans all candidate
+sets at the same depth and records the independent set with the largest
+p-value. This costs more CI tests but reduces orientation sensitivity to
+candidate ordering. Set `sepset_selection="first"` for traditional
+early-stopping behavior.
+
 ## Background Knowledge
 
 Domain knowledge can constrain orientations after skeleton discovery. A required

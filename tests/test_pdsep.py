@@ -9,9 +9,11 @@ class OracleCITest(CITest):
     def __init__(
         self,
         independencies: set[tuple[frozenset[int], frozenset[int]]],
+        p_values=None,
     ) -> None:
         super().__init__(alpha=0.05)
         self.independencies = independencies
+        self.p_values = p_values or {}
 
     def test(
         self,
@@ -24,7 +26,7 @@ class OracleCITest(CITest):
         independent = key in self.independencies
         return CITestResult(
             independent=independent,
-            p_value=0.9 if independent else 0.001,
+            p_value=self.p_values.get(key, 0.9 if independent else 0.001),
             statistic=None,
             method="oracle",
             n_samples=data.shape[0],
@@ -106,6 +108,36 @@ def test_pdsep_refinement_uses_candidates_from_both_edge_directions() -> None:
     assert not refined.is_adjacent("X", "Y")
     assert updated_sepsets[("X", "Y")] == {"A"}
     assert updated_sepsets[("Y", "X")] == {"A"}
+
+
+def test_pdsep_selects_strongest_sepset_at_same_depth() -> None:
+    data = np.ones((20, 4))
+    graph = PAG(["X", "Y", "A", "B"])
+    graph.add_circle_edge("X", "Y")
+    graph.add_circle_edge("X", "A")
+    graph.add_circle_edge("X", "B")
+    weak = (frozenset((0, 1)), frozenset((2,)))
+    strong = (frozenset((0, 1)), frozenset((3,)))
+    oracle = OracleCITest(
+        {weak, strong},
+        p_values={
+            weak: 0.11,
+            strong: 0.91,
+        },
+    )
+
+    refined, updated_sepsets = refine_skeleton_with_pdsep(
+        data,
+        graph,
+        {},
+        oracle,
+        max_cond_set_size=1,
+        sepset_selection="max_pvalue",
+    )
+
+    assert not refined.is_adjacent("X", "Y")
+    assert updated_sepsets[("X", "Y")] == {"B"}
+    assert updated_sepsets[("Y", "X")] == {"B"}
 
 
 def test_pdsep_refinement_updates_existing_sepsets() -> None:
