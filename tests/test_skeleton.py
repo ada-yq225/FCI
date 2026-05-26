@@ -99,3 +99,41 @@ def test_max_cond_set_size_is_respected() -> None:
 
     assert learned.is_adjacent("X", "Z")
     assert sepsets == {}
+
+
+def test_stable_skeleton_defers_removals_within_conditioning_depth() -> None:
+    data = np.ones((20, 4))
+    graph = create_complete_pag(["A", "B", "C", "D"])
+    oracle = OracleCITest(
+        {
+            (frozenset((0, 2)), frozenset((1,))),
+            (frozenset((0, 3)), frozenset((1,))),
+            (frozenset((2, 3)), frozenset((0,))),
+        }
+    )
+
+    learned, sepsets = learn_initial_skeleton(data, graph, oracle, stable=True)
+
+    assert not learned.is_adjacent("A", "C")
+    assert not learned.is_adjacent("A", "D")
+    assert not learned.is_adjacent("C", "D")
+    assert sepsets[("C", "D")] == {"A"}
+
+
+def test_order_dependent_skeleton_kept_for_explicit_compatibility() -> None:
+    data = np.ones((20, 4))
+    graph = create_complete_pag(["A", "B", "C", "D"])
+    oracle = OracleCITest(
+        {
+            (frozenset((0, 2)), frozenset((1,))),
+            (frozenset((0, 3)), frozenset((1,))),
+            (frozenset((2, 3)), frozenset((0,))),
+        }
+    )
+
+    learned, sepsets = learn_initial_skeleton(data, graph, oracle, stable=False)
+
+    assert not learned.is_adjacent("A", "C")
+    assert not learned.is_adjacent("A", "D")
+    assert learned.is_adjacent("C", "D")
+    assert ("C", "D") not in sepsets

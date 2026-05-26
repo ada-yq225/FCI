@@ -58,6 +58,21 @@ def test_singular_correlation_submatrix_is_handled() -> None:
     assert np.isfinite(result.statistic)
 
 
+def test_nearly_singular_correlation_submatrix_uses_stable_pseudoinverse() -> None:
+    rng = np.random.default_rng(6)
+    x = rng.normal(size=700)
+    y = 0.65 * x + rng.normal(scale=0.35, size=700)
+    almost_duplicate_x = x + 1e-10 * rng.normal(size=700)
+    data = np.column_stack([x, y, almost_duplicate_x])
+
+    result = FisherZTest(alpha=0.05).test(data, 0, 1, [2])
+
+    assert result.method == "fisher_z"
+    assert np.isfinite(result.p_value)
+    assert result.statistic is not None
+    assert np.isfinite(result.statistic)
+
+
 def test_fisher_z_accepts_correlation_sufficient_statistics() -> None:
     rng = np.random.default_rng(4)
     x = rng.normal(size=1_200)

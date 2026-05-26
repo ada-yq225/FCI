@@ -74,6 +74,7 @@ class FCIPlus:
             max_cond_set_size=resolved_config.max_cond_set_size,
             verbose=resolved_config.verbose,
             sepset_sources=sepset_sources,
+            stable=resolved_config.skeleton_stable,
         )
 
         graph, sepsets = refine_skeleton_with_fci_plus_dsep(

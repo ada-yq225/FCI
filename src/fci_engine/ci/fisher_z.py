@@ -197,10 +197,14 @@ class FisherZTest(CITest):
 
     @staticmethod
     def _safe_inverse(matrix: np.ndarray) -> np.ndarray:
+        matrix = 0.5 * (matrix + matrix.T)
+        condition_number = np.linalg.cond(matrix)
+        if not np.isfinite(condition_number) or condition_number > 1e12:
+            return np.linalg.pinv(matrix, rcond=1e-12)
         try:
             return np.linalg.inv(matrix)
         except np.linalg.LinAlgError:
-            return np.linalg.pinv(matrix)
+            return np.linalg.pinv(matrix, rcond=1e-12)
 
     @staticmethod
     def _clip_correlation(correlation: float) -> float:

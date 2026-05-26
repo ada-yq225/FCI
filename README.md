@@ -14,6 +14,7 @@ This package provides a modern Pythonic API, heavily optimizing CI-test caching,
 * **Modern Pythonic API**: Clean `dataclass`-driven models and endpoint abstractions. Easy to import with standard Python mechanics: `from fci_engine import fci, fci_plus`.
 * **Standard Zhang's Rules**: Fully and strictly implements J. Zhang's orientation rules (R1-R10) and Possible-D-SEP (PD-SEP) for rigorous soundness and completeness.
 * **FCI+ Variant**: Provides `fci_plus(...)` / `FCIPlus` with a sparse hierarchical D-SEP refinement inspired by Claassen, Mooij, and Heskes (2013).
+* **Order-Stable Skeleton Search**: The initial PC-style skeleton stage snapshots adjacency sets per conditioning depth and applies removals after the depth completes, reducing order dependence.
 * **Exceptional Explainability**: Built-in tracking of `OrientationEvent` and `CITraceEvent`. Allows you to easily debug *why* a specific algorithmic decision (e.g., directing an arrow) was made.
 * **Performance Optimizations**: Out-of-the-box `CITestCache` radically cuts down redundant Conditional Independence tests.
 

@@ -75,6 +75,7 @@ class FCI:
             max_cond_set_size=resolved_config.max_cond_set_size,
             verbose=resolved_config.verbose,
             sepset_sources=sepset_sources,
+            stable=resolved_config.skeleton_stable,
         )
 
         apply_background_knowledge(

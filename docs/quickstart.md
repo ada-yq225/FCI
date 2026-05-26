@@ -57,13 +57,16 @@ estimator = FCI(
     max_cond_set_size=3,
     max_path_length=4,
     do_pdsep=True,
+    skeleton_stable=True,
     verbose=False,
 )
 result = estimator.fit(data)
 ```
 
 The default conditional independence test is Fisher-Z, intended for continuous
-Gaussian-style data.
+Gaussian-style data. Stable skeleton search is enabled by default so edge
+removals within one conditioning depth do not change later candidate sets at
+the same depth.
 
 ## Run FCI+
 

@@ -76,6 +76,7 @@ class FCIResult:
                 f"- elapsed time: {self.elapsed_time:.4f}s",
                 f"- alpha: {self.config.alpha}",
                 f"- Possible-D-Sep: {self.config.do_pdsep}",
+                f"- stable skeleton: {self.config.skeleton_stable}",
             ]
         )
 
@@ -276,6 +277,7 @@ def _config_to_dict(config: FCIConfig) -> dict[str, Any]:
         "max_cond_set_size": config.max_cond_set_size,
         "max_path_length": config.max_path_length,
         "do_pdsep": config.do_pdsep,
+        "skeleton_stable": config.skeleton_stable,
         "background_knowledge": (
             repr(config.background_knowledge)
             if config.background_knowledge is not None

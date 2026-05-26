@@ -23,6 +23,8 @@ class FCIConfig:
         max_cond_set_size: Maximum size of conditioning set.
         max_path_length: Maximum path length for orientation rules.
         do_pdsep: Whether to refine skeleton using Possible-D-SEP.
+        skeleton_stable: Snapshot adjacency sets within each conditioning depth
+            to avoid order-dependent skeleton deletion.
         background_knowledge: Required and forbidden orientation constraints.
         verbose: Enable detailed logging output.
     """
@@ -32,6 +34,7 @@ class FCIConfig:
     max_cond_set_size: Optional[int] = None
     max_path_length: Optional[int] = None
     do_pdsep: bool = True
+    skeleton_stable: bool = True
     background_knowledge: Optional[BackgroundKnowledge] = None
     verbose: bool = False
 

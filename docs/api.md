@@ -43,6 +43,8 @@ Configuration options:
 - `max_cond_set_size`: maximum conditioning set size
 - `max_path_length`: maximum Possible-D-Sep path length
 - `do_pdsep`: whether to run Possible-D-Sep refinement
+- `skeleton_stable`: snapshot adjacency sets within each conditioning depth and
+  defer removals until the depth is complete, reducing order dependence
 - `background_knowledge`: required and forbidden orientation constraints
 - `verbose`: print CI and orientation progress
 

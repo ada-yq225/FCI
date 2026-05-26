@@ -34,11 +34,15 @@ def learn_initial_skeleton(
     max_cond_set_size: Optional[int] = None,
     verbose: bool = False,
     sepset_sources: Optional[SepsetSourceMap] = None,
+    stable: bool = True,
 ) -> tuple[PAG, SepsetMap]:
     """Learn the initial undirected PAG skeleton using CI tests.
 
     This is the PC-style adjacency search used as FCI's first stage. It only
     removes edges and records separating sets; it does not orient colliders.
+    When ``stable`` is true, adjacency sets are snapshotted at each conditioning
+    depth and edge removals are applied after the depth is fully tested. This
+    avoids order dependence within a depth level.
     """
 
     if max_cond_set_size is not None and max_cond_set_size < 0:
@@ -50,12 +54,25 @@ def learn_initial_skeleton(
 
     while max_cond_set_size is None or cond_size <= max_cond_set_size:
         found_candidate = False
+        pending_removals: list[tuple[Hashable, Hashable, set[Hashable]]] = []
+        adjacency_snapshot = {
+            node: graph.neighbors(node) for node in graph.nodes
+        } if stable else None
 
         for x, y in list(graph.edges()):
             if not graph.is_adjacent(x, y):
                 continue
 
-            candidate_sets = _conditioning_candidate_sets(graph, x, y)
+            if stable:
+                assert adjacency_snapshot is not None
+                candidate_sets = _conditioning_candidate_sets_from_adjacency(
+                    adjacency_snapshot,
+                    x,
+                    y,
+                )
+            else:
+                candidate_sets = _conditioning_candidate_sets(graph, x, y)
+
             if all(
                 len(candidate_neighbors) < cond_size
                 for candidate_neighbors in candidate_sets
@@ -63,6 +80,7 @@ def learn_initial_skeleton(
                 continue
 
             seen_conditioning_sets: set[frozenset[Hashable]] = set()
+            edge_marked_for_removal = False
             for candidate_neighbors in candidate_sets:
                 if len(candidate_neighbors) < cond_size:
                     continue
@@ -84,16 +102,33 @@ def learn_initial_skeleton(
                         print(f"CI({x}, {y} | {set(cond_set)}) -> {status}")
 
                     if result.independent:
-                        graph.remove_edge(x, y)
                         sepset = set(cond_set)
-                        sepsets[(x, y)] = sepset
-                        sepsets[(y, x)] = set(sepset)
-                        if sepset_sources is not None:
-                            sepset_sources[(x, y)] = "initial"
-                            sepset_sources[(y, x)] = "initial"
+                        if stable:
+                            pending_removals.append((x, y, sepset))
+                            edge_marked_for_removal = True
+                        else:
+                            _remove_edge_with_sepset(
+                                graph,
+                                sepsets,
+                                x,
+                                y,
+                                sepset,
+                                sepset_sources,
+                            )
                         break
-                if not graph.is_adjacent(x, y):
+                if edge_marked_for_removal or not graph.is_adjacent(x, y):
                     break
+
+        for x, y, sepset in pending_removals:
+            if graph.is_adjacent(x, y):
+                _remove_edge_with_sepset(
+                    graph,
+                    sepsets,
+                    x,
+                    y,
+                    sepset,
+                    sepset_sources,
+                )
 
         if not found_candidate:
             break
@@ -113,6 +148,33 @@ def _conditioning_candidate_sets(
         [node for node in graph.neighbors(x) if node != y],
         [node for node in graph.neighbors(y) if node != x],
     ]
+
+
+def _conditioning_candidate_sets_from_adjacency(
+    adjacency: dict[Hashable, list[Hashable]],
+    x: Hashable,
+    y: Hashable,
+) -> list[list[Hashable]]:
+    return [
+        [node for node in adjacency[x] if node != y],
+        [node for node in adjacency[y] if node != x],
+    ]
+
+
+def _remove_edge_with_sepset(
+    graph: PAG,
+    sepsets: SepsetMap,
+    x: Hashable,
+    y: Hashable,
+    sepset: set[Hashable],
+    sepset_sources: Optional[SepsetSourceMap],
+) -> None:
+    graph.remove_edge(x, y)
+    sepsets[(x, y)] = sepset
+    sepsets[(y, x)] = set(sepset)
+    if sepset_sources is not None:
+        sepset_sources[(x, y)] = "initial"
+        sepset_sources[(y, x)] = "initial"
 
 
 def _prepare_data_for_graph(
