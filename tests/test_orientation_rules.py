@@ -63,6 +63,22 @@ def test_rule_avoid_new_unshielded_colliders_orients_away_from_collider() -> Non
     assert graph.edge_repr("Z", "Y") == "Z --> Y"
 
 
+def test_rule_avoid_new_unshielded_colliders_skips_ambiguous_triples() -> None:
+    graph = PAG(["X", "Z", "Y"])
+    graph.add_edge("X", "Z", Endpoint.CIRCLE, Endpoint.ARROW)
+    graph.add_circle_edge("Z", "Y")
+
+    changed = rule_avoid_new_unshielded_colliders(
+        graph,
+        {},
+        ambiguous_triples=[("X", "Z", "Y")],
+    )
+
+    assert not changed
+    assert graph.edge_repr("X", "Z") == "X o-> Z"
+    assert graph.edge_repr("Z", "Y") == "Z o-o Y"
+
+
 def test_rule_propagate_arrowheads_local_r2_pattern() -> None:
     graph = PAG(["A", "B", "C"])
     graph.add_edge("A", "B", Endpoint.TAIL, Endpoint.ARROW)
@@ -110,6 +126,16 @@ def test_apply_orientation_rules_converges_iteratively() -> None:
 
     assert result is graph
     assert graph.edge_repr("A", "C") == "A --> C"
+
+
+def test_apply_orientation_rules_respects_ambiguous_triples_in_r1() -> None:
+    graph = PAG(["X", "Z", "Y"])
+    graph.add_edge("X", "Z", Endpoint.CIRCLE, Endpoint.ARROW)
+    graph.add_circle_edge("Z", "Y")
+
+    apply_orientation_rules(graph, {}, ambiguous_triples=[("Y", "Z", "X")])
+
+    assert graph.edge_repr("Z", "Y") == "Z o-o Y"
 
 
 def test_existing_arrowheads_are_preserved_by_rules() -> None:

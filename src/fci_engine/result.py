@@ -56,6 +56,7 @@ class FCIResult:
     orientation_trace: list[OrientationEvent] = field(default_factory=list)
     ci_test_trace: list[CITraceEvent] = field(default_factory=list)
     sepset_sources: dict[tuple[str, str], str] = field(default_factory=dict)
+    ambiguous_triples: list[tuple[str, str, str]] = field(default_factory=list)
     bootstrap_edge_frequencies: Optional[dict[str, float]] = None
     algorithm: str = "fci"
 
@@ -72,6 +73,7 @@ class FCIResult:
                 f"- CI tests: {self.ci_test_count}",
                 f"- cache hits: {self.cache_hits}",
                 f"- orientation events: {len(self.orientation_trace)}",
+                f"- ambiguous triples: {len(self.ambiguous_triples)}",
                 f"- CI trace events: {len(self.ci_test_trace)}",
                 f"- elapsed time: {self.elapsed_time:.4f}s",
                 f"- alpha: {self.config.alpha}",
@@ -183,6 +185,9 @@ class FCIResult:
             "nodes": list(self.graph.nodes),
             "edges": self.to_edge_records(),
             "sepsets": _sepset_records(self.sepsets, self.sepset_sources),
+            "ambiguous_triples": [
+                [str(x), str(z), str(y)] for x, z, y in self.ambiguous_triples
+            ],
             "ci_test_count": self.ci_test_count,
             "cache_hits": self.cache_hits,
             "elapsed_time": self.elapsed_time,
@@ -280,6 +285,7 @@ def _config_to_dict(config: FCIConfig) -> dict[str, Any]:
         "do_pdsep": config.do_pdsep,
         "skeleton_stable": config.skeleton_stable,
         "pdsep_stable": config.pdsep_stable,
+        "conservative_colliders": config.conservative_colliders,
         "background_knowledge": (
             repr(config.background_knowledge)
             if config.background_knowledge is not None

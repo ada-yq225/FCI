@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 import fci_engine.discovery.fci as fci_pipeline
-from fci_engine import FCI, FCIResult, fci
+from fci_engine import BackgroundKnowledge, FCI, FCIResult, fci
 from fci_engine.ci import CITest, CITestResult
 
 
@@ -83,3 +83,64 @@ def test_dataframe_column_names_appear_in_graph_nodes() -> None:
 
     assert estimator.variable_names == ["load", "latency", "errors"]
     assert result.graph.nodes == ("load", "latency", "errors")
+
+
+def test_conservative_colliders_report_ambiguous_triples() -> None:
+    class AmbiguousTripleCITest(CITest):
+        def test(self, data, x, y, cond_set=()):
+            independent = frozenset((x, y)) == frozenset((0, 2)) and frozenset(
+                cond_set
+            ) in {frozenset(), frozenset((1,))}
+            return CITestResult(
+                independent=independent,
+                p_value=0.9 if independent else 0.001,
+                statistic=None,
+                method="ambiguous",
+                n_samples=data.shape[0],
+            )
+
+    data = np.random.default_rng(5).normal(size=(100, 3))
+
+    result = fci(
+        data,
+        ci_test=AmbiguousTripleCITest(),
+        max_cond_set_size=1,
+        do_pdsep=False,
+        conservative_colliders=True,
+    )
+
+    assert result.ambiguous_triples == [("X0", "X1", "X2")]
+    assert result.graph.edge_repr("X0", "X1") == "X0 o-o X1"
+    assert result.graph.edge_repr("X1", "X2") == "X1 o-o X2"
+
+
+def test_conservative_colliders_protect_ambiguous_triples_from_r1() -> None:
+    class AmbiguousTripleCITest(CITest):
+        def test(self, data, x, y, cond_set=()):
+            independent = frozenset((x, y)) == frozenset((0, 2)) and frozenset(
+                cond_set
+            ) in {frozenset(), frozenset((1,))}
+            return CITestResult(
+                independent=independent,
+                p_value=0.9 if independent else 0.001,
+                statistic=None,
+                method="ambiguous",
+                n_samples=data.shape[0],
+            )
+
+    data = np.random.default_rng(6).normal(size=(100, 3))
+    knowledge = BackgroundKnowledge(required_edges={("X0", "X1")})
+
+    result = fci(
+        data,
+        ci_test=AmbiguousTripleCITest(),
+        max_cond_set_size=1,
+        do_pdsep=False,
+        conservative_colliders=True,
+        background_knowledge=knowledge,
+    )
+
+    assert result.ambiguous_triples == [("X0", "X1", "X2")]
+    assert result.graph.edge_repr("X0", "X1") == "X0 --> X1"
+    assert result.graph.edge_repr("X1", "X2") == "X1 o-o X2"
+    assert "R1" not in {event.rule for event in result.orientation_trace}

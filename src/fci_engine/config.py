@@ -27,6 +27,9 @@ class FCIConfig:
             to avoid order-dependent skeleton deletion.
         pdsep_stable: Snapshot the PAG at the start of Possible-D-SEP refinement
             to avoid order-dependent candidate search.
+        conservative_colliders: Use conservative unshielded-collider
+            orientation by checking multiple separating sets and leaving
+            ambiguous triples unoriented.
         background_knowledge: Required and forbidden orientation constraints.
         verbose: Enable detailed logging output.
     """
@@ -38,6 +41,7 @@ class FCIConfig:
     do_pdsep: bool = True
     skeleton_stable: bool = True
     pdsep_stable: bool = True
+    conservative_colliders: bool = False
     background_knowledge: Optional[BackgroundKnowledge] = None
     verbose: bool = False
 

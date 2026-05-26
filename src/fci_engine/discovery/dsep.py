@@ -100,18 +100,25 @@ def minimal_dsep(
     normalized_data, node_to_index = _prepare_data_for_graph(data, graph)
     minimized = {node for node in cond_set if node not in {x, y}}
 
-    for node in graph.nodes:
-        if node not in minimized:
-            continue
-        candidate = minimized - {node}
-        result = ci_test.test(
-            normalized_data,
-            node_to_index[x],
-            node_to_index[y],
-            tuple(node_to_index[item] for item in graph.nodes if item in candidate),
-        )
-        if result.independent:
-            minimized = candidate
+    changed = True
+    while changed:
+        changed = False
+        for node in graph.nodes:
+            if node not in minimized:
+                continue
+            candidate = minimized - {node}
+            result = ci_test.test(
+                normalized_data,
+                node_to_index[x],
+                node_to_index[y],
+                tuple(
+                    node_to_index[item] for item in graph.nodes if item in candidate
+                ),
+            )
+            if result.independent:
+                minimized = candidate
+                changed = True
+                break
 
     return minimized
 

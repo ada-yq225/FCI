@@ -47,6 +47,9 @@ Configuration options:
   defer removals until the depth is complete, reducing order dependence
 - `pdsep_stable`: snapshot the PAG at the start of Possible-D-Sep refinement
   so candidate paths are not affected by earlier removals in the same stage
+- `conservative_colliders`: use Conservative-FCI-style unshielded collider
+  orientation; triples with conflicting separating sets are reported as
+  ambiguous instead of being forced into a collider
 - `background_knowledge`: required and forbidden orientation constraints
 - `verbose`: print CI and orientation progress
 
@@ -77,6 +80,8 @@ Fields:
 - `ci_test_trace`: CI query records including p-values and cache-hit status
 - `sepset_sources`: whether each sepset came from initial skeleton search, PDS,
   or FCI+ hierarchical D-SEP
+- `ambiguous_triples`: unshielded triples skipped by conservative collider
+  orientation because separating sets disagree
 - `bootstrap_edge_frequencies`: optional user-populated stability summary
 
 Use `result.summary()` for a compact text summary.

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from typing import Optional
 import numpy as np
 from scipy.stats import norm
 
@@ -17,6 +18,11 @@ class FisherZTest(CITest):
     """
 
     method = "fisher_z"
+
+    def __init__(self, alpha: float = 0.05) -> None:
+        super().__init__(alpha=alpha)
+        self._cached_input: Optional[object] = None
+        self._cached_correlation: Optional[tuple[np.ndarray, int, int]] = None
 
     def test(
         self,
@@ -48,15 +54,21 @@ class FisherZTest(CITest):
             n_samples=n_samples,
         )
 
-    @classmethod
-    def _correlation_matrix(cls, data: object) -> tuple[np.ndarray, int, int]:
+    def _correlation_matrix(self, data: object) -> tuple[np.ndarray, int, int]:
         if isinstance(data, Mapping):
-            return cls._correlation_from_sufficient_stats(data)
-        data = cls._validate_data(data)
+            return self._correlation_from_sufficient_stats(data)
+        if self._cached_input is data and self._cached_correlation is not None:
+            return self._cached_correlation
+
+        input_object = data
+        data = self._validate_data(data)
         corr = np.corrcoef(data, rowvar=False)
         if not np.all(np.isfinite(corr)):
             raise ValueError("Cannot compute correlations for non-finite data.")
-        return np.asarray(corr, dtype=float), data.shape[0], data.shape[1]
+        result = np.asarray(corr, dtype=float), data.shape[0], data.shape[1]
+        self._cached_input = input_object
+        self._cached_correlation = result
+        return result
 
     @staticmethod
     def _validate_data(data: object) -> np.ndarray:

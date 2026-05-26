@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Hashable, Mapping
+from collections.abc import Hashable, Iterable, Mapping
 from collections import deque
 from itertools import combinations
 from typing import Optional
@@ -16,6 +16,8 @@ from fci_engine.graph import Endpoint, PAG
 
 
 SepsetMap = Mapping[tuple[Hashable, Hashable], set[Hashable]]
+Triple = tuple[Hashable, Hashable, Hashable]
+AmbiguousTripleKey = tuple[frozenset[Hashable], Hashable]
 
 
 def apply_orientation_rules(
@@ -25,6 +27,7 @@ def apply_orientation_rules(
     max_path_length: Optional[int] = None,
     verbose: bool = False,
     trace: Optional[list[OrientationEvent]] = None,
+    ambiguous_triples: Optional[Iterable[Triple]] = None,
 ) -> PAG:
     """Apply FCI orientation rules until convergence."""
 
@@ -34,7 +37,6 @@ def apply_orientation_rules(
         raise ValueError("max_path_length must be non-negative.")
 
     rules = [
-        rule_avoid_new_unshielded_colliders,
         rule_propagate_arrowheads,
         rule_double_triangle_arrowheads,
         rule_propagate_arrowheads_along_directed_paths,
@@ -46,6 +48,19 @@ def apply_orientation_rules(
 
     for iteration in range(max_iter):
         changed = False
+        rule_changed = rule_avoid_new_unshielded_colliders(
+            graph,
+            sepsets,
+            trace=trace,
+            iteration=iteration,
+            ambiguous_triples=ambiguous_triples,
+        )
+        if verbose and rule_changed:
+            print(
+                "rule_avoid_new_unshielded_colliders changed graph "
+                f"at iteration {iteration}."
+            )
+        changed = changed or rule_changed
         for rule in rules:
             rule_changed = rule(
                 graph,
@@ -94,11 +109,15 @@ def rule_avoid_new_unshielded_colliders(
     sepsets: SepsetMap,
     trace: Optional[list[OrientationEvent]] = None,
     iteration: Optional[int] = None,
+    ambiguous_triples: Optional[Iterable[Triple]] = None,
 ) -> bool:
     """R1: orient ``a *-> b o-* c`` as ``a *-> b --> c`` when unshielded."""
 
     changed = False
+    ambiguous = _normalize_ambiguous_triples(ambiguous_triples)
     for x, z, y in find_unshielded_triples(graph):
+        if _is_ambiguous_unshielded_triple(x, z, y, ambiguous):
+            continue
         if graph.has_arrowhead(x, z):
             changed = _orient_directed_if_possible(
                 graph,
@@ -123,6 +142,27 @@ def rule_avoid_new_unshielded_colliders(
                 or changed
             )
     return changed
+
+
+def _normalize_ambiguous_triples(
+    ambiguous_triples: Optional[Iterable[Triple]],
+) -> set[AmbiguousTripleKey]:
+    if ambiguous_triples is None:
+        return set()
+    return {
+        (frozenset((x, y)), z)
+        for x, z, y in ambiguous_triples
+        if x != z and z != y and x != y
+    }
+
+
+def _is_ambiguous_unshielded_triple(
+    x: Hashable,
+    z: Hashable,
+    y: Hashable,
+    ambiguous: set[AmbiguousTripleKey],
+) -> bool:
+    return (frozenset((x, y)), z) in ambiguous
 
 
 def rule_propagate_arrowheads(

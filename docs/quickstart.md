@@ -59,6 +59,7 @@ estimator = FCI(
     do_pdsep=True,
     skeleton_stable=True,
     pdsep_stable=True,
+    conservative_colliders=False,
     verbose=False,
 )
 result = estimator.fit(data)
@@ -69,6 +70,9 @@ Gaussian-style data. Stable skeleton search is enabled by default so edge
 removals within one conditioning depth do not change later candidate sets at
 the same depth. Stable Possible-D-Sep refinement is also enabled by default so
 later PDS candidate paths use a start-of-stage PAG snapshot.
+Set `conservative_colliders=True` to use Conservative-FCI-style collider
+orientation and report ambiguous unshielded triples instead of forcing a
+direction.
 
 ## Run FCI+
 

@@ -12,6 +12,7 @@ from fci_engine.diagnostics import OrientationEvent
 from fci_engine.discovery.dsep import refine_skeleton_with_fci_plus_dsep
 from fci_engine.discovery.fci import _name_ci_trace
 from fci_engine.discovery.orientation import (
+    orient_unshielded_colliders_conservative,
     orient_unshielded_colliders,
     reset_endpoint_marks,
 )
@@ -64,6 +65,7 @@ class FCIPlus:
         self.ci_test_cache_ = ci_test
 
         orientation_trace: list[OrientationEvent] = []
+        ambiguous_triples: list[tuple[str, str, str]] = []
         sepset_sources: dict[tuple[str, str], str] = {}
 
         graph = create_complete_pag(variable_names)
@@ -93,13 +95,24 @@ class FCIPlus:
             resolved_config.background_knowledge,
             trace=orientation_trace,
         )
-        orient_unshielded_colliders(graph, sepsets, trace=orientation_trace)
+        if resolved_config.conservative_colliders:
+            graph, ambiguous_triples = orient_unshielded_colliders_conservative(
+                normalized_data,
+                graph,
+                sepsets,
+                ci_test,
+                max_cond_set_size=resolved_config.max_cond_set_size,
+                trace=orientation_trace,
+            )
+        else:
+            orient_unshielded_colliders(graph, sepsets, trace=orientation_trace)
         apply_orientation_rules(
             graph,
             sepsets,
             max_path_length=resolved_config.max_path_length,
             verbose=resolved_config.verbose,
             trace=orientation_trace,
+            ambiguous_triples=ambiguous_triples,
         )
 
         result = FCIResult(
@@ -112,6 +125,7 @@ class FCIPlus:
             orientation_trace=orientation_trace,
             ci_test_trace=_name_ci_trace(ci_test.trace, variable_names),
             sepset_sources=sepset_sources,
+            ambiguous_triples=ambiguous_triples,
             algorithm="fci_plus",
         )
         self.result_ = result

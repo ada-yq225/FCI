@@ -104,3 +104,23 @@ def test_fisher_z_accepts_covariance_sufficient_statistics() -> None:
     assert result.method == "fisher_z"
     assert result.n_samples == data.shape[0]
     assert np.isfinite(result.p_value)
+
+
+def test_fisher_z_reuses_correlation_matrix_for_same_array(monkeypatch) -> None:
+    rng = np.random.default_rng(7)
+    data = rng.normal(size=(800, 4))
+    calls = {"count": 0}
+    original_corrcoef = np.corrcoef
+
+    def counting_corrcoef(*args, **kwargs):
+        calls["count"] += 1
+        return original_corrcoef(*args, **kwargs)
+
+    monkeypatch.setattr(np, "corrcoef", counting_corrcoef)
+    test = FisherZTest(alpha=0.01)
+
+    test.test(data, 0, 1, [])
+    test.test(data, 0, 2, [1])
+    test.test(data, 2, 3, [0, 1])
+
+    assert calls["count"] == 1

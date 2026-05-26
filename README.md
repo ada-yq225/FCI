@@ -103,6 +103,7 @@ config = FCIConfig(
     do_pdsep=True,
     skeleton_stable=True,
     pdsep_stable=True,
+    conservative_colliders=True,
 )
 estimator = FCI(config)
 

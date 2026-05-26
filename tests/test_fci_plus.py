@@ -6,6 +6,7 @@ from fci_engine.ci import CITest, CITestResult
 from fci_engine.discovery.dsep import (
     build_augmented_skeleton,
     hierarchy,
+    minimal_dsep,
     possible_dsep_links,
     refine_skeleton_with_fci_plus_dsep,
 )
@@ -84,6 +85,30 @@ def test_augmented_skeleton_orients_single_node_dependency_arrowheads() -> None:
 
     assert augmented.get_endpoint("X", "A") is Endpoint.ARROW
     assert augmented.get_endpoint("S", "A") is Endpoint.ARROW
+
+
+def test_minimal_dsep_rechecks_nodes_until_fixed_point() -> None:
+    nodes = ["X", "Y", "A", "B", "C"]
+    graph = PAG(nodes)
+    graph.add_circle_edge("X", "Y")
+    oracle = OracleCITest(
+        nodes,
+        {
+            _oracle_key("X", "Y", frozenset({"A", "C"})),
+            _oracle_key("X", "Y", frozenset({"C"})),
+        },
+    )
+
+    minimized = minimal_dsep(
+        np.zeros((20, len(nodes))),
+        graph,
+        "X",
+        "Y",
+        {"A", "B", "C"},
+        oracle,
+    )
+
+    assert minimized == {"C"}
 
 
 def test_fci_plus_dsep_refinement_uses_hierarchical_sepsets() -> None:
