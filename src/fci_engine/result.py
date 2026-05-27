@@ -82,6 +82,7 @@ class FCIResult:
                 f"- stable Possible-D-Sep: {self.config.pdsep_stable}",
                 f"- sepset selection: {self.config.sepset_selection}",
                 f"- conservative orientation: {self.config.conservative_orientation}",
+                f"- orientation strategy: {self.config.orientation_strategy}",
             ]
         )
 
@@ -290,6 +291,7 @@ def _config_to_dict(config: FCIConfig) -> dict[str, Any]:
         "sepset_selection": config.sepset_selection,
         "conservative_colliders": config.conservative_colliders,
         "conservative_orientation": config.conservative_orientation,
+        "orientation_strategy": config.orientation_strategy,
         "background_knowledge": (
             repr(config.background_knowledge)
             if config.background_knowledge is not None

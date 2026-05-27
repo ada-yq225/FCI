@@ -109,6 +109,14 @@ def run_oracle_benchmark(
     for case in cases:
         results.append(run_fci_engine(case, fci, "fci_engine.fci"))
         results.append(run_fci_engine(case, fci_plus, "fci_engine.fci_plus"))
+        results.append(
+            run_fci_engine(
+                case,
+                fci_plus,
+                "fci_engine.fci_plus.leaf",
+                orientation_strategy="leaf",
+            )
+        )
         if include_kernel_ci and case.use_kernel_ci:
             results.append(
                 run_fci_engine(
@@ -134,6 +142,19 @@ def run_oracle_benchmark(
                     ),
                 )
             )
+            results.append(
+                run_fci_engine(
+                    case,
+                    fci_plus,
+                    "fci_engine.fci_plus.kernel.leaf",
+                    ci_test=KernelCITest(
+                        alpha=case.alpha,
+                        n_permutations=99,
+                        random_state=0,
+                    ),
+                    orientation_strategy="leaf",
+                )
+            )
         if include_causal_learn:
             results.append(run_causal_learn_fci(case))
             if include_kernel_ci and case.use_kernel_ci:
@@ -148,6 +169,7 @@ def run_fci_engine(
     algorithm: Callable[..., object],
     algorithm_name: str,
     ci_test: Optional[CITest] = None,
+    **algorithm_kwargs: object,
 ) -> BenchmarkResult:
     """Run one fci_engine algorithm on an oracle case."""
 
@@ -158,6 +180,7 @@ def run_fci_engine(
         ci_test=ci_test,
         max_cond_set_size=case.max_cond_set_size,
         max_path_length=case.max_path_length,
+        **algorithm_kwargs,
     )
     elapsed = perf_counter() - start
     edges = shape_from_pag(result.graph)

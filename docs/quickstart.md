@@ -62,6 +62,7 @@ estimator = FCI(
     sepset_selection="max_pvalue",
     conservative_colliders=False,
     conservative_orientation=False,
+    orientation_strategy="leaf",
     verbose=False,
 )
 result = estimator.fit(data)
@@ -80,6 +81,9 @@ orientation and report ambiguous unshielded triples instead of forcing a
 direction.
 Set `conservative_orientation=True` when you want to keep arrowhead evidence
 but skip tail-producing propagation rules, producing a more cautious PAG.
+Set `orientation_strategy="leaf"` to use a middle ground: avoid most
+tail-producing propagation in dense regions while still allowing R1 to orient
+clear leaf effects.
 
 ## Run FCI+
 

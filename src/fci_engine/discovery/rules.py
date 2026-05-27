@@ -29,6 +29,7 @@ def apply_orientation_rules(
     trace: Optional[list[OrientationEvent]] = None,
     ambiguous_triples: Optional[Iterable[Triple]] = None,
     conservative_orientation: bool = False,
+    orientation_strategy: str = "standard",
 ) -> PAG:
     """Apply FCI orientation rules until convergence."""
 
@@ -36,6 +37,12 @@ def apply_orientation_rules(
         raise ValueError("max_iter must be non-negative.")
     if max_path_length is not None and max_path_length < 0:
         raise ValueError("max_path_length must be non-negative.")
+    if orientation_strategy not in {"standard", "conservative", "leaf"}:
+        raise ValueError(
+            "orientation_strategy must be 'standard', 'conservative', or 'leaf'."
+        )
+    if conservative_orientation and orientation_strategy == "standard":
+        orientation_strategy = "conservative"
 
     arrowhead_rules = [
         rule_propagate_arrowheads,
@@ -48,17 +55,20 @@ def apply_orientation_rules(
         rule_selection_bias_tail_from_noncollider,
         rule_orient_tail_along_directed_chain,
     ]
-    rules = arrowhead_rules if conservative_orientation else arrowhead_rules + tail_rules
+    tail_enabled = orientation_strategy == "standard"
+    leaf_tail_enabled = orientation_strategy == "leaf"
+    rules = arrowhead_rules if not tail_enabled else arrowhead_rules + tail_rules
 
     for iteration in range(max_iter):
         changed = False
-        if not conservative_orientation:
+        if tail_enabled or leaf_tail_enabled:
             rule_changed = rule_avoid_new_unshielded_colliders(
                 graph,
                 sepsets,
                 trace=trace,
                 iteration=iteration,
                 ambiguous_triples=ambiguous_triples,
+                leaf_only=leaf_tail_enabled,
             )
             if verbose and rule_changed:
                 print(
@@ -82,7 +92,7 @@ def apply_orientation_rules(
             max_path_length=max_path_length,
             trace=trace,
             iteration=iteration,
-            conservative_orientation=conservative_orientation,
+            conservative_orientation=not tail_enabled,
         )
         if verbose and rule_changed:
             print(
@@ -90,7 +100,7 @@ def apply_orientation_rules(
                 f"at iteration {iteration}."
             )
         changed = changed or rule_changed
-        if not conservative_orientation:
+        if tail_enabled:
             for path_rule in (
                 rule_uncovered_circle_path_selection_bias,
                 rule_orient_tail_along_uncovered_pd_path,
@@ -120,6 +130,7 @@ def rule_avoid_new_unshielded_colliders(
     trace: Optional[list[OrientationEvent]] = None,
     iteration: Optional[int] = None,
     ambiguous_triples: Optional[Iterable[Triple]] = None,
+    leaf_only: bool = False,
 ) -> bool:
     """R1: orient ``a *-> b o-* c`` as ``a *-> b --> c`` when unshielded."""
 
@@ -129,28 +140,30 @@ def rule_avoid_new_unshielded_colliders(
         if _is_ambiguous_unshielded_triple(x, z, y, ambiguous):
             continue
         if graph.has_arrowhead(x, z):
-            changed = _orient_directed_if_possible(
-                graph,
-                z,
-                y,
-                trace=trace,
-                rule="R1",
-                iteration=iteration,
-                reason=f"avoid new unshielded collider {x!r}-{z!r}-{y!r}",
-            ) or changed
-        if graph.has_arrowhead(y, z):
-            changed = (
-                _orient_directed_if_possible(
+            if not leaf_only or len(graph.neighbors(y)) == 1:
+                changed = _orient_directed_if_possible(
                     graph,
                     z,
-                    x,
+                    y,
                     trace=trace,
                     rule="R1",
                     iteration=iteration,
                     reason=f"avoid new unshielded collider {x!r}-{z!r}-{y!r}",
+                ) or changed
+        if graph.has_arrowhead(y, z):
+            if not leaf_only or len(graph.neighbors(x)) == 1:
+                changed = (
+                    _orient_directed_if_possible(
+                        graph,
+                        z,
+                        x,
+                        trace=trace,
+                        rule="R1",
+                        iteration=iteration,
+                        reason=f"avoid new unshielded collider {x!r}-{z!r}-{y!r}",
+                    )
+                    or changed
                 )
-                or changed
-            )
     return changed
 
 

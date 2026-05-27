@@ -116,6 +116,7 @@ class FCIPlus:
             trace=orientation_trace,
             ambiguous_triples=ambiguous_triples,
             conservative_orientation=resolved_config.conservative_orientation,
+            orientation_strategy=resolved_config.orientation_strategy,
         )
 
         result = FCIResult(

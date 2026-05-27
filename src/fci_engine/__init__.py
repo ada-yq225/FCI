@@ -1,6 +1,7 @@
 """Fast Causal Inference tools for PAG learning under latent confounding."""
 
 from fci_engine.api import fci, fci_plus
+from fci_engine.config import FCIConfig
 from fci_engine.discovery.fci import FCI
 from fci_engine.discovery.fci_plus import FCIPlus
 from fci_engine.graph import Endpoint, PAG
@@ -39,6 +40,7 @@ __all__ = [
     "Endpoint",
     "EdgeExplanation",
     "FCI",
+    "FCIConfig",
     "FCIPlus",
     "FCIResult",
     "BackgroundKnowledge",

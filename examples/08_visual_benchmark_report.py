@@ -23,8 +23,10 @@ REPORT_PATH = Path(__file__).with_name("realistic_benchmark_report.html")
 COLORS = {
     "fci_engine.fci": "#2563eb",
     "fci_engine.fci_plus": "#059669",
+    "fci_engine.fci_plus.leaf": "#047857",
     "fci_engine.fci.kernel": "#7c3aed",
     "fci_engine.fci_plus.kernel": "#a855f7",
+    "fci_engine.fci_plus.kernel.leaf": "#6d28d9",
     "causal-learn.fci.fisherz": "#d97706",
     "causal-learn.fci.kci": "#f59e0b",
     "pcalg.fciPlus": "#dc2626",
@@ -244,12 +246,12 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
 <header>
   <h1>FCI+ vs R pcalg Oracle Benchmark</h1>
   <p>{len(cases)} hand-written oracle cases. The primary comparison is
-  fci_engine FCI+ against R pcalg::fciPlus; causal-learn remains in the lower
-  score table as context, not as ground truth.</p>
+  fci_engine FCI+ leaf-tail strategy against R pcalg::fciPlus; causal-learn
+  remains in the lower score table as context, not as ground truth.</p>
 </header>
 <main>
   <section>
-    <h2>Head-To-Head: fci_engine FCI+ vs R pcalg::fciPlus</h2>
+    <h2>Head-To-Head: fci_engine FCI+ Leaf vs R pcalg::fciPlus</h2>
     {render_pcalg_head_to_head(cases, results)}
   </section>
   <section>
@@ -788,12 +790,20 @@ def _preferred_engine_result(
     results: list[BenchmarkResult],
 ) -> Optional[BenchmarkResult]:
     preferred = (
+        "fci_engine.fci_plus.kernel.leaf"
+        if case.use_kernel_ci
+        else "fci_engine.fci_plus.leaf"
+    )
+    for result in results:
+        if result.case_name == case.name and result.algorithm == preferred:
+            return result
+    fallback = (
         "fci_engine.fci_plus.kernel"
         if case.use_kernel_ci
         else "fci_engine.fci_plus"
     )
     for result in results:
-        if result.case_name == case.name and result.algorithm == preferred:
+        if result.case_name == case.name and result.algorithm == fallback:
             return result
     return None
 

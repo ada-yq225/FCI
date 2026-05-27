@@ -3,7 +3,7 @@ import json
 import numpy as np
 import pandas as pd
 
-from fci_engine import EdgeExplanation, fci, fci_plus
+from fci_engine import EdgeExplanation, FCIConfig, fci, fci_plus
 from fci_engine.ci import CITest, CITestResult
 
 
@@ -95,4 +95,9 @@ def test_result_json_round_trip_and_save(tmp_path) -> None:
     assert "edges" in payload
     assert len(payload["sepsets"]) == 1
     assert "ci_test_trace" in payload
+    assert payload["config"]["orientation_strategy"] == "standard"
     assert loaded["algorithm"] == payload["algorithm"]
+
+
+def test_fci_config_is_exported_from_top_level_package() -> None:
+    assert FCIConfig(orientation_strategy="leaf").orientation_strategy == "leaf"

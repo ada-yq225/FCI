@@ -57,6 +57,10 @@ Configuration options:
 - `conservative_orientation`: keep arrowhead-producing orientation rules but
   skip tail-producing propagation rules; useful when audits prefer a less
   committed PAG over possible over-orientation
+- `orientation_strategy`: `"standard"` applies all implemented PAG orientation
+  rules, `"conservative"` keeps arrowhead rules only, and `"leaf"` keeps the
+  conservative behavior in dense graph regions while still allowing R1 to
+  direct leaf endpoints
 - `background_knowledge`: required and forbidden orientation constraints
 - `verbose`: print CI and orientation progress
 
