@@ -90,7 +90,7 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
   h2 {{ margin: 0 0 14px; font-size: 18px; }}
   p {{ margin: 0; color: var(--muted); line-height: 1.5; }}
   main {{
-    width: min(1420px, calc(100vw - 48px));
+    width: min(1680px, calc(100vw - 36px));
     margin: 24px auto 40px;
   }}
   section {{
@@ -120,8 +120,20 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
   }}
   .graph-row {{
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
     gap: 16px;
+    align-items: start;
+  }}
+  .graph-panel {{
+    min-width: 0;
+  }}
+  .graph-svg {{
+    display: block;
+    width: 100%;
+    height: auto;
+  }}
+  .chart-scroll svg {{
+    min-width: 1120px;
   }}
   .case-title {{
     font-weight: 700;
@@ -148,7 +160,7 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
   }}
   .diff-row {{
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
     gap: 14px;
     margin-top: 12px;
   }}
@@ -211,10 +223,24 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
   .delta-pos {{ color: #047857; font-weight: 800; }}
   .delta-neg {{ color: #b42318; font-weight: 800; }}
   .delta-zero {{ color: #475467; font-weight: 800; }}
+  .chart-scroll,
+  .table-scroll {{
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }}
+  .table-scroll {{
+    border: 1px solid #eaecf0;
+    border-radius: 8px;
+  }}
   table {{
     width: 100%;
+    min-width: 980px;
     border-collapse: collapse;
     font-size: 13px;
+  }}
+  .diff-table table {{
+    min-width: 760px;
   }}
   th, td {{
     text-align: left;
@@ -228,6 +254,7 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    min-width: max-content;
   }}
   .dot {{
     width: 9px;
@@ -236,7 +263,7 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
     background: currentColor;
   }}
   svg text {{ font-family: inherit; }}
-  @media (max-width: 1000px) {{
+  @media (max-width: 1220px) {{
     main {{ width: min(100vw - 24px, 900px); }}
     .grid, .graph-row, .diff-row, .summary-grid {{ grid-template-columns: 1fr; }}
   }}
@@ -333,7 +360,7 @@ def render_aggregate_chart(aggregates: list[BenchmarkAggregate]) -> str:
                 f'fill="#667085">mean time: {aggregate.mean_elapsed_time:.4f}s</text>'
             )
     svg.append("</svg>")
-    return "\n".join(svg)
+    return "<div class='chart-scroll'>" + "\n".join(svg) + "</div>"
 
 
 def render_pcalg_head_to_head(
@@ -422,14 +449,14 @@ def render_pcalg_head_to_head(
 
     return (
         f"{_head_to_head_summary(compared, engine_wins, ties, r_wins, semantic_deltas, exact_deltas)}"
-        "<table>"
+        "<div class='table-scroll'><table>"
         "<thead><tr>"
         "<th>Case</th><th>Winner</th>"
         "<th>Our Semantic F1</th><th>R Semantic F1</th><th>Semantic Δ</th>"
         "<th>Our Exact F1</th><th>R Exact F1</th><th>Exact Δ</th>"
         "<th>Skeleton Δ</th><th>Endpoint Δ</th>"
         "</tr></thead>"
-        f"<tbody>{''.join(rows)}</tbody></table>"
+        f"<tbody>{''.join(rows)}</tbody></table></div>"
     )
 
 
@@ -555,12 +582,12 @@ def render_score_table(results: list[BenchmarkResult]) -> str:
             "</tr>"
         )
     return (
-        "<table>"
+        "<div class='table-scroll'><table>"
         "<thead><tr><th>Case</th><th>Algorithm</th><th>Exact F1</th>"
         "<th>Semantic F1</th><th>Skeleton F1</th><th>Endpoint Acc</th>"
         "<th>Compatible Endpoint Acc</th><th>FP</th><th>FN</th>"
         "<th>CI Tests</th></tr></thead>"
-        f"<tbody>{''.join(rows)}</tbody></table>"
+        f"<tbody>{''.join(rows)}</tbody></table></div>"
     )
 
 
@@ -579,15 +606,15 @@ def render_graph_gallery(
             f"<div class='case-title'>{_esc(case.name)}</div>"
             f"<p>{_esc(case.notes)}</p>"
             "<div class='graph-row' style='margin-top:14px'>"
-            "<div>"
+            "<div class='graph-panel'>"
             f"{render_pag_svg(case.oracle_shape, list(case.data.columns), 'Oracle PAG', learned.edges, 'oracle')}"
             "<div class='caption'>Hand-written expected PAG</div>"
             "</div>"
-            "<div>"
+            "<div class='graph-panel'>"
             f"{render_pag_svg(learned.edges, list(case.data.columns), learned.algorithm, case.oracle_shape, 'learned')}"
             f"<div class='caption'>Learned output: {_esc(learned.algorithm)}</div>"
             "</div>"
-            "<div>"
+            "<div class='graph-panel'>"
             f"{render_result_svg(case, pcalg, 'R pcalg::fciPlus')}"
             f"<div class='caption'>{render_result_caption(pcalg)}</div>"
             "</div>"
@@ -638,11 +665,11 @@ def render_result_caption(result: Optional[BenchmarkResult]) -> str:
 def render_placeholder_svg(
     title: str,
     message: str,
-    width: int = 540,
-    height: int = 380,
+    width: int = 720,
+    height: int = 520,
 ) -> str:
     return (
-        f'<svg viewBox="0 0 {width} {height}" width="100%" height="{height}" '
+        f'<svg class="graph-svg" viewBox="0 0 {width} {height}" '
         f'role="img" aria-label="{_esc(title)} unavailable">'
         '<rect width="100%" height="100%" rx="8" fill="#ffffff" stroke="#d0d5dd"/>'
         f'<text x="16" y="26" font-size="15" font-weight="800" '
@@ -707,10 +734,10 @@ def render_difference_table(
     return (
         "<div class='diff-table'>"
         f"<div class='diff-title'>{_esc(title)}</div>"
-        "<table><thead><tr><th>Kind</th><th>Edge</th><th>Expected</th>"
+        "<div class='table-scroll'><table><thead><tr><th>Kind</th><th>Edge</th><th>Expected</th>"
         "<th>Actual</th><th>Endpoint Status</th><th>Orientation Rules</th>"
         "</tr></thead>"
-        f"<tbody>{''.join(rows)}</tbody></table>{more}</div>"
+        f"<tbody>{''.join(rows)}</tbody></table></div>{more}</div>"
     )
 
 
@@ -720,8 +747,8 @@ def render_pag_svg(
     title: str,
     reference_shape: Optional[Shape] = None,
     comparison_side: str = "learned",
-    width: int = 540,
-    height: int = 380,
+    width: int = 720,
+    height: int = 520,
 ) -> str:
     positions = _circle_layout(nodes, width, height)
     normalized_shape = _normalized_shape(shape)
@@ -740,7 +767,7 @@ def render_pag_svg(
         stroke, stroke_width, dasharray = _edge_style(status)
         x1, y1 = positions[x]
         x2, y2 = positions[y]
-        start, end = _trimmed_line((x1, y1), (x2, y2), 30)
+        start, end = _trimmed_line((x1, y1), (x2, y2), 48)
         edge_parts.append(
             f'<line x1="{start[0]:.1f}" y1="{start[1]:.1f}" '
             f'x2="{end[0]:.1f}" y2="{end[1]:.1f}" '
@@ -752,18 +779,10 @@ def render_pag_svg(
     node_parts = []
     for node in nodes:
         x, y = positions[node]
-        node_parts.append(
-            f'<circle cx="{x:.1f}" cy="{y:.1f}" r="25" fill="#f8fafc" '
-            'stroke="#344054" stroke-width="1.5"/>'
-        )
-        node_parts.append(
-            f'<text x="{x:.1f}" y="{y + 4:.1f}" text-anchor="middle" '
-            'font-size="11" font-weight="700" fill="#101827">'
-            f"{_esc(node)}</text>"
-        )
+        node_parts.append(_node_svg(node, x, y))
 
     return (
-        f'<svg viewBox="0 0 {width} {height}" width="100%" height="{height}" '
+        f'<svg class="graph-svg" viewBox="0 0 {width} {height}" '
         f'role="img" aria-label="{_esc(title)}">'
         '<rect width="100%" height="100%" rx="8" fill="#ffffff" stroke="#d0d5dd"/>'
         f'<text x="16" y="26" font-size="15" font-weight="800" '
@@ -824,8 +843,8 @@ def _circle_layout(
     height: int,
 ) -> dict[str, tuple[float, float]]:
     center_x = width / 2
-    center_y = height / 2 + 12
-    radius = min(width, height) * 0.33
+    center_y = height / 2 + 20
+    radius = min(width, height) * 0.38
     positions = {}
     for index, node in enumerate(nodes):
         angle = -math.pi / 2 + 2 * math.pi * index / max(len(nodes), 1)
@@ -834,6 +853,83 @@ def _circle_layout(
             center_y + radius * math.sin(angle),
         )
     return positions
+
+
+def _node_svg(node: str, x: float, y: float) -> str:
+    lines = _label_lines(str(node))
+    max_len = max(len(line) for line in lines)
+    box_width = min(122, max(70, 8 * max_len + 20))
+    box_height = 26 + 14 * len(lines)
+    top = y - box_height / 2
+    left = x - box_width / 2
+    text_start = y - (len(lines) - 1) * 7 + 4
+    text_lines = []
+    for index, line in enumerate(lines):
+        text_lines.append(
+            f'<tspan x="{x:.1f}" y="{text_start + index * 14:.1f}">'
+            f"{_esc(line)}</tspan>"
+        )
+    return (
+        f"<g><title>{_esc(node)}</title>"
+        f'<rect x="{left:.1f}" y="{top:.1f}" width="{box_width:.1f}" '
+        f'height="{box_height:.1f}" rx="7" fill="#f8fafc" '
+        'stroke="#344054" stroke-width="1.4"/>'
+        f'<text x="{x:.1f}" y="{text_start:.1f}" text-anchor="middle" '
+        'font-size="11" font-weight="700" fill="#101827">'
+        f"{''.join(text_lines)}</text></g>"
+    )
+
+
+def _label_lines(label: str) -> list[str]:
+    words = _split_label_words(label)
+    lines: list[str] = []
+    current = ""
+    for word in words:
+        candidate = word if not current else f"{current} {word}"
+        if len(candidate) <= 13:
+            current = candidate
+            continue
+        if current:
+            lines.append(current)
+        current = word
+        if len(lines) == 1:
+            break
+    if current and len(lines) < 2:
+        lines.append(current)
+    if not lines:
+        lines = [label]
+    if len(words) > 0 and " ".join(words) != " ".join(lines):
+        lines[-1] = _ellipsis(lines[-1], 13)
+    return [_ellipsis(line, 13) for line in lines[:2]]
+
+
+def _split_label_words(label: str) -> list[str]:
+    normalized = label.replace("_", " ").replace("-", " ")
+    words: list[str] = []
+    for raw_word in normalized.split():
+        current = ""
+        for index, char in enumerate(raw_word):
+            if (
+                index > 0
+                and char.isupper()
+                and (raw_word[index - 1].islower() or raw_word[index - 1].isdigit())
+            ):
+                if current:
+                    words.append(current)
+                current = char
+            else:
+                current += char
+        if current:
+            words.append(current)
+    return words or [label]
+
+
+def _ellipsis(text: str, max_chars: int) -> str:
+    if len(text) <= max_chars:
+        return text
+    if max_chars <= 1:
+        return text[:max_chars]
+    return text[: max_chars - 1] + "…"
 
 
 def _trimmed_line(
