@@ -120,9 +120,16 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
   }}
   .graph-row {{
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+    grid-template-columns: repeat(3, minmax(460px, 1fr));
     gap: 16px;
     align-items: start;
+    min-width: 1420px;
+  }}
+  .graph-strip {{
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
   }}
   .graph-panel {{
     min-width: 0;
@@ -265,7 +272,7 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
   svg text {{ font-family: inherit; }}
   @media (max-width: 1220px) {{
     main {{ width: min(100vw - 24px, 900px); }}
-    .grid, .graph-row, .diff-row, .summary-grid {{ grid-template-columns: 1fr; }}
+    .grid, .diff-row, .summary-grid {{ grid-template-columns: 1fr; }}
   }}
 </style>
 </head>
@@ -605,7 +612,8 @@ def render_graph_gallery(
             "<div class='case-card'>"
             f"<div class='case-title'>{_esc(case.name)}</div>"
             f"<p>{_esc(case.notes)}</p>"
-            "<div class='graph-row' style='margin-top:14px'>"
+            "<div class='graph-strip' style='margin-top:14px'>"
+            "<div class='graph-row'>"
             "<div class='graph-panel'>"
             f"{render_pag_svg(case.oracle_shape, list(case.data.columns), 'Oracle PAG', learned.edges, 'oracle')}"
             "<div class='caption'>Hand-written expected PAG</div>"
@@ -617,6 +625,7 @@ def render_graph_gallery(
             "<div class='graph-panel'>"
             f"{render_result_svg(case, pcalg, 'R pcalg::fciPlus')}"
             f"<div class='caption'>{render_result_caption(pcalg)}</div>"
+            "</div>"
             "</div>"
             "</div>"
             "<div class='diff-row'>"
