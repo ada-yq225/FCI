@@ -28,7 +28,7 @@ def test_oracle_benchmark_runs_engine_algorithms() -> None:
     assert [result.algorithm for result in results] == [
         "fci_engine.fci",
         "fci_engine.fci_plus",
-        "fci_engine.fci_plus.leaf",
+        "fci_engine.fci_plus.robust",
     ]
     assert all(not result.skipped for result in results)
     assert all(result.comparison is not None for result in results)
@@ -64,7 +64,7 @@ def test_benchmark_leaderboard_aggregates_by_algorithm() -> None:
     assert {aggregate.algorithm for aggregate in aggregates} == {
         "fci_engine.fci",
         "fci_engine.fci_plus",
-        "fci_engine.fci_plus.leaf",
+        "fci_engine.fci_plus.robust",
     }
     assert all(aggregate.mean_exact_edge_f1 == 1.0 for aggregate in aggregates)
     assert "endpoint_acc" in formatted
@@ -116,7 +116,7 @@ def test_fci_plus_oracle_accuracy_matches_or_exceeds_pcalg_when_available() -> N
         aggregate.algorithm: aggregate
         for aggregate in aggregate_benchmark_results(results)
     }
-    engine = aggregates["fci_engine.fci_plus.leaf"]
+    engine = aggregates["fci_engine.fci_plus.robust"]
     pcalg = aggregates["pcalg.fciPlus"]
 
     assert engine.mean_exact_edge_f1 >= pcalg.mean_exact_edge_f1

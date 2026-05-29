@@ -181,6 +181,17 @@ def test_leaf_orientation_skips_r1_for_nonleaf_endpoint() -> None:
     assert graph.edge_repr("Z", "Y") == "Z o-o Y"
 
 
+def test_robust_orientation_strategy_uses_leaf_tail_profile() -> None:
+    graph = PAG(["X", "Z", "Y", "W"])
+    graph.add_edge("X", "Z", Endpoint.CIRCLE, Endpoint.ARROW)
+    graph.add_circle_edge("Z", "Y")
+    graph.add_circle_edge("Y", "W")
+
+    apply_orientation_rules(graph, {}, orientation_strategy="robust")
+
+    assert graph.edge_repr("Z", "Y") == "Z o-o Y"
+
+
 def test_existing_arrowheads_are_preserved_by_rules() -> None:
     graph = PAG(["X", "Z", "Y"])
     graph.add_edge("X", "Z", Endpoint.ARROW, Endpoint.ARROW)

@@ -101,3 +101,20 @@ def test_result_json_round_trip_and_save(tmp_path) -> None:
 
 def test_fci_config_is_exported_from_top_level_package() -> None:
     assert FCIConfig(orientation_strategy="leaf").orientation_strategy == "leaf"
+
+
+def test_robust_orientation_strategy_enables_conservative_colliders() -> None:
+    data = pd.DataFrame(
+        np.zeros((30, 3)),
+        columns=["X", "Y", "Z"],
+    )
+
+    result = fci_plus(
+        data,
+        ci_test=OracleCITest(),
+        max_cond_set_size=1,
+        orientation_strategy="robust",
+    )
+
+    assert result.config.orientation_strategy == "robust"
+    assert result.config.conservative_colliders is True

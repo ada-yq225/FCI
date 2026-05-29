@@ -62,7 +62,7 @@ estimator = FCI(
     sepset_selection="max_pvalue",
     conservative_colliders=False,
     conservative_orientation=False,
-    orientation_strategy="leaf",
+    orientation_strategy="robust",
     verbose=False,
 )
 result = estimator.fit(data)
@@ -84,6 +84,8 @@ but skip tail-producing propagation rules, producing a more cautious PAG.
 Set `orientation_strategy="leaf"` to use a middle ground: avoid most
 tail-producing propagation in dense regions while still allowing R1 to orient
 clear leaf effects.
+Set `orientation_strategy="robust"` to also enable conservative collider
+checks, which reduces endpoint conflicts in finite-sample settings.
 
 ## Run FCI+
 

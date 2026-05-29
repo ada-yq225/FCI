@@ -58,6 +58,8 @@ class FCIPlus:
                 print(f"Auto-selected alpha={resolved_alpha} for n_samples={n_samples}")
 
         resolved_config = replace(self.config, alpha=resolved_alpha, do_pdsep=False)
+        if resolved_config.orientation_strategy == "robust":
+            resolved_config = replace(resolved_config, conservative_colliders=True)
         base_ci_test = resolved_config.ci_test
         if base_ci_test is None:
             base_ci_test = FisherZTest(alpha=resolved_alpha)

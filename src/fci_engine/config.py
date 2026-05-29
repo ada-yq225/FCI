@@ -37,10 +37,12 @@ class FCIConfig:
         conservative_orientation: Skip tail-producing orientation propagation
             rules after collider orientation. This favors keeping circle
             endpoints over aggressive finite-sample orientation.
-        orientation_strategy: Controls tail-producing orientation rules:
-            "standard" applies all implemented PAG rules, "conservative" keeps
-            arrowhead rules only, and "leaf" applies arrowhead rules plus R1
-            when the newly directed endpoint is a leaf in the current PAG.
+        orientation_strategy: Controls collider and tail-producing orientation
+            rules: "standard" applies all implemented PAG rules,
+            "conservative" keeps arrowhead rules only, "leaf" applies
+            arrowhead rules plus R1 when the newly directed endpoint is a leaf
+            in the current PAG, and "robust" combines conservative collider
+            orientation with the leaf-tail rule profile.
         background_knowledge: Required and forbidden orientation constraints.
         verbose: Enable detailed logging output.
     """
@@ -72,7 +74,13 @@ class FCIConfig:
             raise ValueError("max_path_length must be non-negative.")
         if self.sepset_selection not in {"first", "max_pvalue"}:
             raise ValueError("sepset_selection must be 'first' or 'max_pvalue'.")
-        if self.orientation_strategy not in {"standard", "conservative", "leaf"}:
+        if self.orientation_strategy not in {
+            "standard",
+            "conservative",
+            "leaf",
+            "robust",
+        }:
             raise ValueError(
-                "orientation_strategy must be 'standard', 'conservative', or 'leaf'."
+                "orientation_strategy must be 'standard', 'conservative', "
+                "'leaf', or 'robust'."
             )

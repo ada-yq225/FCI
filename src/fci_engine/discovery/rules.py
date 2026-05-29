@@ -37,12 +37,15 @@ def apply_orientation_rules(
         raise ValueError("max_iter must be non-negative.")
     if max_path_length is not None and max_path_length < 0:
         raise ValueError("max_path_length must be non-negative.")
-    if orientation_strategy not in {"standard", "conservative", "leaf"}:
+    if orientation_strategy not in {"standard", "conservative", "leaf", "robust"}:
         raise ValueError(
-            "orientation_strategy must be 'standard', 'conservative', or 'leaf'."
+            "orientation_strategy must be 'standard', 'conservative', "
+            "'leaf', or 'robust'."
         )
     if conservative_orientation and orientation_strategy == "standard":
         orientation_strategy = "conservative"
+    if orientation_strategy == "robust":
+        orientation_strategy = "leaf"
 
     arrowhead_rules = [
         rule_propagate_arrowheads,

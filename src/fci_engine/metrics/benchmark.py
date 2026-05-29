@@ -113,8 +113,8 @@ def run_oracle_benchmark(
             run_fci_engine(
                 case,
                 fci_plus,
-                "fci_engine.fci_plus.leaf",
-                orientation_strategy="leaf",
+                "fci_engine.fci_plus.robust",
+                orientation_strategy="robust",
             )
         )
         if include_kernel_ci and case.use_kernel_ci:
@@ -146,13 +146,13 @@ def run_oracle_benchmark(
                 run_fci_engine(
                     case,
                     fci_plus,
-                    "fci_engine.fci_plus.kernel.leaf",
+                    "fci_engine.fci_plus.kernel.robust",
                     ci_test=KernelCITest(
                         alpha=case.alpha,
                         n_permutations=99,
                         random_state=0,
                     ),
-                    orientation_strategy="leaf",
+                    orientation_strategy="robust",
                 )
             )
         if include_causal_learn:

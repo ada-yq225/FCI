@@ -17,7 +17,7 @@ This package provides a modern Pythonic API, heavily optimizing CI-test caching,
 * **Order-Stable Skeleton Search**: The initial PC-style skeleton stage snapshots adjacency sets per conditioning depth and applies removals after the depth completes, reducing order dependence.
 * **Accuracy-First Sepset Selection**: By default, when several separating sets at the same depth work, the engine keeps the one with the strongest CI p-value instead of whichever candidate appeared first.
 * **Conservative Orientation Mode**: `conservative_orientation=True` keeps arrowhead evidence while skipping tail-producing propagation rules for audits where under-orientation is preferred to over-commitment.
-* **Leaf-Tail Orientation Strategy**: `orientation_strategy="leaf"` keeps the conservative behavior in dense regions while allowing R1 to orient clear leaf effects, improving oracle exactness in realistic benchmarks.
+* **Robust Orientation Strategy**: `orientation_strategy="robust"` combines conservative collider checks with leaf-tail R1 propagation, reducing endpoint conflicts while preserving clear leaf effects in realistic benchmarks.
 * **Exceptional Explainability**: Built-in tracking of `OrientationEvent` and `CITraceEvent`. Allows you to easily debug *why* a specific algorithmic decision (e.g., directing an arrow) was made.
 * **Semantic PAG Scoring**: Benchmark metrics distinguish exact matches, compatible over-orientation, compatible under-orientation, and true endpoint contradictions.
 * **Oracle Case Tooling**: `CausalGraphSpec` and preset realistic cases make it easier to test against known structures instead of treating external libraries as ground truth.
@@ -111,7 +111,7 @@ config = FCIConfig(
     sepset_selection="max_pvalue",
     conservative_colliders=True,
     conservative_orientation=False,
-    orientation_strategy="leaf",
+    orientation_strategy="robust",
 )
 estimator = FCI(config)
 

@@ -60,7 +60,8 @@ Configuration options:
 - `orientation_strategy`: `"standard"` applies all implemented PAG orientation
   rules, `"conservative"` keeps arrowhead rules only, and `"leaf"` keeps the
   conservative behavior in dense graph regions while still allowing R1 to
-  direct leaf endpoints
+  direct leaf endpoints. `"robust"` combines Conservative-FCI-style collider
+  checks with the leaf-tail rule profile.
 - `background_knowledge`: required and forbidden orientation constraints
 - `verbose`: print CI and orientation progress
 
