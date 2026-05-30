@@ -8,7 +8,7 @@ This package provides a modern Pythonic API, heavily optimizing CI-test caching,
 
 ---
 
-## 🛠 Features
+## Features
 
 * **Causal Discovery with Latent Variables**: Specifically handles unobserved confounding and identifies `X <-> Y` structures.
 * **Modern Pythonic API**: Clean `dataclass`-driven models and endpoint abstractions. Easy to import with standard Python mechanics: `from fci_engine import fci, fci_plus`.
@@ -23,7 +23,7 @@ This package provides a modern Pythonic API, heavily optimizing CI-test caching,
 * **Oracle Case Tooling**: `CausalGraphSpec` and preset realistic cases make it easier to test against known structures instead of treating external libraries as ground truth.
 * **Performance Optimizations**: Out-of-the-box `CITestCache` radically cuts down redundant Conditional Independence tests.
 
-## 📦 Installation
+## Installation
 
 To use `fci-engine` locally in your projects, clone the repository and install it using pip:
 
@@ -38,7 +38,7 @@ For development (includes testing and linting tools):
 pip install -e ".[dev]"
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 Once installed, you can simply `import` and run the graph extraction algorithm on a `pandas.DataFrame` or `numpy.ndarray`.
 
@@ -135,7 +135,7 @@ result = estimator.fit(df)
 
 ---
 
-## 🧠 Theory and Algorithms
+## Theory and Algorithms
 
 ### The Need for FCI
 
@@ -162,7 +162,7 @@ The structural learning happens in four phases directly implemented in `fci-engi
 
 ---
 
-## 🔍 Why `fci-engine`? (Diagnostics System)
+## Why `fci-engine`? (Diagnostics System)
 
 Unlike black-box implementations of FCI, `fci-engine` makes debugging causal topologies explicit. You can view exactly why a graph resolved the way it did:
 

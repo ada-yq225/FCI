@@ -459,9 +459,9 @@ def render_pcalg_head_to_head(
         "<div class='table-scroll'><table>"
         "<thead><tr>"
         "<th>Case</th><th>Winner</th>"
-        "<th>Our Semantic F1</th><th>R Semantic F1</th><th>Semantic Δ</th>"
-        "<th>Our Exact F1</th><th>R Exact F1</th><th>Exact Δ</th>"
-        "<th>Skeleton Δ</th><th>Endpoint Δ</th>"
+        "<th>Our Semantic F1</th><th>R Semantic F1</th><th>Semantic Delta</th>"
+        "<th>Our Exact F1</th><th>R Exact F1</th><th>Exact Delta</th>"
+        "<th>Skeleton Delta</th><th>Endpoint Delta</th>"
         "</tr></thead>"
         f"<tbody>{''.join(rows)}</tbody></table></div>"
     )
@@ -493,8 +493,8 @@ def _head_to_head_summary(
         f"{_metric_card('fci_engine wins', str(engine_wins), 'delta-pos')}"
         f"{_metric_card('Ties', str(ties), 'delta-zero')}"
         f"{_metric_card('R pcalg wins', str(r_wins), 'delta-neg')}"
-        f"{_metric_card('Mean semantic Δ', _signed(mean_semantic_delta), _delta_class(mean_semantic_delta))}"
-        f"{_metric_card('Mean exact Δ', _signed(mean_exact_delta), _delta_class(mean_exact_delta))}"
+        f"{_metric_card('Mean semantic delta', _signed(mean_semantic_delta), _delta_class(mean_semantic_delta))}"
+        f"{_metric_card('Mean exact delta', _signed(mean_exact_delta), _delta_class(mean_exact_delta))}"
         "</div>"
     )
 
@@ -936,9 +936,9 @@ def _split_label_words(label: str) -> list[str]:
 def _ellipsis(text: str, max_chars: int) -> str:
     if len(text) <= max_chars:
         return text
-    if max_chars <= 1:
+    if max_chars <= 3:
         return text[:max_chars]
-    return text[: max_chars - 1] + "…"
+    return text[: max_chars - 3] + "..."
 
 
 def _trimmed_line(
