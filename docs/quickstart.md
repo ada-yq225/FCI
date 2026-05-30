@@ -87,6 +87,17 @@ clear leaf effects.
 Set `orientation_strategy="robust"` to also enable conservative collider
 checks, which reduces endpoint conflicts in finite-sample settings.
 
+## Missing Values
+
+Default Fisher-Z rejects missing values. Use `MissingValueFisherZTest` when you
+want query-wise complete-case deletion inside the public FCI or FCI+ pipelines:
+
+```python
+from fci_engine import MissingValueFisherZTest, fci
+
+result = fci(data_with_nan, ci_test=MissingValueFisherZTest(alpha=0.01))
+```
+
 ## Run FCI+
 
 ```python

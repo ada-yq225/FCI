@@ -68,6 +68,23 @@ def test_possible_dsep_max_path_length_limits_search() -> None:
     assert possible_dsep(graph, "X", "Y", max_path_length=2) == {"A", "B"}
 
 
+def test_possible_dsep_handles_cyclic_shielded_paths() -> None:
+    graph = PAG(["X", "Y", "A", "B", "C", "D"])
+    graph.add_circle_edge("X", "Y")
+    graph.add_edge("X", "A", Endpoint.CIRCLE, Endpoint.ARROW)
+    graph.add_edge("A", "C", Endpoint.ARROW, Endpoint.ARROW)
+    graph.add_edge("C", "D", Endpoint.ARROW, Endpoint.CIRCLE)
+    graph.add_circle_edge("D", "A")
+    graph.add_circle_edge("A", "B")
+
+    assert possible_dsep(graph, "X", "Y", max_path_length=1) == {"A"}
+    assert possible_dsep(graph, "X", "Y", max_path_length=3) == {
+        "A",
+        "C",
+        "D",
+    }
+
+
 def test_pdsep_refinement_removes_edge_with_pds_conditioning_set() -> None:
     data = np.ones((20, 5))
     graph = make_reachable_pds_graph()

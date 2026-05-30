@@ -21,6 +21,7 @@ def build_augmented_skeleton(
     sepsets: SepsetMap,
     data: Optional[object] = None,
     ci_test: Optional[CITest] = None,
+    allow_nan: bool = False,
 ) -> PAG:
     """Build the FCI+ augmented skeleton approximation.
 
@@ -34,7 +35,13 @@ def build_augmented_skeleton(
 
     augmented = graph.copy()
     if data is not None and ci_test is not None:
-        _augment_with_single_node_dependencies(data, augmented, sepsets, ci_test)
+        _augment_with_single_node_dependencies(
+            data,
+            augmented,
+            sepsets,
+            ci_test,
+            allow_nan=allow_nan,
+        )
     return augmented
 
 
@@ -94,10 +101,15 @@ def minimal_dsep(
     y: Hashable,
     cond_set: set[Hashable],
     ci_test: CITest,
+    allow_nan: bool = False,
 ) -> set[Hashable]:
     """Remove redundant nodes from a D-separating set."""
 
-    normalized_data, node_to_index = _prepare_data_for_graph(data, graph)
+    normalized_data, node_to_index = _prepare_data_for_graph(
+        data,
+        graph,
+        allow_nan=allow_nan,
+    )
     minimized = {node for node in cond_set if node not in {x, y}}
 
     changed = True
@@ -132,6 +144,7 @@ def refine_skeleton_with_fci_plus_dsep(
     verbose: bool = False,
     sepset_sources: Optional[SepsetSourceMap] = None,
     sepset_selection: str = "max_pvalue",
+    allow_nan: bool = False,
 ) -> tuple[PAG, SepsetMap]:
     """Refine the skeleton using the FCI+ hierarchical D-SEP search."""
 
@@ -140,9 +153,19 @@ def refine_skeleton_with_fci_plus_dsep(
     if sepset_selection not in {"first", "max_pvalue"}:
         raise ValueError("sepset_selection must be 'first' or 'max_pvalue'.")
 
-    normalized_data, node_to_index = _prepare_data_for_graph(data, graph)
+    normalized_data, node_to_index = _prepare_data_for_graph(
+        data,
+        graph,
+        allow_nan=allow_nan,
+    )
     tried_without_update: set[frozenset[Hashable]] = set()
-    augmented = build_augmented_skeleton(graph, sepsets, normalized_data, ci_test)
+    augmented = build_augmented_skeleton(
+        graph,
+        sepsets,
+        normalized_data,
+        ci_test,
+        allow_nan=allow_nan,
+    )
     candidates = possible_dsep_links(augmented)
 
     while candidates:
@@ -213,6 +236,7 @@ def refine_skeleton_with_fci_plus_dsep(
                 y,
                 best_at_depth[1],
                 ci_test,
+                allow_nan=allow_nan,
             )
             graph.remove_edge(x, y)
             augmented.remove_edge(x, y)
@@ -227,6 +251,7 @@ def refine_skeleton_with_fci_plus_dsep(
                 sepsets,
                 normalized_data,
                 ci_test,
+                allow_nan=allow_nan,
             )
             candidates = possible_dsep_links(augmented)
             tried_without_update.clear()
@@ -283,8 +308,13 @@ def _augment_with_single_node_dependencies(
     graph: PAG,
     sepsets: SepsetMap,
     ci_test: CITest,
+    allow_nan: bool = False,
 ) -> None:
-    normalized_data, node_to_index = _prepare_data_for_graph(data, graph)
+    normalized_data, node_to_index = _prepare_data_for_graph(
+        data,
+        graph,
+        allow_nan=allow_nan,
+    )
     seen_pairs: set[frozenset[Hashable]] = set()
 
     for (x, y), sepset in list(sepsets.items()):

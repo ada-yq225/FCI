@@ -123,8 +123,9 @@ Built-in CI tests:
 - `FisherZTest` also accepts sufficient-statistics mappings with
   `{"correlation": corr, "n_samples": n}` or
   `{"covariance": cov, "n_samples": n}`
-- `MissingValueFisherZTest`: query-wise complete-case Fisher-Z for arrays with
-  missing values
+- `MissingValueFisherZTest`: query-wise complete-case Fisher-Z for arrays or
+  DataFrames with missing values in the public `fci(...)` and `fci_plus(...)`
+  pipelines
 - `ChiSquareTest`: Pearson chi-square test for discrete variables
 - `GSquareTest`: likelihood-ratio G-square test for discrete variables
 - `KernelCITest`: RBF kernel CI test for nonlinear dependence. Empty
@@ -135,7 +136,7 @@ Built-in CI tests:
 Example:
 
 ```python
-from fci_engine.ci import KernelCITest, MissingValueFisherZTest
+from fci_engine import KernelCITest, MissingValueFisherZTest
 
 result = fci(data, ci_test=MissingValueFisherZTest(alpha=0.01))
 nonlinear = fci(data, ci_test=KernelCITest(alpha=0.05, n_permutations=200))

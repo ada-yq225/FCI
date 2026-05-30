@@ -23,6 +23,8 @@ class CITestResult:
 class CITest(ABC):
     """Abstract base class for conditional independence tests."""
 
+    allow_nan = False
+
     def __init__(self, alpha: float = 0.05) -> None:
         if not 0.0 < alpha < 1.0:
             raise ValueError("alpha must be between 0 and 1.")

@@ -1,9 +1,10 @@
 import numpy as np
 import pandas as pd
+import pytest
 
 import fci_engine.discovery.fci as fci_pipeline
 from fci_engine import BackgroundKnowledge, FCI, FCIResult, fci
-from fci_engine.ci import CITest, CITestResult
+from fci_engine.ci import CITest, CITestResult, MissingValueFisherZTest
 
 
 class AlwaysDependentCITest(CITest):
@@ -83,6 +84,34 @@ def test_dataframe_column_names_appear_in_graph_nodes() -> None:
 
     assert estimator.variable_names == ["load", "latency", "errors"]
     assert result.graph.nodes == ("load", "latency", "errors")
+
+
+def test_default_fci_rejects_missing_values() -> None:
+    data = np.random.default_rng(7).normal(size=(80, 3))
+    data[0, 1] = np.nan
+
+    with pytest.raises(ValueError, match="finite"):
+        fci(data, do_pdsep=False)
+
+
+def test_fci_accepts_missing_values_with_missing_value_ci_test() -> None:
+    rng = np.random.default_rng(8)
+    x = rng.normal(size=160)
+    y = 0.8 * x + rng.normal(scale=0.4, size=160)
+    z = 0.7 * x + rng.normal(scale=0.4, size=160)
+    data = np.column_stack([x, y, z])
+    data[:20, 2] = np.nan
+
+    result = fci(
+        data,
+        ci_test=MissingValueFisherZTest(alpha=0.001),
+        max_cond_set_size=1,
+        do_pdsep=False,
+    )
+
+    assert isinstance(result, FCIResult)
+    assert result.graph.nodes == ("X0", "X1", "X2")
+    assert {event.method for event in result.ci_test_trace} == {"mv_fisher_z"}
 
 
 def test_conservative_colliders_report_ambiguous_triples() -> None:

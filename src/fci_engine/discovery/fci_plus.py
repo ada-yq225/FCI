@@ -42,7 +42,11 @@ class FCIPlus:
         """Run FCI+ and return an ``FCIResult``."""
 
         start_time = perf_counter()
-        normalized_data, variable_names = validate_numeric_data(data)
+        allow_nan = getattr(self.config.ci_test, "allow_nan", False)
+        normalized_data, variable_names = validate_numeric_data(
+            data,
+            allow_nan=allow_nan,
+        )
         self.variable_names = variable_names
         n_samples = normalized_data.shape[0]
 
@@ -63,6 +67,7 @@ class FCIPlus:
         base_ci_test = resolved_config.ci_test
         if base_ci_test is None:
             base_ci_test = FisherZTest(alpha=resolved_alpha)
+        allow_nan = getattr(base_ci_test, "allow_nan", False)
         ci_test = CITestCache(base_ci_test)
         self.ci_test_cache_ = ci_test
 
@@ -80,6 +85,7 @@ class FCIPlus:
             sepset_sources=sepset_sources,
             stable=resolved_config.skeleton_stable,
             sepset_selection=resolved_config.sepset_selection,
+            allow_nan=allow_nan,
         )
 
         graph, sepsets = refine_skeleton_with_fci_plus_dsep(
@@ -91,6 +97,7 @@ class FCIPlus:
             verbose=resolved_config.verbose,
             sepset_sources=sepset_sources,
             sepset_selection=resolved_config.sepset_selection,
+            allow_nan=allow_nan,
         )
 
         reset_endpoint_marks(graph)

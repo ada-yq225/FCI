@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 from fci_engine import FCIPlus, fci, fci_plus
-from fci_engine.ci import CITest, CITestResult
+from fci_engine.ci import CITest, CITestResult, MissingValueFisherZTest
 from fci_engine.discovery.dsep import (
     build_augmented_skeleton,
     hierarchy,
@@ -207,6 +207,24 @@ def test_fci_and_fci_plus_are_separate_entry_points() -> None:
 
     assert standard.graph.nodes == plus.graph.nodes
     assert plus.config.do_pdsep is False
+
+
+def test_fci_plus_accepts_missing_values_with_missing_value_ci_test() -> None:
+    rng = np.random.default_rng(125)
+    x = rng.normal(size=160)
+    y = 0.8 * x + rng.normal(scale=0.4, size=160)
+    z = 0.7 * x + rng.normal(scale=0.4, size=160)
+    data = np.column_stack([x, y, z])
+    data[:20, 2] = np.nan
+
+    result = fci_plus(
+        data,
+        ci_test=MissingValueFisherZTest(alpha=0.001),
+        max_cond_set_size=1,
+    )
+
+    assert result.graph.nodes == ("X0", "X1", "X2")
+    assert {event.method for event in result.ci_test_trace} == {"mv_fisher_z"}
 
 
 def _oracle_key(

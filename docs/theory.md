@@ -60,7 +60,9 @@ only in their current adjacency sets. Possible-D-Sep searches a conservative set
 of graph-reachable candidates and runs additional CI tests.
 
 This package includes a readable conservative Possible-D-Sep implementation with
-an optional `max_path_length` limit.
+an optional `max_path_length` limit. Candidate reachability is computed with a
+finite ordered-edge-state BFS rather than full simple-path enumeration, which
+keeps dense or cyclic PAGs from triggering avoidable path explosion.
 
 ## Orientation Rules
 
@@ -108,7 +110,8 @@ not force edges to exist when CI tests remove them from the skeleton.
 - Chi-square and G-square CI tests are available for discrete variables.
 - Fisher-Z accepts covariance/correlation sufficient statistics at the CI-test
   layer.
-- Missing-value Fisher-Z is available through query-wise complete-case deletion.
+- Missing-value Fisher-Z is available through query-wise complete-case deletion
+  in both standard FCI and FCI+.
 - Kernel CI is available through RBF-HSIC for unconditional tests and a
   kernel-ridge residualized KCI-style conditional statistic for nonlinear data.
 - Finite-sample CI decisions may be unstable near the significance threshold.

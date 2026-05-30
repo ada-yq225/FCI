@@ -1,6 +1,13 @@
 """Fast Causal Inference tools for PAG learning under latent confounding."""
 
 from fci_engine.api import fci, fci_plus
+from fci_engine.ci import (
+    ChiSquareTest,
+    FisherZTest,
+    GSquareTest,
+    KernelCITest,
+    MissingValueFisherZTest,
+)
 from fci_engine.config import FCIConfig
 from fci_engine.discovery.fci import FCI
 from fci_engine.discovery.fci_plus import FCIPlus
@@ -47,7 +54,12 @@ __all__ = [
     "BenchmarkAggregate",
     "BenchmarkResult",
     "CausalGraphSpec",
+    "ChiSquareTest",
     "OracleCase",
+    "FisherZTest",
+    "GSquareTest",
+    "KernelCITest",
+    "MissingValueFisherZTest",
     "PAGDifference",
     "PAGComparison",
     "PAGESemanticComparison",

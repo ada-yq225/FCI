@@ -36,6 +36,7 @@ def learn_initial_skeleton(
     sepset_sources: Optional[SepsetSourceMap] = None,
     stable: bool = True,
     sepset_selection: str = "max_pvalue",
+    allow_nan: bool = False,
 ) -> tuple[PAG, SepsetMap]:
     """Learn the initial undirected PAG skeleton using CI tests.
 
@@ -51,7 +52,11 @@ def learn_initial_skeleton(
     if sepset_selection not in {"first", "max_pvalue"}:
         raise ValueError("sepset_selection must be 'first' or 'max_pvalue'.")
 
-    normalized_data, node_to_index = _prepare_data_for_graph(data, graph)
+    normalized_data, node_to_index = _prepare_data_for_graph(
+        data,
+        graph,
+        allow_nan=allow_nan,
+    )
     sepsets: SepsetMap = {}
     cond_size = 0
 
@@ -226,8 +231,10 @@ def _remove_edge_with_sepset(
 def _prepare_data_for_graph(
     data: object,
     graph: PAG,
+    *,
+    allow_nan: bool = False,
 ) -> tuple[np.ndarray, dict[Hashable, int]]:
-    normalized_data, variable_names = validate_numeric_data(data)
+    normalized_data, variable_names = validate_numeric_data(data, allow_nan=allow_nan)
     if normalized_data.shape[1] != len(graph.nodes):
         raise ValueError(
             "data column count must match the number of graph nodes "

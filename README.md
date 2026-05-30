@@ -1,27 +1,84 @@
-# fci-engine: Industrial-Grade Fast Causal Inference
+# fci-engine: Fast Causal Inference for Auditable PAG Learning
 
-`fci-engine` is a highly modular, transparent, and robust Python package for learning **Partial Ancestral Graphs (PAGs)** from observational data using the **Fast Causal Inference (FCI)** algorithm.
+`fci-engine` learns **Partial Ancestral Graphs (PAGs)** from observational data
+with standard **Fast Causal Inference (FCI)** and an FCI+ style sparse D-SEP
+refinement.
 
-Unlike standard PC algorithms that assume all variables are observed (*Causal Sufficiency*), FCI is designed to recover causal structures under the presence of **Latent Confounders** and **Selection Bias**. 
+It is designed for cases where a simple correlation graph or PC-style algorithm
+is too optimistic: latent confounding, selection effects, missing values,
+finite-sample instability, and production audit requirements.
 
-This package provides a modern Pythonic API, heavily optimizing CI-test caching, and features an exclusive **Trace & Diagnostics System** to make causal discovery explainable step-by-step.
+```mermaid
+flowchart LR
+    A[pandas or NumPy data] --> B[Input validation]
+    B --> C[CI tests + cache]
+    C --> D[Stable skeleton search]
+    D --> E[Possible-D-Sep or FCI+ D-Sep]
+    E --> F[Collider + PAG rules]
+    F --> G[PAG, traces, exports]
+```
 
----
+## What You Get
 
-## Features
+| Capability | Why it matters |
+| --- | --- |
+| Standard FCI API | Learn a PAG under latent confounding instead of forcing a single DAG. |
+| FCI+ API | Use sparse hierarchical D-SEP refinement for faster candidate search on larger sparse graphs. |
+| Stable skeleton search | Reduces order dependence by deferring edge removals within each conditioning depth. |
+| Accuracy-first sepsets | Keeps the strongest independence evidence at the same depth instead of the first passing set. |
+| Multiple CI tests | Fisher-Z, missing-value Fisher-Z, chi-square, G-square, and kernel CI are available. |
+| PAG diagnostics | Records CI traces, sepset sources, orientation events, and edge explanations. |
+| Oracle benchmarks | Compare outputs against known PAG shapes, causal-learn, and R `pcalg` when installed. |
+| Audit exports | Save edge tables, JSON, and NetworkX graphs for downstream review. |
 
-* **Causal Discovery with Latent Variables**: Specifically handles unobserved confounding and identifies `X <-> Y` structures.
-* **Modern Pythonic API**: Clean `dataclass`-driven models and endpoint abstractions. Easy to import with standard Python mechanics: `from fci_engine import fci, fci_plus`.
-* **Standard Zhang's Rules**: Fully and strictly implements J. Zhang's orientation rules (R1-R10) and Possible-D-SEP (PD-SEP) for rigorous soundness and completeness.
-* **FCI+ Variant**: Provides `fci_plus(...)` / `FCIPlus` with a sparse hierarchical D-SEP refinement inspired by Claassen, Mooij, and Heskes (2013).
-* **Order-Stable Skeleton Search**: The initial PC-style skeleton stage snapshots adjacency sets per conditioning depth and applies removals after the depth completes, reducing order dependence.
-* **Accuracy-First Sepset Selection**: By default, when several separating sets at the same depth work, the engine keeps the one with the strongest CI p-value instead of whichever candidate appeared first.
-* **Conservative Orientation Mode**: `conservative_orientation=True` keeps arrowhead evidence while skipping tail-producing propagation rules for audits where under-orientation is preferred to over-commitment.
-* **Robust Orientation Strategy**: `orientation_strategy="robust"` combines conservative collider checks with leaf-tail R1 propagation, reducing endpoint conflicts while preserving clear leaf effects in realistic benchmarks.
-* **Exceptional Explainability**: Built-in tracking of `OrientationEvent` and `CITraceEvent`. Allows you to easily debug *why* a specific algorithmic decision (e.g., directing an arrow) was made.
-* **Semantic PAG Scoring**: Benchmark metrics distinguish exact matches, compatible over-orientation, compatible under-orientation, and true endpoint contradictions.
-* **Oracle Case Tooling**: `CausalGraphSpec` and preset realistic cases make it easier to test against known structures instead of treating external libraries as ground truth.
-* **Performance Optimizations**: Out-of-the-box `CITestCache` radically cuts down redundant Conditional Independence tests.
+## PAG Output At A Glance
+
+FCI does **not** claim to recover one unique true DAG. It returns a PAG: a graph
+that represents the causal facts identifiable from the observed conditional
+independence structure.
+
+```text
+X --> Y    X is an ancestor/cause candidate of Y
+X <-> Y    latent confounding is supported
+X o-> Y    Y is not an ancestor of X, but X's endpoint is still uncertain
+X o-o Y    direction is not identifiable from the current evidence
+X --- Y    selection-bias style undirected dependence
+```
+
+Example latent-confounder output:
+
+```text
+I1 o-> A
+I2 o-> B
+A  <-> B
+```
+
+## When To Use Which Entry Point
+
+| Entry point | Best use case |
+| --- | --- |
+| `fci(data)` | Standard FCI pipeline for general continuous data. |
+| `fci_plus(data)` | Sparse graphs where broad Possible-D-Sep search is too expensive. |
+| `FCI(config).fit(data)` | Estimator-style usage with explicit configuration and reusable objects. |
+| `stable_fci(data)` | Bootstrap stability selection when finite-sample reliability matters. |
+| `run_oracle_benchmark(...)` | Regression testing against preset known graph structures. |
+
+## Benchmark Snapshot
+
+The visual benchmark report compares hand-written oracle PAGs, `fci_engine`
+outputs, and optional R `pcalg::fciPlus` outputs:
+
+```bash
+PYTHONPATH=src python examples/08_visual_benchmark_report.py
+open examples/realistic_benchmark_report.html
+```
+
+The report includes:
+
+- side-by-side oracle / learned / R-package graphs;
+- exact-edge F1 and compatibility-aware semantic F1;
+- per-edge missing, extra, under-oriented, and over-oriented differences;
+- orientation-rule traces for explainability.
 
 ## Installation
 
@@ -133,6 +190,25 @@ estimator = FCIPlus(alpha=0.01, max_cond_set_size=3)
 result = estimator.fit(df)
 ```
 
+### 5. Missing Values
+
+The public FCI and FCI+ pipelines support query-wise complete-case Fisher-Z when
+you explicitly choose the missing-value CI test:
+
+```python
+from fci_engine import MissingValueFisherZTest, fci
+
+result = fci(
+    df_with_nan,
+    ci_test=MissingValueFisherZTest(alpha=0.01),
+    max_cond_set_size=3,
+)
+```
+
+Rows are filtered per CI query, using only the variables in `x`, `y`, and the
+current conditioning set. Default Fisher-Z still rejects missing values so that
+silent data loss does not happen accidentally.
+
 ---
 
 ## Theory and Algorithms
@@ -157,7 +233,9 @@ A PAG contains several types of endpoints denoting sets of DAGs (Markov equivale
 The structural learning happens in four phases directly implemented in `fci-engine/discovery`:
 1.  **FAS (Fast Adjacency Search)**: Iteratively searches for Conditional Independence (CI) up to constraint length $N$ from both endpoints' current adjacency sets to remove structurally non-essential edges. Yields the un-oriented Skeleton and `Sepsets`. When multiple separating sets succeed at the same depth, the default `sepset_selection="max_pvalue"` keeps the strongest independence evidence for later orientation rules.
 2.  **Unshielded Colliders Discovery**: Orients V-structures ($X \circ\!\!\to Z \gets\!\!\circ Y$).
-3.  **Possible-D-SEP**: Generates larger condition tests specifically seeking structural confounds that earlier rounds might have missed out due to arbitrary graph topologies.
+3.  **Possible-D-SEP**: Generates larger conditioning candidates that earlier
+    rounds may miss. The implementation uses finite edge-state BFS instead of
+    enumerating every simple path, avoiding path explosion on dense PAGs.
 4.  **Zhang's Orientation Rules (R1 - R10)**: Iteratively closes reasoning gaps over the generated graph by tracing causal endpoints to monotonic conclusions without cycles.
 
 ---
@@ -239,7 +317,7 @@ PYTHONPATH=src python examples/08_visual_benchmark_report.py
   supports covariance/correlation sufficient-statistics input at the CI-test
   layer.
 - **Missing Values**: `MissingValueFisherZTest` supports query-wise
-  complete-case Fisher-Z.
+  complete-case Fisher-Z in both `fci(...)` and `fci_plus(...)`.
 - **Discrete Data**: Provided Chi-square and G-square implementations.
 - **Nonlinear CI**: `KernelCITest` provides RBF-HSIC for unconditional tests and
   kernel-ridge residualized KCI-style conditional tests for nonlinear data.

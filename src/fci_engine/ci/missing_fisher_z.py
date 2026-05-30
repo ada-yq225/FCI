@@ -19,6 +19,7 @@ class MissingValueFisherZTest(FisherZTest):
     """
 
     method = "mv_fisher_z"
+    allow_nan = True
 
     def test(
         self,

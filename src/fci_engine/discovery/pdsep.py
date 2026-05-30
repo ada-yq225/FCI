@@ -25,7 +25,9 @@ def possible_dsep(
     """Return conservative Possible-D-Sep candidates for ``x`` relative to ``y``.
 
     A node is reached through a path from ``x`` where each intermediate triple is
-    either a collider on that path or is shielded by a triangle.
+    either a collider on that path or is shielded by a triangle. The search is
+    implemented over ordered edge states instead of full simple paths, which
+    keeps dense finite-sample PAGs from triggering exponential path enumeration.
     """
 
     if max_path_length is not None and max_path_length < 0:
@@ -34,37 +36,34 @@ def possible_dsep(
         return set()
 
     candidates: set[Hashable] = set()
-    visited_paths: set[tuple[Hashable, ...]] = set()
-    queue: deque[tuple[Hashable, ...]] = deque()
+    visited_states: set[tuple[Hashable, Hashable]] = set()
+    queue: deque[tuple[Hashable, Hashable, int]] = deque()
 
     for neighbor in graph.neighbors(x):
         if neighbor == y:
             continue
-        path = (x, neighbor)
-        queue.append(path)
-        visited_paths.add(path)
+        state = (x, neighbor)
+        queue.append((x, neighbor, 1))
+        visited_states.add(state)
         candidates.add(neighbor)
 
     while queue:
-        path = queue.popleft()
-        current = path[-1]
-        path_length = len(path) - 1
+        previous, current, path_length = queue.popleft()
         if max_path_length is not None and path_length >= max_path_length:
             continue
 
-        previous = path[-2]
         for next_node in graph.neighbors(current):
-            if next_node in path or next_node == y:
+            if next_node in {x, y, previous}:
                 continue
             if not _is_pds_step_allowed(graph, previous, current, next_node):
                 continue
 
-            next_path = (*path, next_node)
-            if next_path in visited_paths:
+            next_state = (current, next_node)
+            if next_state in visited_states:
                 continue
-            visited_paths.add(next_path)
+            visited_states.add(next_state)
             candidates.add(next_node)
-            queue.append(next_path)
+            queue.append((current, next_node, path_length + 1))
 
     candidates.discard(x)
     candidates.discard(y)
@@ -82,6 +81,7 @@ def refine_skeleton_with_pdsep(
     sepset_sources: Optional[SepsetSourceMap] = None,
     stable: bool = True,
     sepset_selection: str = "max_pvalue",
+    allow_nan: bool = False,
 ) -> tuple[PAG, SepsetMap]:
     """Refine the current skeleton by searching Possible-D-Sep sets."""
 
@@ -90,7 +90,11 @@ def refine_skeleton_with_pdsep(
     if sepset_selection not in {"first", "max_pvalue"}:
         raise ValueError("sepset_selection must be 'first' or 'max_pvalue'.")
 
-    normalized_data, node_to_index = _prepare_data_for_graph(data, graph)
+    normalized_data, node_to_index = _prepare_data_for_graph(
+        data,
+        graph,
+        allow_nan=allow_nan,
+    )
 
     search_graph = graph.copy() if stable else graph
     pending_removals: list[tuple[Hashable, Hashable, set[Hashable]]] = []

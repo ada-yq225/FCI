@@ -19,6 +19,7 @@ class CITestCache(CITest):
     def __init__(self, ci_test: CITest) -> None:
         self.ci_test = ci_test
         self.alpha = ci_test.alpha
+        self.allow_nan = getattr(ci_test, "allow_nan", False)
         self._cache: dict[CacheKey, CITestResult] = {}
         self.n_tests_total = 0
         self.n_cache_hits = 0
