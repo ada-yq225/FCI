@@ -12,6 +12,10 @@ counts, cache hits, elapsed time, and configuration.
 
 ## Install
 
+Supported Python versions are 3.9, 3.10, 3.11, 3.12, and 3.13. Source builds
+need `setuptools>=61`; normal modern `pip` build isolation installs that build
+backend automatically.
+
 ```bash
 pip install -e .
 ```

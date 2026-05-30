@@ -1,5 +1,7 @@
 # API Reference
 
+The package supports Python 3.9 through 3.13.
+
 ## `fci_engine.fci`
 
 ```python

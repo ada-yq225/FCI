@@ -82,6 +82,10 @@ The report includes:
 
 ## Installation
 
+Supported Python versions: **3.9, 3.10, 3.11, 3.12, and 3.13**.
+Source builds require a PEP 621 capable build backend; standard modern `pip`
+build isolation handles this automatically, or use `setuptools>=61`.
+
 To use `fci-engine` locally in your projects, clone the repository and install it using pip:
 
 ```bash
@@ -94,6 +98,8 @@ For development (includes testing and linting tools):
 ```bash
 pip install -e ".[dev]"
 ```
+
+The CI matrix runs the test suite on every supported Python minor version.
 
 ## Quick Start
 
