@@ -6,6 +6,8 @@ This package exposes two public entry points:
 - `fci_engine.FCI(...).fit(data)`
 - `fci_engine.fci_plus(data, **kwargs)`
 - `fci_engine.FCIPlus(...).fit(data)`
+- `fci_engine.stable_fci(data, **kwargs)`
+- `fci_engine.stable_fci_plus(data, **kwargs)`
 
 Both return an `FCIResult` containing the learned PAG, separating sets, CI test
 counts, cache hits, elapsed time, and configuration.
@@ -117,6 +119,27 @@ FCI+ uses the same `FCIResult` and PAG representation as standard FCI. The
 difference is the refinement stage: standard FCI uses Possible-D-Sep search,
 while FCI+ uses a sparse hierarchical D-SEP search driven by separating sets
 already discovered in earlier stages.
+
+## Stability-Selected FCI+
+
+For research data where finite-sample false positives matter, run FCI+ with
+bootstrap filtering:
+
+```python
+from fci_engine import stable_fci_plus
+
+result = stable_fci_plus(
+    data,
+    n_bootstraps=50,
+    edge_threshold=0.6,
+    alpha="auto",
+    max_cond_set_size=3,
+    orientation_strategy="robust",
+)
+```
+
+The returned `FCIResult` contains the filtered PAG and bootstrap support for
+the final retained edges.
 
 ## Visual Oracle Report
 

@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-from collections import defaultdict, deque
+from collections import deque
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import Optional
 
 from fci_engine.metrics.accuracy import Shape
-
 
 DirectedEdge = tuple[str, str]
 
@@ -153,7 +152,9 @@ class CausalGraphSpec:
             if source == target:
                 raise ValueError("Directed edges require distinct nodes.")
             if source not in all_nodes or target not in all_nodes:
-                raise ValueError(f"Unknown directed edge endpoint: {(source, target)!r}.")
+                raise ValueError(
+                    f"Unknown directed edge endpoint: {(source, target)!r}."
+                )
         for edge in self.definite_directed_edges:
             if edge not in self.directed_edges:
                 raise ValueError(

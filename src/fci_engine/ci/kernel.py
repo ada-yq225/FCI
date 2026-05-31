@@ -112,14 +112,14 @@ class KernelCITest(CITest):
     ) -> tuple[float, float]:
         rng = np.random.default_rng(self.random_state)
         k = _center_kernel(_rbf_kernel(x_values, self.gamma))
-        l = _center_kernel(_rbf_kernel(y_values, self.gamma))
-        statistic = _hsic_statistic(k, l)
+        y_kernel = _center_kernel(_rbf_kernel(y_values, self.gamma))
+        statistic = _hsic_statistic(k, y_kernel)
         exceedances = 0
 
         for _ in range(self.n_permutations):
             permutation = rng.permutation(y_values.shape[0])
-            permuted_l = l[np.ix_(permutation, permutation)]
-            if _hsic_statistic(k, permuted_l) >= statistic:
+            permuted_y_kernel = y_kernel[np.ix_(permutation, permutation)]
+            if _hsic_statistic(k, permuted_y_kernel) >= statistic:
                 exceedances += 1
 
         p_value = (exceedances + 1.0) / (self.n_permutations + 1.0)
@@ -195,9 +195,9 @@ def _center_kernel(kernel: np.ndarray) -> np.ndarray:
     return kernel - row_mean - col_mean + grand_mean
 
 
-def _hsic_statistic(k: np.ndarray, l: np.ndarray) -> float:
+def _hsic_statistic(k: np.ndarray, y_kernel: np.ndarray) -> float:
     n_samples = k.shape[0]
-    return float(np.sum(k * l) / ((n_samples - 1) ** 2))
+    return float(np.sum(k * y_kernel) / ((n_samples - 1) ** 2))
 
 
 def _standardize(values: np.ndarray) -> np.ndarray:
@@ -271,9 +271,7 @@ def _eigen_component_product(
     column = 0
     for x_index in range(x_features.shape[1]):
         for y_index in range(y_features.shape[1]):
-            joint_features[:, column] = (
-                x_features[:, x_index] * y_features[:, y_index]
-            )
+            joint_features[:, column] = x_features[:, x_index] * y_features[:, y_index]
             column += 1
 
     if n_features > n_samples:

@@ -5,12 +5,14 @@ from __future__ import annotations
 from collections import Counter
 from dataclasses import replace
 from math import ceil
-from typing import Optional
+from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
 
 from fci_engine.discovery.fci import FCI
+from fci_engine.discovery.fci_plus import FCIPlus
+from fci_engine.graph import PAG
 from fci_engine.result import FCIResult
 
 
@@ -99,11 +101,58 @@ def stable_fci(
     skeleton by bootstrap support.
     """
 
+    return _stable_discovery(
+        FCI,
+        data,
+        n_bootstraps=n_bootstraps,
+        edge_threshold=edge_threshold,
+        sample_fraction=sample_fraction,
+        random_state=random_state,
+        **fci_kwargs,
+    )
+
+
+def stable_fci_plus(
+    data: object,
+    n_bootstraps: int = 20,
+    edge_threshold: float = 0.5,
+    sample_fraction: float = 1.0,
+    random_state: Optional[int] = None,
+    **fci_kwargs: object,
+) -> FCIResult:
+    """Run FCI+ and remove edges with low bootstrap adjacency frequency.
+
+    This is the same stability-selection wrapper as ``stable_fci`` but uses the
+    FCI+ sparse hierarchical D-SEP pipeline for both the full-data fit and each
+    bootstrap replicate.
+    """
+
+    return _stable_discovery(
+        FCIPlus,
+        data,
+        n_bootstraps=n_bootstraps,
+        edge_threshold=edge_threshold,
+        sample_fraction=sample_fraction,
+        random_state=random_state,
+        **fci_kwargs,
+    )
+
+
+def _stable_discovery(
+    estimator_cls: type[Any],
+    data: object,
+    n_bootstraps: int,
+    edge_threshold: float,
+    sample_fraction: float,
+    random_state: Optional[int],
+    **fci_kwargs: object,
+) -> FCIResult:
     if not 0.0 <= edge_threshold <= 1.0:
         raise ValueError("edge_threshold must be between 0 and 1.")
 
-    result = FCI(**fci_kwargs).fit(data)
-    frequencies = bootstrap_adjacency_frequencies(
+    result = estimator_cls(**fci_kwargs).fit(data)
+    frequencies = _bootstrap_adjacency_frequencies(
+        estimator_cls,
         data,
         n_bootstraps=n_bootstraps,
         sample_fraction=sample_fraction,
@@ -119,10 +168,52 @@ def stable_fci(
     return replace(
         result,
         graph=graph,
-        bootstrap_edge_frequencies={
-            f"{x} -- {y}": frequency for (x, y), frequency in frequencies.items()
-        },
+        bootstrap_edge_frequencies=_edge_repr_frequencies(graph, frequencies),
     )
+
+
+def _bootstrap_adjacency_frequencies(
+    estimator_cls: type[Any],
+    data: object,
+    n_bootstraps: int = 20,
+    sample_fraction: float = 1.0,
+    random_state: Optional[int] = None,
+    **fci_kwargs: object,
+) -> dict[tuple[str, str], float]:
+    if n_bootstraps <= 0:
+        raise ValueError("n_bootstraps must be positive.")
+    if sample_fraction <= 0.0:
+        raise ValueError("sample_fraction must be positive.")
+
+    n_samples = _n_rows(data)
+    if n_samples == 0:
+        raise ValueError("Cannot bootstrap an empty dataset.")
+
+    bootstrap_size = max(1, int(ceil(n_samples * sample_fraction)))
+    rng = np.random.default_rng(random_state)
+    counts: Counter[tuple[str, str]] = Counter()
+
+    for _ in range(n_bootstraps):
+        indices = rng.integers(0, n_samples, size=bootstrap_size)
+        sample = _sample_rows(data, indices)
+        result = estimator_cls(**fci_kwargs).fit(sample)
+        for x, y in result.graph.edges():
+            counts[(str(x), str(y))] += 1
+
+    return {
+        edge: count / n_bootstraps
+        for edge, count in sorted(counts.items(), key=lambda item: item[0])
+    }
+
+
+def _edge_repr_frequencies(
+    graph: PAG,
+    adjacency_frequencies: dict[tuple[str, str], float],
+) -> dict[str, float]:
+    return {
+        graph.edge_repr(x, y): adjacency_frequencies.get((str(x), str(y)), 0.0)
+        for x, y in graph.edges()
+    }
 
 
 def _n_rows(data: object) -> int:

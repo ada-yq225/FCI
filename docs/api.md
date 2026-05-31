@@ -155,17 +155,24 @@ frequencies = bootstrap_edge_frequencies(data, n_bootstraps=20, alpha=0.01)
 The keys are exact PAG edge strings such as `X o-> Y`; values are bootstrap
 frequencies in `[0, 1]`.
 
-For stability selection, use `stable_fci`:
+For stability selection, use `stable_fci` or `stable_fci_plus`:
 
 ```python
-from fci_engine import stable_fci
+from fci_engine import stable_fci, stable_fci_plus
 
 result = stable_fci(data, n_bootstraps=50, edge_threshold=0.6, alpha="auto")
+plus_result = stable_fci_plus(
+    data,
+    n_bootstraps=50,
+    edge_threshold=0.6,
+    alpha="auto",
+    max_cond_set_size=3,
+)
 ```
 
-This runs standard FCI on the full data, then removes final edges that appear in
-less than `edge_threshold` of bootstrap runs. It is an engineering robustness
-wrapper, not a replacement for the standard FCI algorithm.
+These wrappers run the selected algorithm on the full data, then remove final
+edges that appear in less than `edge_threshold` of bootstrap runs. They are
+engineering robustness wrappers, not replacements for the standard algorithms.
 
 ## Oracle Benchmarks
 

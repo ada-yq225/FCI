@@ -8,6 +8,20 @@ It is designed for cases where a simple correlation graph or PC-style algorithm
 is too optimistic: latent confounding, selection effects, missing values,
 finite-sample instability, and production audit requirements.
 
+## 60-Second Summary For Reviewers
+
+- **Problem**: learn causal structure from observational data when hidden
+  confounders may exist.
+- **Output**: a PAG, not an overconfident single DAG.
+- **Main API**: `fci(data)`, `fci_plus(data)`, `stable_fci(data)`,
+  and `stable_fci_plus(data)`.
+- **Research focus**: stable skeleton discovery, accuracy-first separating-set
+  selection, conservative orientation options, bootstrap stability filtering,
+  and explicit audit traces.
+- **Validation**: oracle PAG cases, semantic PAG metrics, optional
+  causal-learn comparison, optional R `pcalg::fciPlus` comparison, and a
+  Python 3.9-3.13 CI matrix.
+
 ```mermaid
 flowchart LR
     A[pandas or NumPy data] --> B[Input validation]
@@ -61,7 +75,58 @@ A  <-> B
 | `fci_plus(data)` | Sparse graphs where broad Possible-D-Sep search is too expensive. |
 | `FCI(config).fit(data)` | Estimator-style usage with explicit configuration and reusable objects. |
 | `stable_fci(data)` | Bootstrap stability selection when finite-sample reliability matters. |
+| `stable_fci_plus(data)` | Bootstrap stability selection with the FCI+ sparse D-SEP pipeline. |
 | `run_oracle_benchmark(...)` | Regression testing against preset known graph structures. |
+
+## Minimal Research Workflow
+
+```python
+import pandas as pd
+from fci_engine import fci_plus, stable_fci_plus
+
+data = pd.read_csv("observational_data.csv")
+
+# Fast first pass.
+result = fci_plus(
+    data,
+    alpha="auto",
+    max_cond_set_size=3,
+    orientation_strategy="robust",
+)
+
+print(result.summary())
+print(result.to_pandas_edges())
+
+# More conservative finite-sample pass.
+stable = stable_fci_plus(
+    data,
+    n_bootstraps=50,
+    edge_threshold=0.6,
+    alpha="auto",
+    max_cond_set_size=3,
+    orientation_strategy="robust",
+)
+
+stable.save_json("fci_result.json")
+```
+
+## Accuracy And Reliability Strategy
+
+`fci-engine` does not rely on one single trick. The implementation combines
+several safeguards that matter in finite-sample research data:
+
+| Source of error | Mitigation in this package |
+| --- | --- |
+| Order-dependent skeleton deletion | Stable adjacency snapshots per conditioning depth. |
+| Near-threshold separating sets | `sepset_selection="max_pvalue"` records the strongest independence evidence at the first successful depth. |
+| Overconfident collider orientation | Conservative collider mode can leave ambiguous triples unoriented. |
+| Dense Possible-D-Sep path growth | Ordered edge-state BFS avoids full simple-path enumeration. |
+| Finite-sample false positives | `stable_fci(...)` and `stable_fci_plus(...)` filter weak bootstrap edges. |
+| Hard-to-audit decisions | CI traces, sepset sources, orientation traces, and edge explanations are exported. |
+
+The correct way to claim accuracy is to run a transparent benchmark on known
+oracle graphs. This repository includes that workflow instead of treating any
+external implementation as ground truth.
 
 ## Benchmark Snapshot
 
@@ -76,9 +141,22 @@ open examples/realistic_benchmark_report.html
 The report includes:
 
 - side-by-side oracle / learned / R-package graphs;
+- click-to-explain graph edges with expected endpoints, actual endpoints,
+  endpoint status, and recorded orientation-rule evidence;
 - exact-edge F1 and compatibility-aware semantic F1;
 - per-edge missing, extra, under-oriented, and over-oriented differences;
 - orientation-rule traces for explainability.
+
+Current committed reference snapshot, generated on the preset oracle suite with
+R `pcalg` available:
+
+| Compared cases | fci_engine wins | Ties | R pcalg wins | Mean semantic delta | Mean exact delta |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 14 | 8 | 6 | 0 | +0.035 | +0.127 |
+
+This is a benchmark on preset oracle graphs, not a universal dominance claim.
+When the algorithm changes, rerun the report and review the per-case edge
+explanations before citing the numbers.
 
 ## Installation
 

@@ -16,8 +16,11 @@ from fci_engine.metrics import (
     run_oracle_benchmark,
 )
 from fci_engine.metrics.accuracy import Shape
-from fci_engine.simulation import OracleCase, default_oracle_cases, realistic_oracle_cases
-
+from fci_engine.simulation import (
+    OracleCase,
+    default_oracle_cases,
+    realistic_oracle_cases,
+)
 
 REPORT_PATH = Path(__file__).with_name("realistic_benchmark_report.html")
 COLORS = {
@@ -138,6 +141,115 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
     display: block;
     width: 100%;
     height: auto;
+  }}
+  .graph-edge {{
+    cursor: pointer;
+    outline: none;
+  }}
+  .edge-hit {{
+    stroke: transparent;
+    stroke-width: 18;
+    pointer-events: stroke;
+  }}
+  .edge-line,
+  .edge-endpoint {{
+    pointer-events: none;
+    transition: stroke 120ms ease, stroke-width 120ms ease, fill 120ms ease;
+  }}
+  .graph-edge:hover .edge-line,
+  .graph-edge:focus .edge-line {{
+    stroke-width: 3.8;
+  }}
+  .graph-edge.is-selected .edge-line {{
+    stroke: #0f172a;
+    stroke-width: 4.2;
+  }}
+  .graph-edge.is-selected .edge-endpoint {{
+    stroke: #0f172a;
+    fill: #0f172a;
+  }}
+  .graph-edge.is-selected circle.edge-endpoint {{
+    fill: #ffffff;
+  }}
+  .edge-explainer {{
+    margin-top: 12px;
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+    background: #fbfcfe;
+    padding: 12px;
+  }}
+  .edge-explainer-title {{
+    font-size: 13px;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }}
+  .edge-explainer-grid {{
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }}
+  .edge-explainer-item {{
+    min-width: 0;
+  }}
+  .edge-explainer-label {{
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 3px;
+    text-transform: uppercase;
+  }}
+  .edge-explainer-value {{
+    font-size: 13px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }}
+  .edge-explainer-item.wide {{
+    grid-column: 1 / -1;
+  }}
+  .edge-modal-backdrop[hidden] {{
+    display: none;
+  }}
+  .edge-modal-backdrop {{
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(16, 24, 39, 0.48);
+  }}
+  .edge-modal {{
+    width: min(820px, 100%);
+    max-height: calc(100vh - 48px);
+    overflow: auto;
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 24px 70px rgba(16, 24, 39, 0.24);
+    padding: 16px;
+  }}
+  .edge-modal-header {{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+  }}
+  .edge-modal-title {{
+    font-size: 16px;
+    font-weight: 800;
+  }}
+  .edge-modal-close {{
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #101827;
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 6px 10px;
   }}
   .chart-scroll svg {{
     min-width: 1120px;
@@ -272,7 +384,9 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
   svg text {{ font-family: inherit; }}
   @media (max-width: 1220px) {{
     main {{ width: min(100vw - 24px, 900px); }}
-    .grid, .diff-row, .summary-grid {{ grid-template-columns: 1fr; }}
+    .grid, .diff-row, .summary-grid, .edge-explainer-grid {{
+      grid-template-columns: 1fr;
+    }}
   }}
 </style>
 </head>
@@ -301,9 +415,109 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
     {render_graph_gallery(selected_cases, results)}
   </section>
 </main>
+{render_edge_modal()}
+{render_interaction_script()}
 </body>
 </html>
 """
+
+
+def render_interaction_script() -> str:
+    return """<script>
+(function () {
+  function setText(root, selector, value) {
+    var node = root.querySelector(selector);
+    if (node) {
+      node.textContent = value || "";
+    }
+  }
+
+  function fillExplanation(root, edgeNode) {
+    var trace = edgeNode.dataset.rules || "No orientation trace";
+    var reason = edgeNode.dataset.reason || "";
+    if (reason && reason.indexOf("No per-rule reason") !== 0) {
+      trace = trace + " - " + reason;
+    }
+    setText(root, ".edge-explainer-title", "Selected edge explanation");
+    setText(root, ".edge-modal-title", "Selected edge explanation");
+    setText(root, ".explain-edge", edgeNode.dataset.edge);
+    setText(root, ".explain-status", edgeNode.dataset.kind);
+    setText(root, ".explain-endpoint-check", edgeNode.dataset.status);
+    setText(root, ".explain-expected", edgeNode.dataset.expected);
+    setText(root, ".explain-actual", edgeNode.dataset.actual);
+    setText(root, ".explain-endpoint-meaning", edgeNode.dataset.endpointMeaning);
+    setText(root, ".explain-reasoning", edgeNode.dataset.reasoning);
+    setText(root, ".explain-orientation-trace", trace);
+    setText(root, ".explain-summary", edgeNode.dataset.explanation);
+  }
+
+  function openModal(edgeNode) {
+    var modal = document.querySelector(".edge-modal-backdrop");
+    if (!modal) {
+      return;
+    }
+    fillExplanation(modal, edgeNode);
+    modal.hidden = false;
+    var closeButton = modal.querySelector(".edge-modal-close");
+    if (closeButton) {
+      closeButton.focus();
+    }
+  }
+
+  function closeModal() {
+    var modal = document.querySelector(".edge-modal-backdrop");
+    if (modal) {
+      modal.hidden = true;
+    }
+  }
+
+  function explainEdge(edgeNode) {
+    var caseCard = edgeNode.closest(".case-card");
+    if (!caseCard) {
+      return;
+    }
+    caseCard.querySelectorAll(".graph-edge.is-selected").forEach(function (node) {
+      node.classList.remove("is-selected");
+    });
+    edgeNode.classList.add("is-selected");
+
+    var panel = caseCard.querySelector(".edge-explainer");
+    if (!panel) {
+      return;
+    }
+    fillExplanation(panel, edgeNode);
+    openModal(edgeNode);
+  }
+
+  document.querySelectorAll(".graph-edge").forEach(function (edgeNode) {
+    edgeNode.addEventListener("click", function () {
+      explainEdge(edgeNode);
+    });
+    edgeNode.addEventListener("keydown", function (event) {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        explainEdge(edgeNode);
+      }
+    });
+  });
+
+  document.querySelectorAll(".edge-modal-close").forEach(function (button) {
+    button.addEventListener("click", closeModal);
+  });
+  document.querySelectorAll(".edge-modal-backdrop").forEach(function (modal) {
+    modal.addEventListener("click", function (event) {
+      if (event.target === modal) {
+        closeModal();
+      }
+    });
+  });
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+      closeModal();
+    }
+  });
+}());
+</script>"""
 
 
 def render_aggregate_chart(aggregates: list[BenchmarkAggregate]) -> str:
@@ -327,7 +541,9 @@ def render_aggregate_chart(aggregates: list[BenchmarkAggregate]) -> str:
     for row, aggregate in enumerate(aggregates):
         y = 42 + row * row_height
         color = _color(aggregate.algorithm)
-        svg.append(f'<line x1="0" y1="{y - 14}" x2="{width}" y2="{y - 14}" stroke="#eaecf0"/>')
+        svg.append(
+            f'<line x1="0" y1="{y - 14}" x2="{width}" y2="{y - 14}" stroke="#eaecf0"/>'
+        )
         svg.append(f'<circle cx="16" cy="{y + 14}" r="5" fill="{color}"/>')
         svg.append(
             f'<text x="30" y="{y + 18}" font-size="14" font-weight="700" '
@@ -420,12 +636,8 @@ def render_pcalg_head_to_head(
             engine.semantic_comparison.semantic_edge_f1
             - pcalg.semantic_comparison.semantic_edge_f1
         )
-        exact_delta = (
-            engine.comparison.exact_edge_f1 - pcalg.comparison.exact_edge_f1
-        )
-        skeleton_delta = (
-            engine.comparison.skeleton_f1 - pcalg.comparison.skeleton_f1
-        )
+        exact_delta = engine.comparison.exact_edge_f1 - pcalg.comparison.exact_edge_f1
+        skeleton_delta = engine.comparison.skeleton_f1 - pcalg.comparison.skeleton_f1
         endpoint_delta = (
             engine.comparison.endpoint_accuracy - pcalg.comparison.endpoint_accuracy
         )
@@ -525,7 +737,9 @@ def _head_to_head_winner(engine: BenchmarkResult, pcalg: BenchmarkResult) -> str
         pcalg.comparison.endpoint_accuracy,
         pcalg.comparison.skeleton_f1,
     )
-    if all(abs(left - right) <= 1e-12 for left, right in zip(engine_score, pcalg_score)):
+    if all(
+        abs(left - right) <= 1e-12 for left, right in zip(engine_score, pcalg_score)
+    ):
         return "tie"
     return "fci_engine" if engine_score > pcalg_score else "r_pcalg"
 
@@ -608,6 +822,25 @@ def render_graph_gallery(
         if learned is None:
             continue
         pcalg = _pcalg_result(case, results)
+        oracle_svg = render_pag_svg(
+            case.oracle_shape,
+            list(case.data.columns),
+            "Oracle PAG",
+            learned.edges,
+            "oracle",
+            case.name,
+            learned.orientation_trace,
+        )
+        learned_svg = render_pag_svg(
+            learned.edges,
+            list(case.data.columns),
+            learned.algorithm,
+            case.oracle_shape,
+            "learned",
+            case.name,
+            learned.orientation_trace,
+        )
+        pcalg_svg = render_result_svg(case, pcalg, "R pcalg::fciPlus")
         cards.append(
             "<div class='case-card'>"
             f"<div class='case-title'>{_esc(case.name)}</div>"
@@ -615,19 +848,20 @@ def render_graph_gallery(
             "<div class='graph-strip' style='margin-top:14px'>"
             "<div class='graph-row'>"
             "<div class='graph-panel'>"
-            f"{render_pag_svg(case.oracle_shape, list(case.data.columns), 'Oracle PAG', learned.edges, 'oracle')}"
+            f"{oracle_svg}"
             "<div class='caption'>Hand-written expected PAG</div>"
             "</div>"
             "<div class='graph-panel'>"
-            f"{render_pag_svg(learned.edges, list(case.data.columns), learned.algorithm, case.oracle_shape, 'learned')}"
+            f"{learned_svg}"
             f"<div class='caption'>Learned output: {_esc(learned.algorithm)}</div>"
             "</div>"
             "<div class='graph-panel'>"
-            f"{render_result_svg(case, pcalg, 'R pcalg::fciPlus')}"
+            f"{pcalg_svg}"
             f"<div class='caption'>{render_result_caption(pcalg)}</div>"
             "</div>"
             "</div>"
             "</div>"
+            f"{render_edge_explainer(case.name)}"
             "<div class='diff-row'>"
             f"{render_difference_table(case, learned, 'FCI+ edge differences')}"
             f"{render_difference_table(case, pcalg, 'R pcalg edge differences')}"
@@ -640,6 +874,7 @@ def render_graph_gallery(
         "<span class='legend-item' style='color:#d97706'><span class='legend-line'></span>endpoint differs</span>"
         "<span class='legend-item' style='color:#dc2626'><span class='legend-line'></span>missing or extra edge</span>"
         "<span class='legend-item' style='color:#475467'><span class='legend-line'></span>not compared</span>"
+        "<span class='legend-item'>Click any edge to inspect expected endpoints, actual endpoints, and rule trace.</span>"
         "</div>"
     )
     return legend + "<div class='graph-gallery'>" + "".join(cards) + "</div>"
@@ -660,6 +895,66 @@ def render_result_svg(
         result.algorithm,
         case.oracle_shape,
         "learned",
+        case.name,
+        result.orientation_trace,
+    )
+
+
+def render_edge_explainer(case_name: str) -> str:
+    return (
+        f"<div class='edge-explainer' data-edge-panel='{_esc(case_name)}'>"
+        "<div class='edge-explainer-title'>Click an edge to explain this result.</div>"
+        "<div class='edge-explainer-grid'>"
+        f"{_explainer_item('Edge', 'Select an edge')}"
+        f"{_explainer_item('Status', 'No edge selected')}"
+        f"{_explainer_item('Endpoint check', 'No edge selected')}"
+        f"{_explainer_item('Expected', 'No edge selected')}"
+        f"{_explainer_item('Actual', 'No edge selected')}"
+        f"{_explainer_item('Endpoint meaning', 'No edge selected', wide=True)}"
+        f"{_explainer_item('Reasoning', 'No edge selected', wide=True)}"
+        f"{_explainer_item('Orientation trace', 'No edge selected')}"
+        "</div>"
+        "<div class='caption explain-summary'>The panel explains the selected edge "
+        "relative to the oracle PAG used by this benchmark case.</div>"
+        "</div>"
+    )
+
+
+def render_edge_modal() -> str:
+    return (
+        "<div class='edge-modal-backdrop' hidden>"
+        "<div class='edge-modal' role='dialog' aria-modal='true' "
+        "aria-labelledby='edge-modal-title'>"
+        "<div class='edge-modal-header'>"
+        "<div id='edge-modal-title' class='edge-modal-title'>"
+        "Selected edge explanation</div>"
+        "<button type='button' class='edge-modal-close'>Close</button>"
+        "</div>"
+        "<div class='edge-explainer-grid'>"
+        f"{_explainer_item('Edge', 'Select an edge')}"
+        f"{_explainer_item('Status', 'No edge selected')}"
+        f"{_explainer_item('Endpoint check', 'No edge selected')}"
+        f"{_explainer_item('Expected', 'No edge selected')}"
+        f"{_explainer_item('Actual', 'No edge selected')}"
+        f"{_explainer_item('Endpoint meaning', 'No edge selected', wide=True)}"
+        f"{_explainer_item('Reasoning', 'No edge selected', wide=True)}"
+        f"{_explainer_item('Orientation trace', 'No edge selected', wide=True)}"
+        "</div>"
+        "<div class='caption explain-summary'>Select an edge to load the "
+        "explanation.</div>"
+        "</div>"
+        "</div>"
+    )
+
+
+def _explainer_item(label: str, value: str, wide: bool = False) -> str:
+    class_name = "explain-" + label.lower().replace(" ", "-")
+    wide_class = " wide" if wide else ""
+    return (
+        f"<div class='edge-explainer-item{wide_class}'>"
+        f"<div class='edge-explainer-label'>{_esc(label)}</div>"
+        f"<div class='edge-explainer-value {class_name}'>{_esc(value)}</div>"
+        "</div>"
     )
 
 
@@ -685,7 +980,7 @@ def render_placeholder_svg(
         f'fill="#101827">{_esc(title)}</text>'
         f'<text x="{width / 2:.1f}" y="{height / 2:.1f}" text-anchor="middle" '
         'font-size="13" fill="#667085">'
-        f'{_esc(message)}</text>'
+        f"{_esc(message)}</text>"
         "</svg>"
     )
 
@@ -739,7 +1034,11 @@ def render_difference_table(
             f"<td>{_esc(rules)}</td>"
             "</tr>"
         )
-    more = "" if len(differences) <= 12 else f"<p class='caption'>+{len(differences) - 12} more differences omitted.</p>"
+    more = (
+        ""
+        if len(differences) <= 12
+        else f"<p class='caption'>+{len(differences) - 12} more differences omitted.</p>"
+    )
     return (
         "<div class='diff-table'>"
         f"<div class='diff-title'>{_esc(title)}</div>"
@@ -756,6 +1055,8 @@ def render_pag_svg(
     title: str,
     reference_shape: Optional[Shape] = None,
     comparison_side: str = "learned",
+    case_name: str = "",
+    orientation_trace: Optional[list[object]] = None,
     width: int = 720,
     height: int = 520,
 ) -> str:
@@ -766,24 +1067,50 @@ def render_pag_svg(
     )
     edge_parts = []
     for (x, y), endpoints in sorted(shape.items()):
-        endpoint_x, endpoint_y = _endpoint_name(endpoints[0]), _endpoint_name(endpoints[1])
+        edge = (str(x), str(y))
+        endpoint_x = _endpoint_name(endpoints[0])
+        endpoint_y = _endpoint_name(endpoints[1])
         status = _edge_status(
-            (x, y),
+            edge,
             normalized_shape,
             normalized_reference,
             comparison_side=comparison_side,
         )
+        metadata = _edge_metadata(
+            edge,
+            normalized_shape,
+            normalized_reference,
+            comparison_side,
+            orientation_trace,
+        )
         stroke, stroke_width, dasharray = _edge_style(status)
-        x1, y1 = positions[x]
-        x2, y2 = positions[y]
+        x1, y1 = positions[edge[0]]
+        x2, y2 = positions[edge[1]]
         start, end = _trimmed_line((x1, y1), (x2, y2), 48)
         edge_parts.append(
-            f'<line x1="{start[0]:.1f}" y1="{start[1]:.1f}" '
+            "<g class='graph-edge' tabindex='0' role='button' "
+            f"aria-label='{_esc(metadata['aria_label'])}' "
+            f"data-case='{_esc(case_name)}' "
+            f"data-edge='{_esc(metadata['edge'])}' "
+            f"data-kind='{_esc(metadata['kind'])}' "
+            f"data-status='{_esc(metadata['endpoint_status'])}' "
+            f"data-expected='{_esc(metadata['expected'])}' "
+            f"data-actual='{_esc(metadata['actual'])}' "
+            f"data-rules='{_esc(metadata['rules'])}' "
+            f"data-explanation='{_esc(metadata['explanation'])}' "
+            f"data-endpoint-meaning='{_esc(metadata['endpoint_meaning'])}' "
+            f"data-reasoning='{_esc(metadata['reasoning'])}' "
+            f"data-reason='{_esc(metadata['reason'])}'>"
+            f"<title>{_esc(metadata['aria_label'])}</title>"
+            f'<line class="edge-hit" x1="{start[0]:.1f}" y1="{start[1]:.1f}" '
+            f'x2="{end[0]:.1f}" y2="{end[1]:.1f}"/>'
+            f'<line class="edge-line" x1="{start[0]:.1f}" y1="{start[1]:.1f}" '
             f'x2="{end[0]:.1f}" y2="{end[1]:.1f}" '
             f'stroke="{stroke}" stroke-width="{stroke_width}"{dasharray}/>'
+            f"{_endpoint_svg(endpoint_x, start, end, stroke)}"
+            f"{_endpoint_svg(endpoint_y, end, start, stroke)}"
+            "</g>"
         )
-        edge_parts.append(_endpoint_svg(endpoint_x, start, end, stroke))
-        edge_parts.append(_endpoint_svg(endpoint_y, end, start, stroke))
 
     node_parts = []
     for node in nodes:
@@ -800,6 +1127,402 @@ def render_pag_svg(
         f"{''.join(node_parts)}"
         "</svg>"
     )
+
+
+def _edge_metadata(
+    edge: tuple[str, str],
+    shape: dict[tuple[str, str], tuple[str, str]],
+    reference_shape: Optional[dict[tuple[str, str], tuple[str, str]]],
+    comparison_side: str,
+    orientation_trace: Optional[list[object]],
+) -> dict[str, str]:
+    displayed = shape[edge]
+    if reference_shape is None:
+        expected = None
+        actual = displayed
+        kind = "not_compared"
+        endpoint_status = "not compared"
+    elif comparison_side == "oracle":
+        expected = displayed
+        actual = reference_shape.get(edge)
+        if actual is None:
+            kind = "missing_edge"
+            endpoint_status = "missing/missing"
+        elif actual == expected:
+            kind = "exact_match"
+            endpoint_status = "exact/exact"
+        else:
+            endpoint_status_tuple = _endpoint_statuses(expected, actual)
+            kind = _difference_kind(endpoint_status_tuple)
+            endpoint_status = "/".join(endpoint_status_tuple)
+    else:
+        expected = reference_shape.get(edge)
+        actual = displayed
+        if expected is None:
+            kind = "extra_edge"
+            endpoint_status = "extra/extra"
+        elif actual == expected:
+            kind = "exact_match"
+            endpoint_status = "exact/exact"
+        else:
+            endpoint_status_tuple = _endpoint_statuses(expected, actual)
+            kind = _difference_kind(endpoint_status_tuple)
+            endpoint_status = "/".join(endpoint_status_tuple)
+
+    events = _trace_events_for_edge(orientation_trace, edge)
+    rules = _event_rule_text(events)
+    reason = _event_reason_text(events)
+    explanation = _edge_explanation(kind, rules)
+    endpoint_meaning = _endpoint_meaning(edge, displayed)
+    reasoning = _edge_reasoning(
+        edge,
+        displayed,
+        expected,
+        actual,
+        kind,
+        endpoint_status,
+        rules,
+        reason,
+        comparison_side,
+    )
+    edge_text = _edge_text(edge, displayed)
+    return {
+        "edge": edge_text,
+        "kind": kind,
+        "endpoint_status": endpoint_status,
+        "expected": _edge_text(edge, expected),
+        "actual": _edge_text(edge, actual),
+        "rules": rules,
+        "reason": reason,
+        "explanation": explanation,
+        "endpoint_meaning": endpoint_meaning,
+        "reasoning": reasoning,
+        "aria_label": f"{edge_text}. {kind}. {explanation}",
+    }
+
+
+def _endpoint_statuses(
+    expected: tuple[str, str],
+    actual: tuple[str, str],
+) -> tuple[str, str]:
+    return (
+        _endpoint_semantic_status(expected[0], actual[0]),
+        _endpoint_semantic_status(expected[1], actual[1]),
+    )
+
+
+def _endpoint_semantic_status(expected: str, actual: str) -> str:
+    if expected == actual:
+        return "exact"
+    if expected == "CIRCLE" and actual in {"ARROW", "TAIL"}:
+        return "over_oriented"
+    if actual == "CIRCLE" and expected in {"ARROW", "TAIL"}:
+        return "under_oriented"
+    return "contradicted"
+
+
+def _difference_kind(statuses: tuple[str, str]) -> str:
+    if "contradicted" in statuses:
+        return "endpoint_conflict"
+    if "over_oriented" in statuses and "under_oriented" in statuses:
+        return "mixed_endpoint_difference"
+    if "over_oriented" in statuses:
+        return "over_oriented"
+    if "under_oriented" in statuses:
+        return "under_oriented"
+    return "exact_match"
+
+
+def _edge_explanation(kind: str, rules: str) -> str:
+    explanations = {
+        "not_compared": "No oracle/reference comparison is attached to this panel.",
+        "exact_match": "The edge and both endpoint marks match the oracle/reference PAG.",
+        "missing_edge": "This oracle edge is absent from the compared learned output.",
+        "extra_edge": "This learned edge is not present in the oracle PAG.",
+        "under_oriented": (
+            "The learned edge keeps at least one circle where the oracle has a "
+            "definite tail or arrowhead."
+        ),
+        "over_oriented": (
+            "The learned edge resolves at least one oracle circle into a definite "
+            "endpoint; this is stronger than the oracle endpoint."
+        ),
+        "mixed_endpoint_difference": (
+            "One endpoint is stronger than the oracle and another endpoint is "
+            "weaker than the oracle."
+        ),
+        "endpoint_conflict": "At least one endpoint contradicts the oracle endpoint.",
+    }
+    explanation = explanations.get(kind, "This edge differs from the oracle/reference.")
+    if rules and rules != "No orientation trace":
+        return f"{explanation} Recorded rule evidence: {rules}."
+    return explanation
+
+
+def _endpoint_meaning(edge: tuple[str, str], endpoints: tuple[str, str]) -> str:
+    x, y = edge
+    relation = _relation_meaning(edge, endpoints)
+    endpoint_parts = [
+        _single_endpoint_meaning(x, y, endpoints[0]),
+        _single_endpoint_meaning(y, x, endpoints[1]),
+    ]
+    return relation + " " + " ".join(endpoint_parts)
+
+
+def _relation_meaning(edge: tuple[str, str], endpoints: tuple[str, str]) -> str:
+    x, y = edge
+    if endpoints == ("CIRCLE", "CIRCLE"):
+        return (
+            f"{x} o-o {y} means FCI kept an adjacency but did not identify either "
+            "ancestral direction from the available conditional independence "
+            "constraints."
+        )
+    if endpoints == ("CIRCLE", "ARROW"):
+        return (
+            f"{x} o-> {y} means the endpoint at {y} is fixed as an arrowhead, "
+            f"so the PAG rules rule out {y} being an ancestor of {x}; the "
+            f"endpoint at {x} remains unidentified."
+        )
+    if endpoints == ("ARROW", "CIRCLE"):
+        return (
+            f"{x} <-o {y} means the endpoint at {x} is fixed as an arrowhead, "
+            f"so the PAG rules rule out {x} being an ancestor of {y}; the "
+            f"endpoint at {y} remains unidentified."
+        )
+    if endpoints == ("TAIL", "ARROW"):
+        return (
+            f"{x} --> {y} means the learned PAG supports {x} as an ancestor or "
+            f"direct cause candidate of {y}, and rules out {y} as an ancestor "
+            f"of {x}."
+        )
+    if endpoints == ("ARROW", "TAIL"):
+        return (
+            f"{x} <-- {y} means the learned PAG supports {y} as an ancestor or "
+            f"direct cause candidate of {x}, and rules out {x} as an ancestor "
+            f"of {y}."
+        )
+    if endpoints == ("ARROW", "ARROW"):
+        return (
+            f"{x} <-> {y} means both endpoints are arrowheads. In a PAG this "
+            "usually represents dependence compatible with latent confounding "
+            "or an equivalent ancestral-graph constraint, rather than a direct "
+            "observed arrow in both directions."
+        )
+    if endpoints == ("TAIL", "TAIL"):
+        return (
+            f"{x} --- {y} is an undirected tail-tail edge. In PAG terminology "
+            "this is typically associated with selection-bias style constraints "
+            "or background knowledge."
+        )
+    return (
+        f"{_edge_text(edge, endpoints)} is a mixed PAG endpoint pattern; read "
+        "each endpoint independently."
+    )
+
+
+def _single_endpoint_meaning(node: str, other: str, endpoint: str) -> str:
+    if endpoint == "ARROW":
+        return (
+            f"The arrowhead at {node} says {node} is not an ancestor of {other} "
+            "in every graph represented by this PAG."
+        )
+    if endpoint == "TAIL":
+        return (
+            f"The tail at {node} points the edge out of {node}, supporting "
+            f"{node} as an ancestor or cause candidate of {other}."
+        )
+    if endpoint == "CIRCLE":
+        return (
+            f"The circle at {node} is deliberately unresolved: the data and "
+            "orientation rules did not justify replacing it with a tail or "
+            "arrowhead."
+        )
+    return f"The endpoint at {node} is not active on this edge."
+
+
+def _edge_reasoning(
+    edge: tuple[str, str],
+    displayed: tuple[str, str],
+    expected: Optional[tuple[str, str]],
+    actual: Optional[tuple[str, str]],
+    kind: str,
+    endpoint_status: str,
+    rules: str,
+    reason: str,
+    comparison_side: str,
+) -> str:
+    edge_text = _edge_text(edge, displayed)
+    if comparison_side == "oracle":
+        panel_text = (
+            f"This click is on the oracle edge {edge_text}. The learned/reference "
+            f"output for the same pair is {_edge_text(edge, actual)}."
+        )
+    else:
+        panel_text = (
+            f"This click is on the learned edge {edge_text}. The oracle/reference "
+            f"edge for the same pair is {_edge_text(edge, expected)}."
+        )
+
+    comparison_text = _comparison_reasoning(kind, endpoint_status)
+    rule_text = _rule_reasoning(rules, reason, comparison_side)
+    return " ".join([panel_text, comparison_text, rule_text])
+
+
+def _comparison_reasoning(kind: str, endpoint_status: str) -> str:
+    if kind == "exact_match":
+        return (
+            "The benchmark marks this edge as an exact match because both "
+            "endpoint symbols agree with the oracle/reference edge."
+        )
+    if kind == "missing_edge":
+        return (
+            "The benchmark marks this as missing because the oracle has the "
+            "edge, but the compared output did not retain an adjacency for "
+            "this pair."
+        )
+    if kind == "extra_edge":
+        return (
+            "The benchmark marks this as extra because the compared output "
+            "retained an adjacency that is absent from the oracle PAG."
+        )
+    if kind == "under_oriented":
+        return (
+            f"The endpoint check is {endpoint_status}: at least one endpoint "
+            "is still a circle even though the oracle/reference has a definite "
+            "tail or arrowhead. This is conservative but less informative."
+        )
+    if kind == "over_oriented":
+        return (
+            f"The endpoint check is {endpoint_status}: at least one oracle "
+            "circle was replaced by a definite endpoint. This is more specific "
+            "than the oracle and should be inspected carefully."
+        )
+    if kind == "mixed_endpoint_difference":
+        return (
+            f"The endpoint check is {endpoint_status}: one endpoint is more "
+            "specific than the oracle while another is less specific."
+        )
+    if kind == "endpoint_conflict":
+        return (
+            f"The endpoint check is {endpoint_status}: at least one endpoint "
+            "points to a different ancestral claim than the oracle/reference."
+        )
+    return "This edge is not compared against an oracle/reference edge."
+
+
+def _rule_reasoning(rules: str, reason: str, comparison_side: str) -> str:
+    if not rules or rules == "No orientation trace":
+        if comparison_side == "learned":
+            return (
+                "No internal orientation event is attached to this edge in the "
+                "report. For fci_engine this usually means the edge survived "
+                "skeleton/D-SEP search but its endpoints were not changed by a "
+                "recorded orientation rule; for external R pcalg output, the "
+                "rule-level trace is not exposed to this report."
+            )
+        return (
+            "The oracle panel is hand-written for the benchmark, so it explains "
+            "the target endpoint meaning rather than an algorithmic derivation."
+        )
+
+    rule_names = [rule.strip() for rule in rules.split(",") if rule.strip()]
+    rule_explanations = [_single_rule_reasoning(rule) for rule in rule_names]
+    unique_explanations = []
+    for explanation in rule_explanations:
+        if explanation not in unique_explanations:
+            unique_explanations.append(explanation)
+    text = " ".join(unique_explanations)
+    if reason and not reason.startswith("No per-rule reason"):
+        text += f" The concrete recorded trigger was: {reason}."
+    return text
+
+
+def _single_rule_reasoning(rule: str) -> str:
+    if rule.startswith("orient_unshielded_colliders"):
+        return (
+            "The collider rule placed arrowheads into the middle node of an "
+            "unshielded triple because the separating-set evidence did not "
+            "support treating that middle node as a non-collider."
+        )
+    if rule == "R1":
+        return (
+            "Rule R1 oriented a tail to avoid introducing a new unshielded "
+            "collider that would contradict the recorded separating sets."
+        )
+    if rule == "R2":
+        return (
+            "Rule R2 propagated ancestry along an existing directed or partially "
+            "directed path, so the endpoint had to agree with that ancestral "
+            "constraint."
+        )
+    if rule == "R3":
+        return (
+            "Rule R3 used a triangle-style PAG pattern to orient an endpoint "
+            "that was forced by two adjacent constraints."
+        )
+    if rule == "R4":
+        return (
+            "Rule R4 used a discriminating path: the surrounding path structure "
+            "made the collider/non-collider status of a triple identifiable."
+        )
+    if rule in {"R5", "R6", "R7"}:
+        return (
+            f"Rule {rule} is one of the selection-bias orientation rules; it "
+            "propagates tail information through uncovered circle-path patterns."
+        )
+    if rule in {"R8", "R9", "R10"}:
+        return (
+            f"Rule {rule} prevents an orientation that would create an invalid "
+            "ancestral cycle or conflict with an uncovered potentially directed "
+            "path."
+        )
+    return f"{rule} changed an endpoint according to the PAG orientation rules."
+
+
+def _trace_events_for_edge(
+    orientation_trace: Optional[list[object]],
+    edge: tuple[str, str],
+) -> list[object]:
+    if not orientation_trace:
+        return []
+    edge_key = frozenset(edge)
+    return [
+        event
+        for event in orientation_trace
+        if frozenset(str(node) for node in _event_value(event, "edge", ())) == edge_key
+    ]
+
+
+def _event_rule_text(events: list[object]) -> str:
+    rules = sorted(
+        {
+            str(_event_value(event, "rule", "")).strip()
+            for event in events
+            if str(_event_value(event, "rule", "")).strip()
+        }
+    )
+    if not rules:
+        return "No orientation trace"
+    return ", ".join(rules)
+
+
+def _event_reason_text(events: list[object]) -> str:
+    reasons = []
+    for event in events:
+        reason = str(_event_value(event, "reason", "")).strip()
+        if reason and reason not in reasons:
+            reasons.append(reason)
+        if len(reasons) >= 3:
+            break
+    if not reasons:
+        return "No per-rule reason was recorded for this edge."
+    return " | ".join(reasons)
+
+
+def _event_value(event: object, name: str, default: object) -> object:
+    if isinstance(event, dict):
+        return event.get(name, default)
+    return getattr(event, name, default)
 
 
 def _selected_cases(cases: list[OracleCase]) -> list[OracleCase]:
@@ -826,9 +1549,7 @@ def _preferred_engine_result(
         if result.case_name == case.name and result.algorithm == preferred:
             return result
     fallback = (
-        "fci_engine.fci_plus.kernel"
-        if case.use_kernel_ci
-        else "fci_engine.fci_plus"
+        "fci_engine.fci_plus.kernel" if case.use_kernel_ci else "fci_engine.fci_plus"
     )
     for result in results:
         if result.case_name == case.name and result.algorithm == fallback:
@@ -976,7 +1697,7 @@ def _endpoint_svg(
     py = ux
     if endpoint == "CIRCLE":
         return (
-            f'<circle cx="{point[0]:.1f}" cy="{point[1]:.1f}" r="5" '
+            f'<circle class="edge-endpoint" cx="{point[0]:.1f}" cy="{point[1]:.1f}" r="5" '
             f'fill="#ffffff" stroke="{color}" stroke-width="1.8"/>'
         )
     if endpoint == "ARROW":
@@ -986,7 +1707,7 @@ def _endpoint_svg(
         p1 = (base_x + px * 5, base_y + py * 5)
         p2 = (base_x - px * 5, base_y - py * 5)
         return (
-            f'<polygon points="{tip[0]:.1f},{tip[1]:.1f} '
+            f'<polygon class="edge-endpoint" points="{tip[0]:.1f},{tip[1]:.1f} '
             f'{p1[0]:.1f},{p1[1]:.1f} {p2[0]:.1f},{p2[1]:.1f}" '
             f'fill="{color}"/>'
         )
@@ -994,7 +1715,7 @@ def _endpoint_svg(
         p1 = (point[0] + px * 7, point[1] + py * 7)
         p2 = (point[0] - px * 7, point[1] - py * 7)
         return (
-            f'<line x1="{p1[0]:.1f}" y1="{p1[1]:.1f}" '
+            f'<line class="edge-endpoint" x1="{p1[0]:.1f}" y1="{p1[1]:.1f}" '
             f'x2="{p2[0]:.1f}" y2="{p2[1]:.1f}" '
             f'stroke="{color}" stroke-width="2.4"/>'
         )

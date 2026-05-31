@@ -27,6 +27,7 @@ from fci_engine.metrics.stability import (
     bootstrap_adjacency_frequencies,
     bootstrap_edge_frequencies,
     stable_fci,
+    stable_fci_plus,
 )
 
 __all__ = [
@@ -52,4 +53,5 @@ __all__ = [
     "run_pcalg_fci_plus",
     "shape_from_pag",
     "stable_fci",
+    "stable_fci_plus",
 ]

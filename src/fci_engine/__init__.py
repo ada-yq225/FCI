@@ -32,6 +32,7 @@ from fci_engine.metrics import (
     run_oracle_benchmark,
     shape_from_pag,
     stable_fci,
+    stable_fci_plus,
 )
 from fci_engine.result import EdgeExplanation, FCIResult
 from fci_engine.simulation import (
@@ -81,4 +82,5 @@ __all__ = [
     "run_oracle_benchmark",
     "shape_from_pag",
     "stable_fci",
+    "stable_fci_plus",
 ]

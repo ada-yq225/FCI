@@ -4,6 +4,7 @@ from fci_engine import (
     bootstrap_adjacency_frequencies,
     bootstrap_edge_frequencies,
     stable_fci,
+    stable_fci_plus,
 )
 from fci_engine.ci import CITest, CITestResult
 
@@ -90,3 +91,37 @@ def test_stable_fci_filters_low_frequency_edges() -> None:
 
     assert result.graph.edges() == []
     assert result.bootstrap_edge_frequencies == {}
+
+
+def test_stable_fci_records_frequency_for_kept_edge_representation() -> None:
+    data = np.random.default_rng(6).normal(size=(60, 2))
+
+    result = stable_fci(
+        data,
+        n_bootstraps=3,
+        edge_threshold=0.5,
+        random_state=0,
+        ci_test=AlwaysDependentCITest(),
+        do_pdsep=False,
+    )
+
+    assert result.graph.edge_repr("X0", "X1") == "X0 o-o X1"
+    assert result.bootstrap_edge_frequencies == {"X0 o-o X1": 1.0}
+    assert result.to_edge_records()[0]["bootstrap_frequency"] == 1.0
+
+
+def test_stable_fci_plus_uses_fci_plus_pipeline() -> None:
+    data = np.random.default_rng(7).normal(size=(60, 2))
+
+    result = stable_fci_plus(
+        data,
+        n_bootstraps=3,
+        edge_threshold=0.5,
+        random_state=0,
+        ci_test=AlwaysDependentCITest(),
+        max_cond_set_size=1,
+    )
+
+    assert result.algorithm == "fci_plus"
+    assert result.graph.edge_repr("X0", "X1") == "X0 o-o X1"
+    assert result.bootstrap_edge_frequencies == {"X0 o-o X1": 1.0}
