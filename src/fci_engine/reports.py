@@ -81,6 +81,36 @@ def render_interactive_report(
     font-weight: 800;
     font-variant-numeric: tabular-nums;
   }}
+  .endpoint-legend {{
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+  }}
+  .legend-card {{
+    border: 1px solid #eaecf0;
+    border-radius: 8px;
+    background: #fbfcfe;
+    padding: 10px;
+  }}
+  .legend-symbol {{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 24px;
+    margin-bottom: 6px;
+    border-radius: 6px;
+    background: #ecfdf3;
+    color: #047857;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }}
+  .legend-text {{
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
+  }}
   .report-layout {{
     display: grid;
     grid-template-columns: minmax(520px, 1.1fr) minmax(360px, 0.9fr);
@@ -181,6 +211,24 @@ def render_interactive_report(
     vertical-align: top;
   }}
   th {{ color: #475467; font-weight: 700; background: #f9fafb; }}
+  .edge-row {{
+    cursor: pointer;
+    outline: none;
+  }}
+  .edge-row:hover,
+  .edge-row:focus,
+  .edge-row.is-selected {{
+    background: #ecfdf3;
+  }}
+  .edge-row.is-selected td:first-child {{
+    font-weight: 800;
+    color: #047857;
+  }}
+  .row-action {{
+    color: #047857;
+    font-size: 12px;
+    font-weight: 800;
+  }}
   .caption {{
     color: var(--muted);
     font-size: 13px;
@@ -231,7 +279,10 @@ def render_interactive_report(
   }}
   @media (max-width: 980px) {{
     main {{ width: min(100vw - 24px, 900px); }}
-    .summary-grid, .report-layout, .edge-explainer-grid {{
+    .summary-grid,
+    .endpoint-legend,
+    .report-layout,
+    .edge-explainer-grid {{
       grid-template-columns: 1fr;
     }}
   }}
@@ -248,6 +299,7 @@ def render_interactive_report(
   <section>
     <h2>Run Summary</h2>
     {render_summary_cards(result)}
+    {render_endpoint_legend()}
   </section>
   <section class="report-layout">
     <div>
@@ -292,6 +344,47 @@ def render_summary_cards(result: "FCIResult") -> str:
     )
 
 
+def render_endpoint_legend() -> str:
+    entries = [
+        (
+            "o",
+            "Circle",
+            "Unresolved endpoint; FCI did not have enough justified evidence to "
+            "choose tail or arrowhead.",
+        ),
+        (
+            ">",
+            "Arrowhead",
+            "The node at this endpoint is ruled out as an ancestor of the node "
+            "on the other side.",
+        ),
+        (
+            "-",
+            "Tail",
+            "The endpoint points outward, supporting an ancestor or cause-candidate "
+            "interpretation.",
+        ),
+        (
+            "<->",
+            "Bidirected",
+            "Two arrowheads are commonly read as latent-confounding-compatible "
+            "dependence in a PAG.",
+        ),
+    ]
+    return (
+        "<div class='endpoint-legend'>"
+        + "".join(
+            "<div class='legend-card'>"
+            f"<div class='legend-symbol'>{_esc(symbol)}</div>"
+            f"<div class='metric-label'>{_esc(label)}</div>"
+            f"<div class='legend-text'>{_esc(text)}</div>"
+            "</div>"
+            for symbol, label, text in entries
+        )
+        + "</div>"
+    )
+
+
 def render_pag_svg(result: "FCIResult", width: int = 760, height: int = 560) -> str:
     positions = _circle_layout(list(result.graph.nodes), width, height)
     edge_parts = []
@@ -303,13 +396,8 @@ def render_pag_svg(result: "FCIResult", width: int = 760, height: int = 560) -> 
         start, end = _trimmed_line((x1, y1), (x2, y2), 50)
         edge_parts.append(
             "<g class='graph-edge' tabindex='0' role='button' "
-            f"aria-label='{_esc(metadata['aria_label'])}' "
-            f"data-edge='{_esc(metadata['edge'])}' "
-            f"data-status='{_esc(metadata['status'])}' "
-            f"data-endpoint-meaning='{_esc(metadata['endpoint_meaning'])}' "
-            f"data-reasoning='{_esc(metadata['reasoning'])}' "
-            f"data-skeleton-evidence='{_esc(metadata['skeleton_evidence'])}' "
-            f"data-orientation-evidence='{_esc(metadata['orientation_evidence'])}'>"
+            f"aria-label='{_esc(metadata['aria_label'])}'"
+            f"{_edge_data_attrs(metadata)}>"
             f"<title>{_esc(metadata['aria_label'])}</title>"
             f'<line class="edge-hit" x1="{start[0]:.1f}" y1="{start[1]:.1f}" '
             f'x2="{end[0]:.1f}" y2="{end[1]:.1f}"/>'
@@ -375,12 +463,15 @@ def render_edge_table(result: "FCIResult") -> str:
             else f"{explanation.bootstrap_frequency:.3f}"
         )
         rows.append(
-            "<tr>"
+            "<tr class='edge-row' tabindex='0' role='button' "
+            f"aria-label='{_esc('Explain ' + metadata['edge'])}'"
+            f"{_edge_data_attrs(metadata)}>"
             f"<td>{_esc(metadata['edge'])}</td>"
             f"<td>{_esc(metadata['status'])}</td>"
             f"<td>{_esc(frequency)}</td>"
             f"<td>{_esc(metadata['skeleton_evidence'])}</td>"
             f"<td>{_esc(metadata['orientation_evidence'])}</td>"
+            "<td><span class='row-action'>Explain</span></td>"
             "</tr>"
         )
     if not rows:
@@ -388,7 +479,8 @@ def render_edge_table(result: "FCIResult") -> str:
     return (
         "<div class='table-scroll'><table>"
         "<thead><tr><th>Edge</th><th>Status</th><th>Bootstrap frequency</th>"
-        "<th>Skeleton evidence</th><th>Orientation evidence</th></tr></thead>"
+        "<th>Skeleton evidence</th><th>Orientation evidence</th><th>Action</th>"
+        "</tr></thead>"
         f"<tbody>{''.join(rows)}</tbody></table></div>"
     )
 
@@ -437,6 +529,22 @@ def render_interaction_script() -> str:
     setText(root, ".explain-orientation-evidence", edgeNode.dataset.orientationEvidence);
   }
 
+  function markSelected(edgeNode) {
+    var edgeId = edgeNode.dataset.edgeId || "";
+    document.querySelectorAll(".graph-edge.is-selected, .edge-row.is-selected")
+      .forEach(function (node) {
+        node.classList.remove("is-selected");
+      });
+    if (!edgeId) {
+      edgeNode.classList.add("is-selected");
+      return;
+    }
+    document.querySelectorAll('[data-edge-id="' + edgeId + '"]')
+      .forEach(function (node) {
+        node.classList.add("is-selected");
+      });
+  }
+
   function openModal(edgeNode) {
     var modal = document.querySelector(".edge-modal-backdrop");
     if (!modal) {
@@ -457,27 +565,25 @@ def render_interaction_script() -> str:
     }
   }
 
-  function explainEdge(edgeNode) {
-    document.querySelectorAll(".graph-edge.is-selected").forEach(function (node) {
-      node.classList.remove("is-selected");
-    });
-    edgeNode.classList.add("is-selected");
-
+  function explainEdge(edgeNode, showModal) {
+    markSelected(edgeNode);
     var panel = document.querySelector(".edge-explainer");
     if (panel) {
       fillExplanation(panel, edgeNode);
     }
-    openModal(edgeNode);
+    if (showModal) {
+      openModal(edgeNode);
+    }
   }
 
-  document.querySelectorAll(".graph-edge").forEach(function (edgeNode) {
+  document.querySelectorAll(".graph-edge, .edge-row").forEach(function (edgeNode) {
     edgeNode.addEventListener("click", function () {
-      explainEdge(edgeNode);
+      explainEdge(edgeNode, true);
     });
     edgeNode.addEventListener("keydown", function (event) {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
-        explainEdge(edgeNode);
+        explainEdge(edgeNode, true);
       }
     });
   });
@@ -497,6 +603,11 @@ def render_interaction_script() -> str:
       closeModal();
     }
   });
+
+  var firstEdge = document.querySelector(".graph-edge");
+  if (firstEdge) {
+    explainEdge(firstEdge, false);
+  }
 }());
 </script>"""
 
@@ -518,6 +629,7 @@ def _edge_metadata(explanation: EdgeExplanation) -> dict[str, str]:
             f"{explanation.bootstrap_frequency:.3f}."
         )
     return {
+        "edge_id": _edge_id(explanation),
         "edge": edge_text,
         "status": _endpoint_status_text(endpoints),
         "endpoint_meaning": endpoint_meaning,
@@ -526,6 +638,33 @@ def _edge_metadata(explanation: EdgeExplanation) -> dict[str, str]:
         "orientation_evidence": orientation_evidence,
         "aria_label": f"{edge_text}. {endpoint_meaning}",
     }
+
+
+def _edge_data_attrs(metadata: dict[str, str]) -> str:
+    return (
+        f" data-edge-id='{_esc(metadata['edge_id'])}'"
+        f" data-edge='{_esc(metadata['edge'])}'"
+        f" data-status='{_esc(metadata['status'])}'"
+        f" data-endpoint-meaning='{_esc(metadata['endpoint_meaning'])}'"
+        f" data-reasoning='{_esc(metadata['reasoning'])}'"
+        f" data-skeleton-evidence='{_esc(metadata['skeleton_evidence'])}'"
+        f" data-orientation-evidence='{_esc(metadata['orientation_evidence'])}'"
+    )
+
+
+def _edge_id(explanation: EdgeExplanation) -> str:
+    return f"edge-{_slug(explanation.x)}-{_slug(explanation.y)}"
+
+
+def _slug(value: str) -> str:
+    chars = []
+    for char in str(value).lower():
+        if char.isalnum():
+            chars.append(char)
+        elif chars and chars[-1] != "-":
+            chars.append("-")
+    slug = "".join(chars).strip("-")
+    return slug or "node"
 
 
 def _endpoint_status_text(endpoints: tuple[str, str]) -> str:
