@@ -31,7 +31,9 @@ def render_interactive_report(
     --muted: #667085;
     --line: #d0d5dd;
     --panel: #ffffff;
-    --band: #f3f6fa;
+    --band: #f7f8fa;
+    --accent: #047857;
+    --accent-soft: #ecfdf3;
   }}
   * {{ box-sizing: border-box; }}
   body {{
@@ -42,67 +44,64 @@ def render_interactive_report(
     color: var(--ink);
   }}
   header {{
-    padding: 28px 36px 20px;
+    padding: 24px 36px 18px;
     background: #ffffff;
     border-bottom: 1px solid var(--line);
   }}
   main {{
     width: min(1320px, calc(100vw - 36px));
-    margin: 24px auto 40px;
+    margin: 18px auto 40px;
   }}
-  h1 {{ margin: 0 0 8px; font-size: 28px; line-height: 1.15; }}
-  h2 {{ margin: 0 0 14px; font-size: 18px; }}
+  h1 {{ margin: 0 0 6px; font-size: 24px; line-height: 1.15; }}
+  h2 {{ margin: 0 0 12px; font-size: 16px; }}
   p {{ margin: 0; color: var(--muted); line-height: 1.5; }}
   section {{
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 8px;
+    border-top: 1px solid var(--line);
     margin-bottom: 18px;
-    padding: 18px;
+    padding: 18px 0 0;
   }}
+  section:first-child {{ border-top: 0; padding-top: 0; }}
   .summary-grid {{
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    padding: 8px 0 10px;
   }}
   .metric-card {{
-    border: 1px solid #eaecf0;
-    border-radius: 8px;
-    padding: 10px;
-    background: #fbfcfe;
+    min-width: 110px;
   }}
   .metric-label {{
     color: var(--muted);
-    font-size: 12px;
+    font-size: 11px;
     margin-bottom: 4px;
+    text-transform: uppercase;
   }}
   .metric-value {{
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
   }}
   .endpoint-legend {{
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 10px;
-    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
   }}
   .legend-card {{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     border: 1px solid #eaecf0;
-    border-radius: 8px;
-    background: #fbfcfe;
-    padding: 10px;
+    border-radius: 999px;
+    background: #ffffff;
+    padding: 6px 10px;
   }}
   .legend-symbol {{
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 34px;
-    height: 24px;
-    margin-bottom: 6px;
-    border-radius: 6px;
-    background: #ecfdf3;
-    color: #047857;
+    min-width: 30px;
+    color: var(--accent);
     font-weight: 800;
     font-variant-numeric: tabular-nums;
   }}
@@ -160,8 +159,8 @@ def render_interactive_report(
   .edge-explainer {{
     border: 1px solid #d0d5dd;
     border-radius: 8px;
-    background: #fbfcfe;
-    padding: 12px;
+    background: #ffffff;
+    padding: 14px;
   }}
   .edge-explainer-title {{
     font-size: 15px;
@@ -195,12 +194,11 @@ def render_interactive_report(
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    border: 1px solid #eaecf0;
-    border-radius: 8px;
+    border-top: 1px solid #eaecf0;
   }}
   table {{
     width: 100%;
-    min-width: 760px;
+    min-width: 700px;
     border-collapse: collapse;
     font-size: 13px;
   }}
@@ -218,14 +216,14 @@ def render_interactive_report(
   .edge-row:hover,
   .edge-row:focus,
   .edge-row.is-selected {{
-    background: #ecfdf3;
+    background: var(--accent-soft);
   }}
   .edge-row.is-selected td:first-child {{
     font-weight: 800;
-    color: #047857;
+    color: var(--accent);
   }}
   .row-action {{
-    color: #047857;
+    color: var(--accent);
     font-size: 12px;
     font-weight: 800;
   }}
@@ -279,8 +277,6 @@ def render_interactive_report(
   }}
   @media (max-width: 980px) {{
     main {{ width: min(100vw - 24px, 900px); }}
-    .summary-grid,
-    .endpoint-legend,
     .report-layout,
     .edge-explainer-grid {{
       grid-template-columns: 1fr;
@@ -349,26 +345,22 @@ def render_endpoint_legend() -> str:
         (
             "o",
             "Circle",
-            "Unresolved endpoint; FCI did not have enough justified evidence to "
-            "choose tail or arrowhead.",
+            "Unresolved endpoint",
         ),
         (
             ">",
             "Arrowhead",
-            "The node at this endpoint is ruled out as an ancestor of the node "
-            "on the other side.",
+            "Not an ancestor of the other side",
         ),
         (
             "-",
             "Tail",
-            "The endpoint points outward, supporting an ancestor or cause-candidate "
-            "interpretation.",
+            "Outward ancestral direction",
         ),
         (
             "<->",
             "Bidirected",
-            "Two arrowheads are commonly read as latent-confounding-compatible "
-            "dependence in a PAG.",
+            "Latent-confounding-compatible",
         ),
     ]
     return (
@@ -442,8 +434,7 @@ def render_edge_explainer() -> str:
         f"{_explainer_item('Status', 'No edge selected')}"
         f"{_explainer_item('Endpoint meaning', 'No edge selected', wide=True)}"
         f"{_explainer_item('Reasoning', 'No edge selected', wide=True)}"
-        f"{_explainer_item('Skeleton evidence', 'No edge selected', wide=True)}"
-        f"{_explainer_item('Orientation evidence', 'No edge selected', wide=True)}"
+        f"{_explainer_item('Evidence summary', 'No edge selected', wide=True)}"
         "</div>"
         "<p class='caption'>This explanation is generated from deterministic "
         "PAG semantics, recorded CI/sepset evidence, and orientation-rule "
@@ -469,8 +460,7 @@ def render_edge_table(result: "FCIResult") -> str:
             f"<td>{_esc(metadata['edge'])}</td>"
             f"<td>{_esc(metadata['status'])}</td>"
             f"<td>{_esc(frequency)}</td>"
-            f"<td>{_esc(metadata['skeleton_evidence'])}</td>"
-            f"<td>{_esc(metadata['orientation_evidence'])}</td>"
+            f"<td>{_esc(metadata['evidence_summary'])}</td>"
             "<td><span class='row-action'>Explain</span></td>"
             "</tr>"
         )
@@ -479,7 +469,7 @@ def render_edge_table(result: "FCIResult") -> str:
     return (
         "<div class='table-scroll'><table>"
         "<thead><tr><th>Edge</th><th>Status</th><th>Bootstrap frequency</th>"
-        "<th>Skeleton evidence</th><th>Orientation evidence</th><th>Action</th>"
+        "<th>Evidence</th><th>Action</th>"
         "</tr></thead>"
         f"<tbody>{''.join(rows)}</tbody></table></div>"
     )
@@ -500,6 +490,7 @@ def render_edge_modal() -> str:
         f"{_explainer_item('Status', 'No edge selected')}"
         f"{_explainer_item('Endpoint meaning', 'No edge selected', wide=True)}"
         f"{_explainer_item('Reasoning', 'No edge selected', wide=True)}"
+        f"{_explainer_item('Evidence summary', 'No edge selected', wide=True)}"
         f"{_explainer_item('Skeleton evidence', 'No edge selected', wide=True)}"
         f"{_explainer_item('Orientation evidence', 'No edge selected', wide=True)}"
         "</div>"
@@ -525,6 +516,7 @@ def render_interaction_script() -> str:
     setText(root, ".explain-status", edgeNode.dataset.status);
     setText(root, ".explain-endpoint-meaning", edgeNode.dataset.endpointMeaning);
     setText(root, ".explain-reasoning", edgeNode.dataset.reasoning);
+    setText(root, ".explain-evidence-summary", edgeNode.dataset.evidenceSummary);
     setText(root, ".explain-skeleton-evidence", edgeNode.dataset.skeletonEvidence);
     setText(root, ".explain-orientation-evidence", edgeNode.dataset.orientationEvidence);
   }
@@ -618,6 +610,7 @@ def _edge_metadata(explanation: EdgeExplanation) -> dict[str, str]:
     endpoint_meaning = _endpoint_meaning(explanation.x, explanation.y, endpoints)
     skeleton_evidence = _skeleton_evidence(explanation)
     orientation_evidence = _orientation_evidence(explanation)
+    evidence_summary = _evidence_summary(explanation)
     reasoning = (
         f"{edge_text} is present because the adjacency search did not record a "
         f"separating set that removed {explanation.x} and {explanation.y}. "
@@ -634,6 +627,7 @@ def _edge_metadata(explanation: EdgeExplanation) -> dict[str, str]:
         "status": _endpoint_status_text(endpoints),
         "endpoint_meaning": endpoint_meaning,
         "reasoning": reasoning,
+        "evidence_summary": evidence_summary,
         "skeleton_evidence": skeleton_evidence,
         "orientation_evidence": orientation_evidence,
         "aria_label": f"{edge_text}. {endpoint_meaning}",
@@ -647,6 +641,7 @@ def _edge_data_attrs(metadata: dict[str, str]) -> str:
         f" data-status='{_esc(metadata['status'])}'"
         f" data-endpoint-meaning='{_esc(metadata['endpoint_meaning'])}'"
         f" data-reasoning='{_esc(metadata['reasoning'])}'"
+        f" data-evidence-summary='{_esc(metadata['evidence_summary'])}'"
         f" data-skeleton-evidence='{_esc(metadata['skeleton_evidence'])}'"
         f" data-orientation-evidence='{_esc(metadata['orientation_evidence'])}'"
     )
@@ -668,7 +663,18 @@ def _slug(value: str) -> str:
 
 
 def _endpoint_status_text(endpoints: tuple[str, str]) -> str:
-    return f"{endpoints[0]} at left endpoint, {endpoints[1]} at right endpoint"
+    left, right = endpoints
+    return f"{_short_endpoint(left)} - {_short_endpoint(right)}"
+
+
+def _short_endpoint(endpoint: str) -> str:
+    labels = {
+        "CIRCLE": "circle",
+        "ARROW": "arrow",
+        "TAIL": "tail",
+        "NONE": "none",
+    }
+    return labels.get(endpoint, endpoint.lower())
 
 
 def _endpoint_meaning(x: str, y: str, endpoints: tuple[str, str]) -> str:
@@ -769,6 +775,19 @@ def _skeleton_evidence(explanation: EdgeExplanation) -> str:
     else:
         text += " No pair-specific CI trace event is available in this result."
     return text
+
+
+def _evidence_summary(explanation: EdgeExplanation) -> str:
+    parts = []
+    if explanation.sepset is None:
+        parts.append("no sepset")
+    else:
+        parts.append(f"sepset size {len(explanation.sepset)}")
+    parts.append(f"{len(explanation.ci_tests)} CI")
+    parts.append(f"{len(explanation.orientation_events)} orientation")
+    if explanation.bootstrap_frequency is not None:
+        parts.append(f"bootstrap {explanation.bootstrap_frequency:.2f}")
+    return " | ".join(parts)
 
 
 def _orientation_evidence(explanation: EdgeExplanation) -> str:

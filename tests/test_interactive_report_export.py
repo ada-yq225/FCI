@@ -63,6 +63,8 @@ def test_result_renders_user_interactive_report() -> None:
     assert "endpoint-legend" in html
     assert "class='edge-row'" in html
     assert "data-edge-id='edge-x-y'" in html
+    assert "data-evidence-summary=" in html
+    assert "no sepset | 1 CI | 1 orientation" in html
     assert "var firstEdge = document.querySelector" in html
 
 
@@ -89,3 +91,5 @@ def test_report_edge_table_and_svg_share_click_metadata() -> None:
     assert html.count("data-edge-id='edge-x-y'") == 2
     assert 'document.querySelectorAll(".graph-edge, .edge-row")' in html
     assert "markSelected(edgeNode)" in html
+    assert "<th>Evidence</th>" in html
+    assert "<th>Skeleton evidence</th>" not in html
