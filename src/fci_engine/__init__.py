@@ -34,6 +34,7 @@ from fci_engine.metrics import (
     stable_fci,
     stable_fci_plus,
 )
+from fci_engine.reports import render_interactive_report
 from fci_engine.result import EdgeExplanation, FCIResult
 from fci_engine.simulation import (
     CausalGraphSpec,
@@ -80,6 +81,7 @@ __all__ = [
     "format_benchmark_leaderboard",
     "explain_pag_differences",
     "run_oracle_benchmark",
+    "render_interactive_report",
     "shape_from_pag",
     "stable_fci",
     "stable_fci_plus",

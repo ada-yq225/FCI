@@ -228,6 +228,28 @@ class FCIResult:
             encoding="utf-8",
         )
 
+    def to_interactive_report(
+        self,
+        title: str = "FCI Interactive PAG Report",
+    ) -> str:
+        """Return a standalone interactive HTML report for this result."""
+
+        from fci_engine.reports import render_interactive_report
+
+        return render_interactive_report(self, title=title)
+
+    def save_interactive_report(
+        self,
+        path: Union[str, Path],
+        title: str = "FCI Interactive PAG Report",
+    ) -> None:
+        """Write a standalone interactive HTML report for this result."""
+
+        Path(path).write_text(
+            self.to_interactive_report(title=title),
+            encoding="utf-8",
+        )
+
 
 def _lookup_sepset(
     sepsets: dict[tuple[str, str], set[str]],
@@ -282,7 +304,9 @@ def _ci_event_to_dict(event: CITraceEvent) -> dict[str, Any]:
 def _config_to_dict(config: FCIConfig) -> dict[str, Any]:
     return {
         "alpha": config.alpha,
-        "ci_test": type(config.ci_test).__name__ if config.ci_test is not None else None,
+        "ci_test": (
+            type(config.ci_test).__name__ if config.ci_test is not None else None
+        ),
         "max_cond_set_size": config.max_cond_set_size,
         "max_path_length": config.max_path_length,
         "do_pdsep": config.do_pdsep,

@@ -48,10 +48,17 @@ result = fci(data, alpha=0.01, max_cond_set_size=2)
 print(result.summary())
 for a, b in result.graph.edges():
     print(result.graph.edge_repr(a, b))
+
+result.save_interactive_report("fci_report.html")
 ```
 
 DataFrame column names become graph node names. NumPy arrays are also accepted;
 their variables are named `X0`, `X1`, `X2`, and so on.
+
+The HTML report is self-contained. Open it in a browser and click any retained
+PAG edge to see deterministic explanations of the endpoint marks, the
+skeleton/CI evidence that kept the edge, and the orientation-rule evidence that
+changed any endpoints.
 
 ## Configuration
 

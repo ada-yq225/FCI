@@ -107,6 +107,7 @@ edge_table = result.to_pandas_edges()
 networkx_graph = result.to_networkx()
 payload = result.to_dict()
 result.save_json("fci_result.json")
+result.save_interactive_report("fci_report.html")
 
 print(result.explain_edge("X", "Y").summary())
 ```
@@ -114,6 +115,9 @@ print(result.explain_edge("X", "Y").summary())
 - `to_pandas_edges()`: edge table with endpoint marks and edge strings
 - `to_networkx()`: `networkx.Graph` with PAG endpoint marks as edge attributes
 - `to_dict()` / `to_json()` / `save_json()`: JSON-safe result export
+- `to_interactive_report()` / `save_interactive_report(path)`: standalone HTML
+  report where users can click PAG edges and inspect endpoint meanings,
+  skeleton/CI evidence, orientation-rule evidence, and deterministic reasoning
 - `explain_edge(x, y)`: direct CI tests, sepset, sepset source, and orientation
   events related to a node pair
 
