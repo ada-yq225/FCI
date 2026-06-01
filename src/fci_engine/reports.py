@@ -27,13 +27,14 @@ def render_interactive_report(
 <style>
   :root {{
     color-scheme: light;
-    --ink: #101827;
-    --muted: #667085;
-    --line: #d0d5dd;
+    --ink: #0f172a;
+    --muted: #64748b;
+    --line: #e2e8f0;
     --panel: #ffffff;
-    --band: #f7f8fa;
-    --accent: #047857;
-    --accent-soft: #ecfdf3;
+    --band: #f8fafc;
+    --accent: #4f46e5;
+    --accent-soft: #e0e7ff;
+    --accent-hover: #4338ca;
   }}
   * {{ box-sizing: border-box; }}
   body {{
@@ -42,84 +43,116 @@ def render_interactive_report(
       "Segoe UI", sans-serif;
     background: var(--band);
     color: var(--ink);
+    -webkit-font-smoothing: antialiased;
   }}
   header {{
-    padding: 24px 36px 18px;
+    padding: 24px 36px;
     background: #ffffff;
     border-bottom: 1px solid var(--line);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   }}
   main {{
     width: min(1320px, calc(100vw - 36px));
-    margin: 18px auto 40px;
+    margin: 32px auto 40px;
   }}
-  h1 {{ margin: 0 0 6px; font-size: 24px; line-height: 1.15; }}
-  h2 {{ margin: 0 0 12px; font-size: 16px; }}
-  p {{ margin: 0; color: var(--muted); line-height: 1.5; }}
+  h1 {{ margin: 0 0 8px; font-size: 26px; line-height: 1.2; font-weight: 700; letter-spacing: -0.01em; }}
+  h2 {{ margin: 0 0 16px; font-size: 18px; font-weight: 600; color: #1e293b; }}
+  p {{ margin: 0; color: var(--muted); line-height: 1.6; }}
   section {{
-    border-top: 1px solid var(--line);
-    margin-bottom: 18px;
-    padding: 18px 0 0;
+    margin-bottom: 32px;
   }}
-  section:first-child {{ border-top: 0; padding-top: 0; }}
   .summary-grid {{
     display: flex;
     flex-wrap: wrap;
-    gap: 18px;
-    padding: 8px 0 10px;
+    gap: 16px;
+    padding: 0 0 16px;
   }}
   .metric-card {{
-    min-width: 110px;
+    min-width: 140px;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }}
+  .metric-card:hover {{
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
   }}
   .metric-label {{
     color: var(--muted);
-    font-size: 11px;
-    margin-bottom: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 6px;
     text-transform: uppercase;
+    letter-spacing: 0.02em;
   }}
   .metric-value {{
-    font-size: 17px;
-    font-weight: 800;
+    color: var(--ink);
+    font-size: 22px;
+    font-weight: 700;
     font-variant-numeric: tabular-nums;
   }}
   .endpoint-legend {{
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 8px;
+    gap: 12px;
+    margin-top: 12px;
   }}
   .legend-card {{
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    border: 1px solid #eaecf0;
+    gap: 10px;
+    border: 1px solid var(--line);
     border-radius: 999px;
     background: #ffffff;
-    padding: 6px 10px;
+    padding: 6px 14px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   }}
   .legend-symbol {{
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 30px;
+    min-width: 32px;
     color: var(--accent);
     font-weight: 800;
-    font-variant-numeric: tabular-nums;
+    font-size: 15px;
   }}
   .legend-text {{
     color: var(--muted);
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.45;
   }}
   .report-layout {{
     display: grid;
-    grid-template-columns: minmax(520px, 1.1fr) minmax(360px, 0.9fr);
-    gap: 18px;
+    grid-template-columns: minmax(520px, 1.2fr) minmax(400px, 0.8fr);
+    gap: 24px;
     align-items: start;
+  }}
+  .graph-panel {{
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+  }}
+  .graph-panel-header {{
+    background: #f8fafc;
+    border-bottom: 1px solid var(--line);
+    padding: 16px 20px;
+  }}
+  .graph-panel-title {{
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e293b;
   }}
   .graph-wrap {{
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    padding: 24px;
   }}
   .graph-svg {{
     display: block;
@@ -298,12 +331,14 @@ def render_interactive_report(
     {render_endpoint_legend()}
   </section>
   <section class="report-layout">
-    <div>
-      <h2>Learned PAG</h2>
+    <div class="graph-panel">
+      <div class="graph-panel-header">
+        <h3 class="graph-panel-title">Learned PAG Visualization</h3>
+      </div>
       <div class="graph-wrap">{render_pag_svg(result)}</div>
-      <p class="caption">Green means a retained PAG edge. The report explains
-      learned evidence, not ground truth, unless a separate reference graph is
-      provided by the user.</p>
+      <div style="padding: 0 20px 16px;">
+        <p class="caption">Click any edge to select it. Green means a retained PAG edge. The report explains learned evidence, not ground truth.</p>
+      </div>
     </div>
     {render_edge_explainer()}
   </section>
