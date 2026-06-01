@@ -60,7 +60,6 @@ def main() -> None:
 
 def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> str:
     aggregates = aggregate_benchmark_results(results)
-    selected_cases = _selected_cases(cases)
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -474,7 +473,7 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
   </section>
   <section>
     <h2>True Graph vs FCI+ vs R pcalg</h2>
-    {render_graph_gallery(selected_cases, results)}
+    {render_graph_gallery(cases, results)}
   </section>
 </main>
 {render_edge_modal()}
@@ -1581,17 +1580,6 @@ def _event_value(event: object, name: str, default: object) -> object:
     if isinstance(event, dict):
         return event.get(name, default)
     return getattr(event, name, default)
-
-
-def _selected_cases(cases: list[OracleCase]) -> list[OracleCase]:
-    wanted = [
-        "latent_medical",
-        "nonlinear_common_cause",
-        "finance_risk_r1",
-        "enterprise_monitoring_r1",
-    ]
-    by_name = {case.name: case for case in cases}
-    return [by_name[name] for name in wanted if name in by_name]
 
 
 def _preferred_engine_result(
