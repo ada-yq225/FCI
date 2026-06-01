@@ -64,3 +64,27 @@ def test_edge_modal_contains_explanation_fields() -> None:
     assert "Endpoint meaning" in modal
     assert "Reasoning" in modal
     assert "edge-modal-close" in modal
+
+
+def test_aggregate_chart_uses_non_overlapping_html_grid() -> None:
+    report = _load_report_module()
+
+    aggregate = report.BenchmarkAggregate(
+        algorithm="fci_engine.fci_plus",
+        n_cases=2,
+        skipped_cases=0,
+        mean_exact_edge_f1=0.75,
+        mean_semantic_edge_f1=0.8,
+        mean_skeleton_f1=0.9,
+        mean_endpoint_accuracy=0.85,
+        mean_elapsed_time=0.0123,
+        mean_ci_test_count=42.0,
+    )
+    html = report.render_aggregate_chart([aggregate])
+
+    assert "aggregate-grid" in html
+    assert "aggregate-score-value" in html
+    assert "aggregate-bar-fill" in html
+    assert "<svg" not in html
+    assert "0.750" in html
+    assert "mean CI tests: 42.0" in html

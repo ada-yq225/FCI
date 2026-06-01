@@ -251,8 +251,70 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
     font-weight: 700;
     padding: 6px 10px;
   }}
-  .chart-scroll svg {{
+  .aggregate-grid {{
+    display: grid;
+    grid-template-columns: minmax(240px, 1.2fr) repeat(4, minmax(190px, 1fr));
+    gap: 0;
     min-width: 1120px;
+    border: 1px solid #eaecf0;
+    border-radius: 8px;
+    overflow: hidden;
+  }}
+  .aggregate-header,
+  .aggregate-cell {{
+    padding: 10px 12px;
+    border-bottom: 1px solid #eaecf0;
+    background: #ffffff;
+    min-width: 0;
+  }}
+  .aggregate-header {{
+    color: #475467;
+    font-size: 12px;
+    font-weight: 800;
+    background: #f9fafb;
+  }}
+  .aggregate-name {{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+  }}
+  .aggregate-meta {{
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
+    margin-top: 6px;
+  }}
+  .aggregate-score {{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 7px;
+  }}
+  .aggregate-score-label {{
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }}
+  .aggregate-score-value {{
+    color: #344054;
+    font-size: 13px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }}
+  .aggregate-bar {{
+    height: 9px;
+    border-radius: 999px;
+    background: #eef2f6;
+    overflow: hidden;
+  }}
+  .aggregate-bar-fill {{
+    height: 100%;
+    border-radius: 999px;
   }}
   .case-title {{
     font-weight: 700;
@@ -521,69 +583,65 @@ def render_interaction_script() -> str:
 
 
 def render_aggregate_chart(aggregates: list[BenchmarkAggregate]) -> str:
-    row_height = 74
-    width = 1120
-    height = 36 + row_height * len(aggregates)
-    metric_width = 210
-    label_width = 250
-    svg = [
-        f'<svg viewBox="0 0 {width} {height}" width="100%" height="{height}" '
-        'role="img" aria-label="Aggregate benchmark scores">'
-    ]
-    svg.append('<rect width="100%" height="100%" fill="#ffffff"/>')
-    svg.append('<text x="10" y="22" font-size="13" fill="#667085">Algorithm</text>')
-    for index, label in enumerate(
-        ("Exact F1", "Semantic F1", "Skeleton F1", "Endpoint Acc")
-    ):
-        x = label_width + index * metric_width
-        svg.append(f'<text x="{x}" y="22" font-size="13" fill="#667085">{label}</text>')
+    metric_labels = (
+        ("Exact F1", "mean_exact_edge_f1"),
+        ("Semantic F1", "mean_semantic_edge_f1"),
+        ("Skeleton F1", "mean_skeleton_f1"),
+        ("Endpoint Acc", "mean_endpoint_accuracy"),
+    )
+    cells = ["<div class='aggregate-header'>Algorithm</div>"]
+    cells.extend(
+        f"<div class='aggregate-header'>{_esc(label)}</div>"
+        for label, _attribute in metric_labels
+    )
 
-    for row, aggregate in enumerate(aggregates):
-        y = 42 + row * row_height
+    for aggregate in aggregates:
         color = _color(aggregate.algorithm)
-        svg.append(
-            f'<line x1="0" y1="{y - 14}" x2="{width}" y2="{y - 14}" stroke="#eaecf0"/>'
+        cells.append(
+            "<div class='aggregate-cell'>"
+            f"<div class='aggregate-name'><span class='dot' style='background:{color}'></span>"
+            f"<span>{_esc(aggregate.algorithm)}</span></div>"
+            f"{_aggregate_meta(aggregate)}"
+            "</div>"
         )
-        svg.append(f'<circle cx="16" cy="{y + 14}" r="5" fill="{color}"/>')
-        svg.append(
-            f'<text x="30" y="{y + 18}" font-size="14" font-weight="700" '
-            f'fill="#101827">{_esc(aggregate.algorithm)}</text>'
-        )
-        for index, value in enumerate(
-            (
-                aggregate.mean_exact_edge_f1,
-                aggregate.mean_semantic_edge_f1,
-                aggregate.mean_skeleton_f1,
-                aggregate.mean_endpoint_accuracy,
-            )
-        ):
-            x = label_width + index * metric_width
-            bar_width = 170
-            filled = bar_width * value
-            svg.append(
-                f'<rect x="{x}" y="{y}" width="{bar_width}" height="16" '
-                'rx="4" fill="#eef2f6"/>'
-            )
-            svg.append(
-                f'<rect x="{x}" y="{y}" width="{filled:.2f}" height="16" '
-                f'rx="4" fill="{color}"/>'
-            )
-            svg.append(
-                f'<text x="{x + bar_width + 10}" y="{y + 13}" font-size="13" '
-                f'fill="#344054">{value:.3f}</text>'
-            )
-        if aggregate.mean_ci_test_count is not None:
-            svg.append(
-                f'<text x="{label_width}" y="{y + 42}" font-size="12" '
-                f'fill="#667085">mean CI tests: {aggregate.mean_ci_test_count:.1f}</text>'
-            )
-        if aggregate.mean_elapsed_time is not None:
-            svg.append(
-                f'<text x="{label_width + 190}" y="{y + 42}" font-size="12" '
-                f'fill="#667085">mean time: {aggregate.mean_elapsed_time:.4f}s</text>'
-            )
-    svg.append("</svg>")
-    return "<div class='chart-scroll'>" + "\n".join(svg) + "</div>"
+        for label, attribute in metric_labels:
+            value = float(getattr(aggregate, attribute))
+            cells.append(_aggregate_metric_cell(label, value, color))
+
+    return (
+        "<div class='chart-scroll'>"
+        "<div class='aggregate-grid' role='table' "
+        "aria-label='Aggregate benchmark scores'>"
+        f"{''.join(cells)}"
+        "</div></div>"
+    )
+
+
+def _aggregate_metric_cell(label: str, value: float, color: str) -> str:
+    width = max(0.0, min(100.0, value * 100.0))
+    return (
+        "<div class='aggregate-cell'>"
+        "<div class='aggregate-score'>"
+        f"<span class='aggregate-score-label'>{_esc(label)}</span>"
+        f"<span class='aggregate-score-value'>{value:.3f}</span>"
+        "</div>"
+        "<div class='aggregate-bar'>"
+        f"<div class='aggregate-bar-fill' style='width:{width:.1f}%; "
+        f"background:{color}'></div>"
+        "</div>"
+        "</div>"
+    )
+
+
+def _aggregate_meta(aggregate: BenchmarkAggregate) -> str:
+    parts = []
+    if aggregate.mean_ci_test_count is not None:
+        parts.append(f"mean CI tests: {aggregate.mean_ci_test_count:.1f}")
+    if aggregate.mean_elapsed_time is not None:
+        parts.append(f"mean time: {aggregate.mean_elapsed_time:.4f}s")
+    if not parts:
+        return ""
+    return f"<div class='aggregate-meta'>{_esc(' | '.join(parts))}</div>"
 
 
 def render_pcalg_head_to_head(
