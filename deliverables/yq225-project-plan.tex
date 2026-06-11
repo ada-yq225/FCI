@@ -1,0 +1,136 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{times}
+\usepackage[hidelinks]{hyperref}
+\usepackage[round,authoryear]{natbib}
+
+\setstretch{1.08}
+
+\title{\textbf{Project Plan}\\[0.5em]
+Causal Structure Discovery via a Self-Implemented FCI+ Algorithm:\\
+A Case Study on the Tennessee STAR Project}
+\author{Yicheng Qi\\
+MSc Individual Research Project}
+\date{June 2026}
+
+\begin{document}
+
+\pagenumbering{gobble}
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    {\LARGE \textbf{Project Plan}\par}
+    \vspace{1cm}
+    {\Large \textbf{Causal Structure Discovery via a Self-Implemented FCI+ Algorithm:}\par}
+    \vspace{0.25cm}
+    {\Large \textbf{A Case Study on the Tennessee STAR Project}\par}
+    \vspace{1.6cm}
+    {\large \textbf{Student:} Yicheng Qi\par}
+    \vspace{0.3cm}
+    {\large MSc Individual Research Project\par}
+    \vspace{0.3cm}
+    {\large \textbf{Project code:} p-anli-051\par}
+    \vspace{0.3cm}
+    {\large \textbf{IRP start date:} 25 May 2026\par}
+    \vspace{0.9cm}
+    {\large \textbf{Main supervisor:} Ang Li\par}
+    \vspace{0.15cm}
+    {\large \texttt{angli@cs.fsu.edu}\par}
+    \vspace{0.15cm}
+    {\large Florida State University, USA\par}
+    \vspace{0.55cm}
+    {\large \textbf{Second supervisor:} Adriana Paluszny\par}
+    \vspace{0.15cm}
+    {\large \texttt{apaluszn@imperial.ac.uk}\par}
+    \vspace{0.15cm}
+    {\large Department of Earth Science and Engineering, Imperial College London\par}
+    \vfill
+    {\large June 2026\par}
+\end{titlepage}
+\pagenumbering{arabic}
+
+\section*{Abstract}
+
+This project investigates whether constraint-based causal discovery can provide an interpretable causal structure for educational intervention data when latent confounding and selection effects are plausible. The empirical case study is the Tennessee Student/Teacher Achievement Ratio (STAR) Project, a randomized study of class size and student achievement. Although STAR is a benchmark for causal analysis, attrition, incomplete background information, school-level heterogeneity, and unobserved socio-economic factors can affect interpretation. The project will develop a Python implementation of Fast Causal Inference (FCI) and FCI+, producing Partial Ancestral Graphs (PAGs) rather than a single assumed causal DAG. The implementation will be benchmarked against existing software and applied to STAR. The deliverables are a tested Python package, benchmark results, and an applied analysis clarifying the value and limits of FCI+ for social-science data.
+
+\section*{Problem Description}
+
+The central research question is whether a self-implemented FCI+ algorithm can recover useful, interpretable causal structure from the Tennessee STAR dataset while explicitly allowing for latent confounders and selection effects. Classical regression and many causal graphical methods require the analyst to specify a causal model in advance or assume that all relevant common causes have been observed. These assumptions are often unrealistic in educational data. Even in a randomized experiment, the observed dataset is shaped by classroom assignment procedures, school participation, student attrition, parental background, teacher characteristics, and measurement choices. Some of these factors are unobserved or only partially recorded.
+
+This project therefore addresses both a research problem and an engineering challenge. The research problem is to understand how far data-driven causal discovery can support conclusions about educational interventions when causal sufficiency cannot be assumed. The engineering challenge is to build an implementation transparent and robust enough to compare with established tools. The project does not claim that FCI+ can replace randomized experimental analysis or estimate treatment effects by itself. Instead, it evaluates whether FCI+ can provide a defensible causal map for downstream modelling.
+
+\section*{Significance}
+
+The significance of the project lies in connecting a theoretically important causal discovery algorithm with a well-known applied dataset. FCI and FCI+ are designed for settings where hidden common causes may exist, which is precisely the type of uncertainty that often complicates observational and quasi-experimental social-science data. Applying these methods to STAR may reveal whether the graphical structure implied by the data is consistent with the standard interpretation that smaller classes improve student outcomes, and whether there are additional pathways involving teacher, school, or background variables that deserve closer investigation.
+
+The broader contribution is methodological. Many users of causal inference software rely on black-box implementations without seeing how PAG endpoints, conditional independence tests, separating sets, and orientation rules interact. A self-contained implementation makes these mechanisms auditable and provides reusable software for researchers needing a clearer Python implementation of FCI-style causal discovery.
+
+\section*{Review of Existing Work}
+
+The theoretical basis of this project comes from constraint-based causal discovery. The PC algorithm introduced a systematic way to infer a causal graph from conditional independence relations under assumptions including causal Markovness, faithfulness, and causal sufficiency \citep{spirtes2000causation}. However, PC is not appropriate when important common causes are unobserved. FCI extends this approach by allowing latent confounders and selection bias, returning a Partial Ancestral Graph that represents an equivalence class of possible underlying causal structures rather than a single DAG \citep{spirtes2000causation}. This makes FCI more conservative but more appropriate for many real datasets.
+
+The main computational limitation of standard FCI is the Possible-D-SEP search, which can be expensive in dense graphs. FCI+ uses a more efficient logical characterization of relevant separating sets, reducing practical cost while preserving the target graphical information under the required assumptions \citep{claassen2013learning}. Existing software such as \texttt{pcalg} in R and \texttt{causal-learn} in Python provides useful references \citep{kalisch2012causal,zheng2024causal}. However, these tools can be difficult to inspect at the level of individual rule decisions.
+
+The STAR Project has been widely studied as evidence that smaller early-grade classes can improve student achievement \citep{word1990student,krueger1999experimental}. The originality of this project is not to re-estimate a known treatment effect using a standard model, but to examine STAR through the lens of latent-variable causal discovery. This shifts the focus from estimating one coefficient to learning and explaining a broader causal structure under uncertainty.
+
+\section*{Objectives}
+
+The first objective is to implement a tested Python package for FCI and FCI+, including PAG structures, conditional independence testing, skeleton discovery, Possible-D-SEP refinement, orientation rules, diagnostics, and result export. The second is to validate it on synthetic oracle graphs. The third is to compare runtime, graph accuracy, and interpretability against reference implementations. The fourth is to apply the method to STAR and produce an interpretable causal map of class-size assignment, student characteristics, school variables, and outcomes. The final objective is to evaluate which conclusions remain uncertain because of sample size, measurement, or identifiability limits.
+
+\section*{Methodology}
+
+The computational methodology begins with core data structures. A PAG representation will store tails, arrowheads, and circles. This is essential because FCI output is not a DAG; unresolved circle endpoints are meaningful uncertainty rather than implementation failure. Conditional independence testing will initially use Fisher's Z test for approximately Gaussian variables, with kernel-based or discrete tests considered if time permits. Data validation and caching will be included because repeated tests dominate runtime.
+
+The algorithmic pipeline will follow the FCI family. It will construct a complete graph, remove edges using conditional independence tests, record separating sets, orient unshielded colliders, apply Possible-D-SEP or FCI+ refinement, and propagate orientations using PAG rules. The FCI+ component will reduce the separating-set search space while preserving correctness under the algorithm's assumptions. The implementation will record diagnostics such as tested conditioning sets, p-values, separating-set sources, and orientation traces.
+
+Validation will use three levels of evidence. Unit tests will verify graph operations, endpoint orientation, conditional independence tests, and rule-level behavior. Synthetic data from known causal structures will provide oracle benchmarks for chains, forks, colliders, latent confounders, selection-like patterns, and larger realistic graphs. External tools such as \texttt{pcalg} and \texttt{causal-learn} will be references, not ground truth. Differences will be analysed at the edge and endpoint level.
+
+The applied STAR analysis will require careful preprocessing. Variables will be selected to reflect intervention assignment, baseline student characteristics, teacher and school features, and later outcomes. Since STAR contains randomized components, the learned PAG will be interpreted alongside knowledge of the experimental design rather than treated as a purely observational discovery result. The main output will be a causal structure and explanation of its most important edges, not a definitive claim that every edge represents a direct causal effect.
+
+\section*{Future Plan}
+
+The project is designed for a three-month IRP timeline. During the first two weeks, the implementation plan, literature review, and STAR data understanding will be completed. Weeks three to five will focus on core FCI implementation, including PAG structures, conditional independence tests, skeleton learning, and collider orientation. Weeks six and seven will extend the implementation toward FCI+ and improve diagnostics, caching, and performance. Weeks eight and nine will run oracle benchmarks and compare reference implementations. Weeks ten and eleven will apply the method to STAR and interpret the learned PAG. The final weeks will be used to write the report, produce visualisations, verify reproducibility, and prepare the software package.
+
+The main risks are finite-sample instability, high computational cost, and over-interpretation of PAGs. These risks will be mitigated by limiting conditioning-set size when appropriate, using caching and benchmark profiling, reporting uncertainty through endpoint types rather than forcing a DAG, and comparing conclusions across parameter settings. Another risk is that STAR may not contain enough variables to reveal all relevant latent structures. If this occurs, the project will still be valuable as a critical case study showing where FCI+ is informative and where its assumptions limit conclusions.
+
+\section*{Expected Deliverables}
+
+The final deliverables will include a Python package implementing FCI and FCI+, a benchmark suite using known oracle graphs, a comparison with existing software, and a STAR case study. The written report will explain the algorithmic design, validation evidence, and applied findings. The expected contribution is a transparent and reproducible demonstration of how FCI+ can be implemented and evaluated for causal structure discovery under latent confounding.
+
+\begin{thebibliography}{9}
+
+\bibitem[Claassen et al.(2013)]{claassen2013learning}
+Claassen, T., Mooij, J. M., and Heskes, T. (2013).
+Learning sparse causal models is not NP-hard.
+\textit{Proceedings of the 29th Conference on Uncertainty in Artificial Intelligence}.
+
+\bibitem[Kalisch et al.(2012)]{kalisch2012causal}
+Kalisch, M., M{\"a}chler, M., Colombo, D., Maathuis, M. H., and B{\"u}hlmann, P. (2012).
+Causal inference using graphical models with the R package pcalg.
+\textit{Journal of Statistical Software}, 47(11), 1--26.
+
+\bibitem[Krueger(1999)]{krueger1999experimental}
+Krueger, A. B. (1999).
+Experimental estimates of education production functions.
+\textit{The Quarterly Journal of Economics}, 114(2), 497--532.
+
+\bibitem[Spirtes et al.(2000)]{spirtes2000causation}
+Spirtes, P., Glymour, C., and Scheines, R. (2000).
+\textit{Causation, Prediction, and Search}.
+MIT Press.
+
+\bibitem[Word et al.(1990)]{word1990student}
+Word, E., Johnston, J., Bain, H. P., Fulton, B. D., Zaharias, J. B., Achilles, C. M., Lintz, M. N., Folger, J., and Breda, C. (1990).
+\textit{Student/Teacher Achievement Ratio (STAR): Tennessee's K--3 Class Size Study}.
+Tennessee State Department of Education.
+
+\bibitem[Zheng et al.(2024)]{zheng2024causal}
+Zheng, Y., Zhang, B., and others (2024).
+Causal-learn: Causal discovery in Python.
+\textit{Journal of Machine Learning Research}.
+
+\end{thebibliography}
+
+\end{document}
