@@ -20,6 +20,7 @@ class OracleCase:
     oracle_shape: Shape
     alpha: float = 0.001
     max_cond_set_size: Optional[int] = 2
+    sparsity_bound: Optional[int] = None
     max_path_length: Optional[int] = 3
     use_kernel_ci: bool = False
     notes: str = ""
@@ -41,6 +42,7 @@ def make_independent_noise_case(
         oracle_shape={},
         alpha=0.001,
         max_cond_set_size=2,
+        sparsity_bound=2,
         max_path_length=3,
         notes="All observed variables are mutually independent.",
     )
@@ -71,6 +73,7 @@ def make_latent_medical_case(
         },
         alpha=0.001,
         max_cond_set_size=2,
+        sparsity_bound=2,
         max_path_length=3,
         notes="X1 -> A, X2 -> B, latent H confounds A/B, and A -> D.",
     )
@@ -97,6 +100,7 @@ def make_nonlinear_common_cause_case(
         },
         alpha=0.05,
         max_cond_set_size=1,
+        sparsity_bound=1,
         max_path_length=2,
         use_kernel_ci=True,
         notes="Known graph Z -> X and Z -> Y with nonlinear mechanisms.",
@@ -140,6 +144,7 @@ def make_sparse_latent_case(
         },
         alpha=0.001,
         max_cond_set_size=3,
+        sparsity_bound=3,
         max_path_length=4,
         notes="Sparse graph with instruments, latent confounders, and a directed chain.",
     )
@@ -200,6 +205,7 @@ def make_hospital_triage_case(
         },
         alpha=0.001,
         max_cond_set_size=3,
+        sparsity_bound=3,
         max_path_length=4,
         notes=(
             "Observed risk/protocol variables, latent illness severity "
@@ -263,6 +269,7 @@ def make_microservice_incident_case(
         },
         alpha=0.001,
         max_cond_set_size=3,
+        sparsity_bound=3,
         max_path_length=4,
         notes=(
             "Traffic and cache affect service metrics while an unobserved "
@@ -328,6 +335,7 @@ def make_finance_risk_case(
         },
         alpha=0.001,
         max_cond_set_size=3,
+        sparsity_bound=3,
         max_path_length=4,
         notes="Market factor is hidden; credit/equity risk share latent exposure.",
     )
@@ -388,6 +396,7 @@ def make_manufacturing_quality_case(
         },
         alpha=0.001,
         max_cond_set_size=3,
+        sparsity_bound=3,
         max_path_length=4,
         notes="Unobserved ambient conditions confound temperature and vibration.",
     )
@@ -477,6 +486,7 @@ def make_enterprise_monitoring_case(
         },
         alpha=0.001,
         max_cond_set_size=3,
+        sparsity_bound=3,
         max_path_length=4,
         notes=(
             "Larger operational graph with hidden platform load and network "
@@ -513,6 +523,7 @@ def realistic_oracle_cases(
                     oracle_shape=case.oracle_shape,
                     alpha=case.alpha,
                     max_cond_set_size=case.max_cond_set_size,
+                    sparsity_bound=case.sparsity_bound,
                     max_path_length=case.max_path_length,
                     use_kernel_ci=case.use_kernel_ci,
                     notes=case.notes,

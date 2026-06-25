@@ -77,13 +77,39 @@ causal-learn comparison test.
 
 The implementation also includes conservative Zhang-style R5-R10 rules:
 
-- uncovered circle paths for selection-bias undirected edges
-- tail propagation from undirected and definite noncollider patterns
-- tail orientation along directed chains
-- tail orientation from uncovered possibly directed paths
-- tail orientation from two directed parents with suitable uncovered paths
+- R1: avoid introducing new unshielded colliders
+- R2: avoid directed cycles and propagate directed-path consequences
+- R3: orient double-triangle arrowheads
+- R4: use discriminating paths for collider/noncollider orientation
+- R5: orient uncovered circle paths as undirected selection-bias edges
+- R6: propagate tails out of undirected selection-bias edges
+- R7: propagate tails from definite noncollider patterns
+- R8: orient tails along directed chains
+- R9: orient tails along uncovered possibly directed paths
+- R10: orient tails from two directed parents with suitable uncovered paths
 
 Each endpoint change can be inspected through `FCIResult.orientation_trace`.
+
+## FCI+ Hierarchical D-SEP
+
+The FCI+ pipeline follows Claassen, Mooij, and Heskes' sparse hierarchical
+D-SEP search at the level of Algorithm 2: it builds an augmented skeleton,
+identifies candidate D-sep links through the bidirected witness pattern, and
+enumerates separate endpoint-base subsets `ZX <= BaseX` and `ZY <= BaseY` up to
+the sparse degree bound `k`.
+
+The implementation deliberately separates two limits:
+
+- `max_cond_set_size` limits ordinary PC/FCI conditioning-set depth.
+- `sparsity_bound` is the FCI+ sparse degree bound used for the D-SEP base
+  subsets.
+
+Finite-sample engineering choices are explicit rather than hidden. At each
+base depth, `sepset_selection="max_pvalue"` can scan all passing candidates and
+keep the strongest independence evidence. The result includes
+`dsep_diagnostics` counters for candidate edges, revisits, hierarchy-cache
+hits, duplicate conditioning-set skips, D-SEP CI tests, removed edges, and the
+maximum D-SEP conditioning size.
 
 ## Finite-Sample Sepset Selection
 
@@ -116,6 +142,7 @@ not force edges to exist when CI tests remove them from the skeleton.
   kernel-ridge residualized KCI-style conditional statistic for nonlinear data.
 - Finite-sample CI decisions may be unstable near the significance threshold.
 - Output is a PAG, not a DAG.
-- FCI+ is available as a sparse hierarchical D-SEP variant. It shares the same
-  PAG orientation stage as standard FCI and is primarily intended to reduce the
-  broad Possible-D-Sep search cost in sparse graphs.
+- FCI+ is available as a sparse hierarchical D-SEP implementation with explicit
+  finite-sample diagnostics. It shares the same PAG orientation stage as
+  standard FCI and is primarily intended to reduce the broad Possible-D-Sep
+  search cost in sparse graphs.

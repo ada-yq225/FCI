@@ -8,7 +8,7 @@ from typing import Optional
 
 from fci_engine.ci import CITestCache, FisherZTest
 from fci_engine.config import FCIConfig
-from fci_engine.diagnostics import OrientationEvent
+from fci_engine.diagnostics import DSEPDiagnostics, OrientationEvent
 from fci_engine.discovery.dsep import refine_skeleton_with_fci_plus_dsep
 from fci_engine.discovery.fci import _name_ci_trace
 from fci_engine.discovery.orientation import (
@@ -74,6 +74,7 @@ class FCIPlus:
         orientation_trace: list[OrientationEvent] = []
         ambiguous_triples: list[tuple[str, str, str]] = []
         sepset_sources: dict[tuple[str, str], str] = {}
+        dsep_diagnostics = DSEPDiagnostics()
 
         graph = create_complete_pag(variable_names)
         graph, sepsets = learn_initial_skeleton(
@@ -88,16 +89,21 @@ class FCIPlus:
             allow_nan=allow_nan,
         )
 
+        sparsity_bound = resolved_config.sparsity_bound
+        if sparsity_bound is None:
+            sparsity_bound = resolved_config.max_cond_set_size
+
         graph, sepsets = refine_skeleton_with_fci_plus_dsep(
             normalized_data,
             graph,
             sepsets,
             ci_test,
-            max_degree=resolved_config.max_cond_set_size,
+            max_degree=sparsity_bound,
             verbose=resolved_config.verbose,
             sepset_sources=sepset_sources,
             sepset_selection=resolved_config.sepset_selection,
             allow_nan=allow_nan,
+            diagnostics=dsep_diagnostics,
         )
 
         reset_endpoint_marks(graph)
@@ -139,6 +145,7 @@ class FCIPlus:
             ci_test_trace=_name_ci_trace(ci_test.trace, variable_names),
             sepset_sources=sepset_sources,
             ambiguous_triples=ambiguous_triples,
+            dsep_diagnostics=dsep_diagnostics.to_dict(),
             algorithm="fci_plus",
         )
         self.result_ = result

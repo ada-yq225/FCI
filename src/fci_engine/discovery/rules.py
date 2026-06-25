@@ -19,6 +19,19 @@ SepsetMap = Mapping[tuple[Hashable, Hashable], set[Hashable]]
 Triple = tuple[Hashable, Hashable, Hashable]
 AmbiguousTripleKey = tuple[frozenset[Hashable], Hashable]
 
+ORIENTATION_RULE_REFERENCE: dict[str, str] = {
+    "R1": "Avoid introducing new unshielded colliders.",
+    "R2": "Avoid directed cycles and propagate directed-path consequences.",
+    "R3": "Orient double-triangle arrowheads.",
+    "R4": "Use discriminating paths for collider/noncollider orientation.",
+    "R5": "Orient uncovered circle paths as undirected selection-bias edges.",
+    "R6": "Propagate tails out of undirected selection-bias edges.",
+    "R7": "Propagate tails from definite noncollider patterns.",
+    "R8": "Orient tails along directed chains.",
+    "R9": "Orient tails along uncovered possibly directed paths.",
+    "R10": "Orient tails from two directed parents with uncovered paths.",
+}
+
 
 def apply_orientation_rules(
     graph: PAG,

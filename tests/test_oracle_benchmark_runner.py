@@ -1,4 +1,6 @@
 import pytest
+import importlib.util
+from pathlib import Path
 
 from fci_engine.metrics.benchmark import (
     _parse_pcalg_edges,
@@ -6,6 +8,7 @@ from fci_engine.metrics.benchmark import (
     format_benchmark_leaderboard,
     format_benchmark_results,
     run_oracle_benchmark,
+    run_pcalg_comparison_benchmark,
     run_pcalg_fci_plus,
 )
 from fci_engine.simulation import (
@@ -122,6 +125,54 @@ def test_fci_plus_oracle_accuracy_matches_or_exceeds_pcalg_when_available() -> N
     assert engine.mean_exact_edge_f1 >= pcalg.mean_exact_edge_f1
     assert engine.mean_skeleton_f1 >= pcalg.mean_skeleton_f1
     assert engine.mean_endpoint_accuracy >= pcalg.mean_endpoint_accuracy
+
+
+def test_focused_pcalg_comparison_suite_runs_or_skips_systematically() -> None:
+    cases = [
+        make_independent_noise_case(n_samples=200, n_variables=3, seed=15),
+        make_latent_medical_case(n_samples=500, seed=16),
+    ]
+
+    results = run_pcalg_comparison_benchmark(cases)
+
+    assert len(results) == 3 * len(cases)
+    assert {
+        result.algorithm
+        for result in results
+    } == {
+        "fci_engine.fci_plus",
+        "fci_engine.fci_plus.robust",
+        "pcalg.fciPlus",
+    }
+    assert all(
+        result.comparison is not None
+        for result in results
+        if result.algorithm != "pcalg.fciPlus"
+    )
+    pcalg_results = [
+        result for result in results if result.algorithm == "pcalg.fciPlus"
+    ]
+    assert all(result.skipped or result.comparison is not None for result in pcalg_results)
+
+
+def test_pcalg_comparison_report_renderer_smoke(tmp_path) -> None:
+    module_path = Path(__file__).resolve().parents[1] / "examples" / (
+        "09_pcalg_fci_plus_comparison.py"
+    )
+    spec = importlib.util.spec_from_file_location("pcalg_report", module_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    case = make_independent_noise_case(n_samples=120, n_variables=3, seed=17)
+    results = run_pcalg_comparison_benchmark([case])
+    html = module.render_report(results)
+    csv_path = tmp_path / "comparison.csv"
+    module.write_csv(csv_path, results)
+
+    assert "FCI+ versus pcalg::fciPlus" in html
+    assert "fci_engine.fci_plus" in html
+    assert csv_path.read_text(encoding="utf-8").startswith("case,algorithm")
 
 
 def test_parse_pcalg_pag_edges() -> None:

@@ -58,6 +58,7 @@ class FCIResult:
     sepset_sources: dict[tuple[str, str], str] = field(default_factory=dict)
     ambiguous_triples: list[tuple[str, str, str]] = field(default_factory=list)
     bootstrap_edge_frequencies: Optional[dict[str, float]] = None
+    dsep_diagnostics: Optional[dict[str, int]] = None
     algorithm: str = "fci"
 
     def summary(self) -> str:
@@ -74,6 +75,7 @@ class FCIResult:
                 f"- cache hits: {self.cache_hits}",
                 f"- orientation events: {len(self.orientation_trace)}",
                 f"- ambiguous triples: {len(self.ambiguous_triples)}",
+                f"- D-SEP diagnostics: {_format_dsep_summary(self.dsep_diagnostics)}",
                 f"- CI trace events: {len(self.ci_test_trace)}",
                 f"- elapsed time: {self.elapsed_time:.4f}s",
                 f"- alpha: {self.config.alpha}",
@@ -196,6 +198,7 @@ class FCIResult:
             "elapsed_time": self.elapsed_time,
             "config": _config_to_dict(self.config),
             "bootstrap_edge_frequencies": self.bootstrap_edge_frequencies,
+            "dsep_diagnostics": self.dsep_diagnostics,
         }
         if include_traces:
             payload["orientation_trace"] = [
@@ -272,6 +275,16 @@ def _lookup_frequency(
     return frequencies.get(edge_repr)
 
 
+def _format_dsep_summary(diagnostics: Optional[dict[str, int]]) -> str:
+    if diagnostics is None:
+        return "none"
+    return (
+        f"candidates={diagnostics.get('candidate_edges_seen', 0)}, "
+        f"removed={diagnostics.get('edges_removed', 0)}, "
+        f"ci={diagnostics.get('ci_tests', 0)}"
+    )
+
+
 def _orientation_event_to_dict(event: OrientationEvent) -> dict[str, Any]:
     return {
         "rule": event.rule,
@@ -308,6 +321,7 @@ def _config_to_dict(config: FCIConfig) -> dict[str, Any]:
             type(config.ci_test).__name__ if config.ci_test is not None else None
         ),
         "max_cond_set_size": config.max_cond_set_size,
+        "sparsity_bound": config.sparsity_bound,
         "max_path_length": config.max_path_length,
         "do_pdsep": config.do_pdsep,
         "skeleton_stable": config.skeleton_stable,

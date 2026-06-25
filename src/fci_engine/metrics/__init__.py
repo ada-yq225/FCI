@@ -21,6 +21,7 @@ from fci_engine.metrics.benchmark import (
     run_causal_learn_fci,
     run_fci_engine,
     run_oracle_benchmark,
+    run_pcalg_comparison_benchmark,
     run_pcalg_fci_plus,
 )
 from fci_engine.metrics.stability import (
@@ -50,6 +51,7 @@ __all__ = [
     "run_causal_learn_fci",
     "run_fci_engine",
     "run_oracle_benchmark",
+    "run_pcalg_comparison_benchmark",
     "run_pcalg_fci_plus",
     "shape_from_pag",
     "stable_fci",

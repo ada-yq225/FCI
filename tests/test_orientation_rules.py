@@ -4,6 +4,7 @@ from fci_engine.discovery.orientation import (
     is_unshielded_triple,
 )
 from fci_engine.discovery.rules import (
+    ORIENTATION_RULE_REFERENCE,
     _orient_arrowhead_if_circle,
     apply_orientation_rules,
     find_discriminating_paths,
@@ -25,6 +26,22 @@ def test_is_unshielded_triple_helper() -> None:
 
     graph.add_circle_edge("X", "Y")
     assert not is_unshielded_triple(graph, "X", "Z", "Y")
+
+
+def test_orientation_rule_reference_covers_r1_to_r10() -> None:
+    assert set(ORIENTATION_RULE_REFERENCE) == {
+        "R1",
+        "R2",
+        "R3",
+        "R4",
+        "R5",
+        "R6",
+        "R7",
+        "R8",
+        "R9",
+        "R10",
+    }
+    assert all(ORIENTATION_RULE_REFERENCE[rule] for rule in ORIENTATION_RULE_REFERENCE)
 
 
 def test_has_directed_path_helper_respects_excluded_edge() -> None:

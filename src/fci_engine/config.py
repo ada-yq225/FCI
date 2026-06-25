@@ -21,6 +21,9 @@ class FCIConfig:
             N >= 5000 uses 0.001
         ci_test: Pre-configured CITest instance.
         max_cond_set_size: Maximum size of conditioning set.
+        sparsity_bound: Maximum node degree bound ``k`` used by FCI+'s sparse
+            hierarchical D-SEP base search. When omitted, FCI+ uses
+            ``max_cond_set_size`` for backward compatibility.
         max_path_length: Maximum path length for orientation rules.
         do_pdsep: Whether to refine skeleton using Possible-D-SEP.
         skeleton_stable: Snapshot adjacency sets within each conditioning depth
@@ -50,6 +53,7 @@ class FCIConfig:
     alpha: Union[float, str] = "auto"
     ci_test: Optional[CITest] = None
     max_cond_set_size: Optional[int] = None
+    sparsity_bound: Optional[int] = None
     max_path_length: Optional[int] = None
     do_pdsep: bool = True
     skeleton_stable: bool = True
@@ -70,6 +74,8 @@ class FCIConfig:
             
         if self.max_cond_set_size is not None and self.max_cond_set_size < 0:
             raise ValueError("max_cond_set_size must be non-negative.")
+        if self.sparsity_bound is not None and self.sparsity_bound < 0:
+            raise ValueError("sparsity_bound must be non-negative.")
         if self.max_path_length is not None and self.max_path_length < 0:
             raise ValueError("max_path_length must be non-negative.")
         if self.sepset_selection not in {"first", "max_pvalue"}:

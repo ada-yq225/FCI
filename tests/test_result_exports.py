@@ -43,6 +43,9 @@ def test_result_exposes_algorithm_name() -> None:
     assert plus.algorithm == "fci_plus"
     assert "- algorithm: fci" in standard.summary()
     assert "- algorithm: fci_plus" in plus.summary()
+    assert standard.dsep_diagnostics is None
+    assert plus.dsep_diagnostics is not None
+    assert "candidate_edges_seen" in plus.dsep_diagnostics
 
 
 def test_to_edge_records_and_dataframe() -> None:
@@ -96,6 +99,7 @@ def test_result_json_round_trip_and_save(tmp_path) -> None:
     assert len(payload["sepsets"]) == 1
     assert "ci_test_trace" in payload
     assert payload["config"]["orientation_strategy"] == "standard"
+    assert payload["dsep_diagnostics"] is None
     assert loaded["algorithm"] == payload["algorithm"]
 
 

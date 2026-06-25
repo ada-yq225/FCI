@@ -1,6 +1,11 @@
 """Simulation utilities for synthetic causal data."""
 
 from fci_engine.simulation.oracle_graphs import CausalGraphSpec
+from fci_engine.simulation.mag_oracle import (
+    MAGOracleCITest,
+    MAGSpec,
+    canonical_dsep_mag,
+)
 from fci_engine.simulation.oracle_cases import (
     OracleCase,
     default_oracle_cases,
@@ -19,6 +24,9 @@ from fci_engine.simulation.oracle_cases import (
 __all__ = [
     "OracleCase",
     "CausalGraphSpec",
+    "MAGOracleCITest",
+    "MAGSpec",
+    "canonical_dsep_mag",
     "default_oracle_cases",
     "realistic_oracle_cases",
     "make_enterprise_monitoring_case",
