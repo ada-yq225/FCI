@@ -4,6 +4,7 @@ import pandas as pd
 from fci_engine import FCIPlus, fci, fci_plus
 from fci_engine.ci import CITest, CITestResult, MissingValueFisherZTest
 from fci_engine.discovery.dsep import (
+    _base_combinations_at_depth,
     build_augmented_skeleton,
     hierarchy,
     minimal_dsep,
@@ -185,6 +186,74 @@ def test_fci_plus_dsep_selects_strongest_sepset_at_same_depth() -> None:
     assert refined_sepsets[("Y", "X")] == {"C", "D"}
 
 
+def test_algorithm2_base_loop_enumerates_separate_endpoint_bases() -> None:
+    graph = PAG(["X", "Y", "A", "B", "C", "D"])
+
+    pairs = _base_combinations_at_depth(
+        graph,
+        base_x=["A", "C"],
+        base_y=["B", "D"],
+        depth=2,
+        max_degree=1,
+    )
+
+    assert pairs == [
+        (("A",), ("B",)),
+        (("A",), ("D",)),
+        (("C",), ("B",)),
+        (("C",), ("D",)),
+    ]
+
+
+def test_fci_plus_sparsity_bound_is_separate_from_conditioning_cap() -> None:
+    nodes = ["U", "X", "Y", "V", "A", "B", "C", "D"]
+    graph = PAG(nodes)
+    for edge in [
+        ("U", "X"),
+        ("X", "Y"),
+        ("Y", "V"),
+        ("X", "A"),
+        ("Y", "B"),
+        ("X", "C"),
+        ("Y", "D"),
+    ]:
+        graph.add_circle_edge(*edge)
+
+    separating = _oracle_key("X", "Y", frozenset({"A", "C", "B", "D"}))
+    oracle = OracleCITest(nodes, {separating})
+
+    refined, _ = refine_skeleton_with_fci_plus_dsep(
+        np.zeros((20, len(nodes))),
+        graph,
+        {},
+        oracle,
+        max_degree=2,
+    )
+
+    assert not refined.is_adjacent("X", "Y")
+
+
+def test_augmented_skeleton_only_orients_existing_candidate_edges() -> None:
+    nodes = ["X", "Y", "S", "A"]
+    graph = PAG(nodes)
+    graph.add_circle_edge("S", "A")
+    sepsets = {
+        ("X", "Y"): {"S"},
+        ("Y", "X"): {"S"},
+    }
+    oracle = OracleCITest(names=nodes, independencies=set())
+
+    augmented = build_augmented_skeleton(
+        graph,
+        sepsets,
+        np.zeros((20, len(nodes))),
+        oracle,
+    )
+
+    assert not augmented.is_adjacent("X", "A")
+    assert augmented.get_endpoint("S", "A") is Endpoint.ARROW
+
+
 def test_fci_plus_public_api_returns_result() -> None:
     rng = np.random.default_rng(123)
     x = rng.normal(size=800)
@@ -207,6 +276,57 @@ def test_fci_and_fci_plus_are_separate_entry_points() -> None:
 
     assert standard.graph.nodes == plus.graph.nodes
     assert plus.config.do_pdsep is False
+
+
+def test_fci_plus_result_records_explicit_sparsity_bound() -> None:
+    rng = np.random.default_rng(126)
+    data = rng.normal(size=(300, 4))
+
+    result = fci_plus(
+        data,
+        alpha=0.001,
+        max_cond_set_size=1,
+        sparsity_bound=2,
+    )
+
+    assert result.config.max_cond_set_size == 1
+    assert result.config.sparsity_bound == 2
+
+
+def test_fci_plus_result_records_dsep_diagnostics() -> None:
+    nodes = ["U", "X", "Y", "V", "A", "B", "Z"]
+    graph = PAG(nodes)
+    for edge in [("U", "X"), ("X", "Y"), ("Y", "V"), ("X", "A"), ("Y", "B")]:
+        graph.add_circle_edge(*edge)
+
+    sepsets = {
+        ("A", "B"): {"Z"},
+        ("B", "A"): {"Z"},
+    }
+    oracle = OracleCITest(
+        nodes,
+        {
+            _oracle_key("X", "Y", frozenset({"A", "B", "Z"})),
+        },
+    )
+
+    from fci_engine.diagnostics import DSEPDiagnostics
+
+    diagnostics = DSEPDiagnostics()
+    refine_skeleton_with_fci_plus_dsep(
+        np.zeros((20, len(nodes))),
+        graph,
+        sepsets,
+        oracle,
+        max_degree=1,
+        diagnostics=diagnostics,
+    )
+
+    assert diagnostics.candidate_edges_seen >= 1
+    assert diagnostics.hierarchy_queries >= 1
+    assert diagnostics.ci_tests >= 1
+    assert diagnostics.edges_removed == 1
+    assert diagnostics.max_conditioning_size == 3
 
 
 def test_fci_plus_accepts_missing_values_with_missing_value_ci_test() -> None:

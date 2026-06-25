@@ -30,6 +30,7 @@ from fci_engine.metrics import (
     format_benchmark_leaderboard,
     format_benchmark_results,
     run_oracle_benchmark,
+    run_pcalg_comparison_benchmark,
     shape_from_pag,
     stable_fci,
     stable_fci_plus,
@@ -38,7 +39,10 @@ from fci_engine.reports import render_interactive_report
 from fci_engine.result import EdgeExplanation, FCIResult
 from fci_engine.simulation import (
     CausalGraphSpec,
+    MAGOracleCITest,
+    MAGSpec,
     OracleCase,
+    canonical_dsep_mag,
     default_oracle_cases,
     realistic_oracle_cases,
 )
@@ -61,6 +65,8 @@ __all__ = [
     "FisherZTest",
     "GSquareTest",
     "KernelCITest",
+    "MAGOracleCITest",
+    "MAGSpec",
     "MissingValueFisherZTest",
     "PAGDifference",
     "PAGComparison",
@@ -73,6 +79,7 @@ __all__ = [
     "compare_pag_shapes",
     "compare_pag_to_shape_semantic",
     "compare_pag_to_shape",
+    "canonical_dsep_mag",
     "default_oracle_cases",
     "realistic_oracle_cases",
     "fci",
@@ -81,6 +88,7 @@ __all__ = [
     "format_benchmark_leaderboard",
     "explain_pag_differences",
     "run_oracle_benchmark",
+    "run_pcalg_comparison_benchmark",
     "render_interactive_report",
     "shape_from_pag",
     "stable_fci",

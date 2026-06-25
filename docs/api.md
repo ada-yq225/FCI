@@ -43,6 +43,8 @@ Configuration options:
 - `alpha`: significance level for the default Fisher-Z CI test
 - `ci_test`: custom conditional independence test
 - `max_cond_set_size`: maximum conditioning set size
+- `sparsity_bound`: FCI+ sparse degree bound `k` for hierarchical D-SEP base
+  subsets. If omitted, FCI+ falls back to `max_cond_set_size`.
 - `max_path_length`: maximum Possible-D-Sep path length
 - `do_pdsep`: whether to run Possible-D-Sep refinement
 - `skeleton_stable`: snapshot adjacency sets within each conditioning depth and
@@ -76,9 +78,10 @@ estimator = FCIPlus(alpha=0.01, max_cond_set_size=3)
 result = estimator.fit(data)
 ```
 
-`FCIPlus` uses the same configuration dataclass as `FCI`. In FCI+, the
-`max_cond_set_size` value is also used as the sparsity bound for the base
-adjacency subsets in the hierarchical D-SEP search.
+`FCIPlus` uses the same configuration dataclass as `FCI`. In FCI+, use
+`sparsity_bound` for the paper's sparse degree bound `k`; `max_cond_set_size`
+continues to limit ordinary CI conditioning depth. If `sparsity_bound` is not
+provided, FCI+ falls back to `max_cond_set_size` for backward compatibility.
 
 ## `FCIResult`
 
@@ -97,6 +100,8 @@ Fields:
 - `ambiguous_triples`: unshielded triples skipped by conservative collider
   orientation because separating sets disagree
 - `bootstrap_edge_frequencies`: optional user-populated stability summary
+- `dsep_diagnostics`: FCI+ hierarchical D-SEP counters, or `None` for standard
+  FCI
 
 Use `result.summary()` for a compact text summary.
 
@@ -186,16 +191,28 @@ from fci_engine import (
     format_benchmark_leaderboard,
     format_benchmark_results,
     run_oracle_benchmark,
+    run_pcalg_comparison_benchmark,
 )
 
 results = run_oracle_benchmark(default_oracle_cases())
 print(format_benchmark_results(results))
 print(format_benchmark_leaderboard(results))
+
+pcalg_results = run_pcalg_comparison_benchmark(default_oracle_cases())
+print(format_benchmark_leaderboard(pcalg_results))
+```
+
+The same focused comparison can be written as HTML and CSV:
+
+```bash
+PYTHONPATH=src python examples/09_pcalg_fci_plus_comparison.py
 ```
 
 The benchmark runner compares `fci_engine.fci`, `fci_engine.fci_plus`, optional
 causal-learn FCI, and optional R `pcalg::fciPlus`. If `Rscript` or `pcalg` is
 not installed, the pcalg row is returned with a skip reason instead of failing.
+Use `run_pcalg_comparison_benchmark(...)` for the focused FCI+ versus
+`pcalg::fciPlus` comparison used in the project report.
 
 Each completed row contains strict exact-edge metrics and semantic PAG metrics.
 The semantic score counts `o->` versus `-->` as a compatible certainty
@@ -213,6 +230,22 @@ spec = CausalGraphSpec(
     directed_edges=[("U", "X"), ("U", "Y")],
 )
 expected_pag_shape = spec.to_pag_shape()
+```
+
+For exact graph-theoretic oracle tests, use `MAGSpec`. It evaluates
+m-separation directly and can supply a `MAGOracleCITest` for algorithm tests
+without finite-sample noise:
+
+```python
+from fci_engine import MAGSpec
+
+mag = MAGSpec(
+    nodes=["X", "Z", "Y"],
+    directed_edges=[("X", "Z"), ("Z", "Y")],
+)
+
+assert mag.is_m_separated("X", "Y", {"Z"})
+oracle_ci = mag.oracle_ci_test()
 ```
 
 To generate the HTML report with side-by-side true and learned PAGs plus

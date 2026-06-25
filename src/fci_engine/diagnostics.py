@@ -38,3 +38,31 @@ class OrientationEvent:
     after_edge: str
     iteration: Optional[int] = None
     reason: str = ""
+
+
+@dataclass
+class DSEPDiagnostics:
+    """Summary counters for the FCI+ hierarchical D-SEP stage."""
+
+    candidate_edges_seen: int = 0
+    candidate_revisits: int = 0
+    hierarchy_queries: int = 0
+    hierarchy_cache_hits: int = 0
+    duplicate_conditioning_skips: int = 0
+    ci_tests: int = 0
+    edges_removed: int = 0
+    max_conditioning_size: int = 0
+
+    def to_dict(self) -> dict[str, int]:
+        """Return JSON-friendly diagnostic counters."""
+
+        return {
+            "candidate_edges_seen": self.candidate_edges_seen,
+            "candidate_revisits": self.candidate_revisits,
+            "hierarchy_queries": self.hierarchy_queries,
+            "hierarchy_cache_hits": self.hierarchy_cache_hits,
+            "duplicate_conditioning_skips": self.duplicate_conditioning_skips,
+            "ci_tests": self.ci_tests,
+            "edges_removed": self.edges_removed,
+            "max_conditioning_size": self.max_conditioning_size,
+        }

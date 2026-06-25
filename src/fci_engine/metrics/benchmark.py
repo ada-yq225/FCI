@@ -179,6 +179,7 @@ def run_fci_engine(
         alpha=case.alpha,
         ci_test=ci_test,
         max_cond_set_size=case.max_cond_set_size,
+        sparsity_bound=case.sparsity_bound,
         max_path_length=case.max_path_length,
         **algorithm_kwargs,
     )
@@ -279,6 +280,27 @@ def run_pcalg_fci_plus(case: OracleCase, timeout: int = 60) -> BenchmarkResult:
         edges=edges,
         elapsed_time=elapsed,
     )
+
+
+def run_pcalg_comparison_benchmark(
+    cases: list[OracleCase],
+    timeout: int = 60,
+) -> list[BenchmarkResult]:
+    """Run a focused FCI+ versus R ``pcalg::fciPlus`` comparison suite."""
+
+    results: list[BenchmarkResult] = []
+    for case in cases:
+        results.append(run_fci_engine(case, fci_plus, "fci_engine.fci_plus"))
+        results.append(
+            run_fci_engine(
+                case,
+                fci_plus,
+                "fci_engine.fci_plus.robust",
+                orientation_strategy="robust",
+            )
+        )
+        results.append(run_pcalg_fci_plus(case, timeout=timeout))
+    return results
 
 
 def _find_rscript() -> Optional[str]:

@@ -7,6 +7,7 @@ from itertools import combinations
 from typing import Optional
 
 from fci_engine.ci import CITest
+from fci_engine.diagnostics import DSEPDiagnostics
 from fci_engine.discovery.orientation import _safe_orient_arrowhead
 from fci_engine.discovery.skeleton import (
     SepsetMap,
@@ -23,7 +24,7 @@ def build_augmented_skeleton(
     ci_test: Optional[CITest] = None,
     allow_nan: bool = False,
 ) -> PAG:
-    """Build the FCI+ augmented skeleton approximation.
+    """Build the FCI+ augmented skeleton used by Algorithm 2.
 
     The augmented skeleton starts from the current skeleton without orienting
     unshielded colliders. When data and a CI test are supplied, it performs the
@@ -145,8 +146,17 @@ def refine_skeleton_with_fci_plus_dsep(
     sepset_sources: Optional[SepsetSourceMap] = None,
     sepset_selection: str = "max_pvalue",
     allow_nan: bool = False,
+    diagnostics: Optional[DSEPDiagnostics] = None,
 ) -> tuple[PAG, SepsetMap]:
-    """Refine the skeleton using the FCI+ hierarchical D-SEP search."""
+    """Refine the skeleton using the FCI+ hierarchical D-SEP search.
+
+    This follows the D-SEP stage of Claassen et al.'s Algorithm 2. For each
+    candidate edge ``X-Y`` from the augmented skeleton, it enumerates separate
+    base subsets ``ZX <= BaseX`` and ``ZY <= BaseY`` of size at most the sparse
+    degree bound ``k``. Each pair seeds ``HIE({X,Y} union ZX union ZY, I)``;
+    if that hierarchy separates ``X`` and ``Y``, the edge is removed and the
+    augmented skeleton/candidate list is rebuilt.
+    """
 
     if max_degree is not None and max_degree < 0:
         raise ValueError("max_degree must be non-negative.")
@@ -159,6 +169,8 @@ def refine_skeleton_with_fci_plus_dsep(
         allow_nan=allow_nan,
     )
     tried_without_update: set[frozenset[Hashable]] = set()
+    attempted_edges: set[frozenset[Hashable]] = set()
+    hierarchy_cache: dict[frozenset[Hashable], set[Hashable]] = {}
     augmented = build_augmented_skeleton(
         graph,
         sepsets,
@@ -171,37 +183,52 @@ def refine_skeleton_with_fci_plus_dsep(
     while candidates:
         x, y = candidates.pop(0)
         candidate_key = frozenset((x, y))
+        if diagnostics is not None:
+            diagnostics.candidate_edges_seen += 1
+            if candidate_key in attempted_edges:
+                diagnostics.candidate_revisits += 1
+        attempted_edges.add(candidate_key)
         if candidate_key in tried_without_update or not graph.is_adjacent(x, y):
             continue
 
         base_x = [node for node in augmented.neighbors(x) if node != y]
         base_y = [node for node in augmented.neighbors(y) if node != x]
-        base_union = [
-            node for node in graph.nodes if node in set(base_x) | set(base_y)
-        ]
-        max_subset_size = len(base_union)
-        if max_degree is not None:
-            max_subset_size = min(max_subset_size, 2 * max_degree)
-
         removed = False
-        for subset_size in range(1, max_subset_size + 1):
+        tested_conditioning_sets: set[frozenset[Hashable]] = set()
+        for depth in _algorithm2_base_depths(base_x, base_y, max_degree=max_degree):
             best_at_depth: Optional[tuple[float, set[Hashable]]] = None
-            for subset in combinations(base_union, subset_size):
-                if not set(subset) & set(base_x):
-                    continue
-                if not set(subset) & set(base_y):
-                    continue
-                if max_degree is not None:
-                    if len(set(subset) & set(base_x)) > max_degree:
-                        continue
-                    if len(set(subset) & set(base_y)) > max_degree:
-                        continue
-                seed = {x, y, *subset}
-                cond_nodes = hierarchy(seed, sepsets, exclude_pair=(x, y)) - {
-                    x,
-                    y,
-                }
+            for zx_candidate, zy_candidate in _base_combinations_at_depth(
+                graph,
+                base_x,
+                base_y,
+                depth,
+                max_degree=max_degree,
+            ):
+                seed = {x, y, *zx_candidate, *zy_candidate}
+                hierarchy_key = frozenset(seed)
+                if diagnostics is not None:
+                    diagnostics.hierarchy_queries += 1
+                if hierarchy_key in hierarchy_cache:
+                    expanded = hierarchy_cache[hierarchy_key]
+                    if diagnostics is not None:
+                        diagnostics.hierarchy_cache_hits += 1
+                else:
+                    expanded = hierarchy(seed, sepsets, exclude_pair=(x, y))
+                    hierarchy_cache[hierarchy_key] = set(expanded)
+                cond_nodes = expanded - {x, y}
                 cond_ordered = [node for node in graph.nodes if node in cond_nodes]
+                cond_key = frozenset(cond_ordered)
+                if cond_key in tested_conditioning_sets:
+                    if diagnostics is not None:
+                        diagnostics.duplicate_conditioning_skips += 1
+                    continue
+                tested_conditioning_sets.add(cond_key)
+                if diagnostics is not None:
+                    diagnostics.max_conditioning_size = max(
+                        diagnostics.max_conditioning_size,
+                        len(cond_ordered),
+                    )
+                    diagnostics.ci_tests += 1
                 result = ci_test.test(
                     normalized_data,
                     node_to_index[x],
@@ -255,6 +282,9 @@ def refine_skeleton_with_fci_plus_dsep(
             )
             candidates = possible_dsep_links(augmented)
             tried_without_update.clear()
+            hierarchy_cache.clear()
+            if diagnostics is not None:
+                diagnostics.edges_removed += 1
             removed = True
             break
 
@@ -269,6 +299,57 @@ def _edge_can_be_bidirected(graph: PAG, x: Hashable, y: Hashable) -> bool:
         graph.get_endpoint(x, y) in (Endpoint.ARROW, Endpoint.CIRCLE)
         and graph.get_endpoint(y, x) in (Endpoint.ARROW, Endpoint.CIRCLE)
     )
+
+
+def _algorithm2_base_depths(
+    base_x: list[Hashable],
+    base_y: list[Hashable],
+    max_degree: Optional[int],
+) -> range:
+    max_x = len(base_x)
+    max_y = len(base_y)
+    if max_degree is not None:
+        max_x = min(max_x, max_degree)
+        max_y = min(max_y, max_degree)
+    if max_x == 0 or max_y == 0:
+        return range(0)
+    return range(2, max_x + max_y + 1)
+
+
+def _base_combinations_at_depth(
+    graph: PAG,
+    base_x: list[Hashable],
+    base_y: list[Hashable],
+    depth: int,
+    max_degree: Optional[int],
+) -> list[tuple[tuple[Hashable, ...], tuple[Hashable, ...]]]:
+    """Return Algorithm 2 ``ZX``/``ZY`` pairs with ``|ZX| + |ZY| == depth``."""
+
+    max_x = len(base_x)
+    max_y = len(base_y)
+    if max_degree is not None:
+        max_x = min(max_x, max_degree)
+        max_y = min(max_y, max_degree)
+
+    pairs: list[tuple[tuple[Hashable, ...], tuple[Hashable, ...]]] = []
+    seen: set[tuple[frozenset[Hashable], frozenset[Hashable]]] = set()
+    for size_x in range(1, max_x + 1):
+        size_y = depth - size_x
+        if size_y < 1 or size_y > max_y:
+            continue
+        for zx in combinations(base_x, size_x):
+            for zy in combinations(base_y, size_y):
+                key = (frozenset(zx), frozenset(zy))
+                if key in seen:
+                    continue
+                seen.add(key)
+                pairs.append(
+                    (
+                        tuple(node for node in graph.nodes if node in set(zx)),
+                        tuple(node for node in graph.nodes if node in set(zy)),
+                    )
+                )
+    return pairs
 
 
 def _has_dsep_link_witness(graph: PAG, x: Hashable, y: Hashable) -> bool:

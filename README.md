@@ -44,6 +44,7 @@ flowchart LR
 | PAG diagnostics | Records CI traces, sepset sources, orientation events, and edge explanations. |
 | Oracle benchmarks | Compare outputs against known PAG shapes, causal-learn, and R `pcalg` when installed. |
 | Audit exports | Save edge tables, JSON, and NetworkX graphs for downstream review. |
+| D-SEP diagnostics | Inspect FCI+ candidate edges, revisits, hierarchy-cache hits, skipped duplicate conditioning sets, and D-SEP CI tests. |
 
 ## PAG Output At A Glance
 
@@ -91,6 +92,7 @@ result = fci_plus(
     data,
     alpha="auto",
     max_cond_set_size=3,
+    sparsity_bound=3,
     orientation_strategy="robust",
 )
 
@@ -385,11 +387,21 @@ from fci_engine import (
     format_benchmark_leaderboard,
     format_benchmark_results,
     run_oracle_benchmark,
+    run_pcalg_comparison_benchmark,
 )
 
 results = run_oracle_benchmark(default_oracle_cases())
 print(format_benchmark_results(results))
 print(format_benchmark_leaderboard(results))
+
+pcalg_results = run_pcalg_comparison_benchmark(default_oracle_cases())
+print(format_benchmark_leaderboard(pcalg_results))
+```
+
+To write the focused FCI+ versus `pcalg::fciPlus` comparison as HTML and CSV:
+
+```bash
+PYTHONPATH=src python examples/09_pcalg_fci_plus_comparison.py
 ```
 
 The benchmark output includes both strict exact-edge F1 and compatibility-aware
@@ -417,7 +429,8 @@ PYTHONPATH=src python examples/08_visual_benchmark_report.py
 - **Stability Selection**: `stable_fci` can filter edges with weak bootstrap support.
 - **Background Knowledge**: Required and forbidden edge directions are supported.
 - **FCI+**: Available as `fci_plus(...)` / `FCIPlus`; this first release uses
-  hierarchical D-SEP refinement and reuses the standard FCI orientation rules.
+  hierarchical D-SEP refinement, separates the sparse degree bound `k` from the
+  conditioning-set cap, and reuses the standard FCI orientation rules.
 - **Reference Benchmarks**: Preset oracle cases can compare `fci_engine`,
   causal-learn, and R `pcalg::fciPlus` when those optional tools are installed.
 
