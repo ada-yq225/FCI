@@ -90,7 +90,10 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
   }}
   h1 {{ margin: 0 0 8px; font-size: 28px; line-height: 1.15; }}
   h2 {{ margin: 0 0 14px; font-size: 18px; }}
+  h3 {{ margin: 0 0 8px; font-size: 14px; }}
   p {{ margin: 0; color: var(--muted); line-height: 1.5; }}
+  a {{ color: #2563eb; text-decoration: none; }}
+  a:hover {{ text-decoration: underline; }}
   main {{
     width: min(1680px, calc(100vw - 36px));
     margin: 24px auto 40px;
@@ -106,6 +109,80 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px;
+  }}
+  .roadmap-grid {{
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 14px;
+  }}
+  .roadmap-card {{
+    border: 1px solid #eaecf0;
+    border-radius: 8px;
+    background: #fbfcfe;
+    padding: 12px;
+  }}
+  .roadmap-label {{
+    color: #475467;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }}
+  .roadmap-title {{
+    font-size: 14px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }}
+  .roadmap-card p,
+  .guide-card p {{
+    font-size: 13px;
+  }}
+  .pipeline {{
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 14px;
+  }}
+  .pipeline-step {{
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 10px;
+    min-height: 88px;
+  }}
+  .pipeline-index {{
+    color: #047857;
+    font-size: 11px;
+    font-weight: 800;
+    margin-bottom: 5px;
+  }}
+  .pipeline-code {{
+    color: #475467;
+    font-size: 11px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }}
+  .guide-grid {{
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+  }}
+  .guide-card {{
+    border: 1px solid #eaecf0;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 12px;
+  }}
+  .callout {{
+    border-left: 4px solid #047857;
+    background: #ecfdf3;
+    color: #064e3b;
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 10px 12px;
   }}
   .graph-gallery {{
     display: grid;
@@ -445,7 +522,8 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
   svg text {{ font-family: inherit; }}
   @media (max-width: 1220px) {{
     main {{ width: min(100vw - 24px, 900px); }}
-    .grid, .diff-row, .summary-grid, .edge-explainer-grid {{
+    .grid, .diff-row, .summary-grid, .edge-explainer-grid,
+    .roadmap-grid, .pipeline, .guide-grid {{
       grid-template-columns: 1fr;
     }}
   }}
@@ -453,12 +531,25 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
 </head>
 <body>
 <header>
-  <h1>FCI+ vs R pcalg Oracle Benchmark</h1>
-  <p>{len(cases)} hand-written oracle cases. The primary comparison is
-  fci_engine FCI+ robust strategy against R pcalg::fciPlus; causal-learn
-  remains in the lower score table as context, not as ground truth.</p>
+  <h1>FCI+ Sparse Causal Discovery Benchmark</h1>
+  <p>Advisor-facing report for the FCI+ implementation inspired by
+  <a href="https://arxiv.org/abs/1309.6824">Learning Sparse Causal Models is not NP-hard</a>.
+  The report explains what the paper contributes, where the implementation
+  maps to that method, and how to read the benchmark evidence.</p>
 </header>
 <main>
+  <section>
+    <h2>Reviewer Roadmap</h2>
+    {render_reviewer_roadmap(len(cases))}
+  </section>
+  <section>
+    <h2>Paper Method To Code Map</h2>
+    {render_paper_code_map()}
+  </section>
+  <section>
+    <h2>How To Read The Evidence</h2>
+    {render_evidence_guide()}
+  </section>
   <section>
     <h2>Head-To-Head: fci_engine FCI+ Robust vs R pcalg::fciPlus</h2>
     {render_pcalg_head_to_head(cases, results)}
@@ -481,6 +572,160 @@ def render_report(cases: list[OracleCase], results: list[BenchmarkResult]) -> st
 </body>
 </html>
 """
+
+
+def render_reviewer_roadmap(case_count: int) -> str:
+    cards = [
+        (
+            "Problem",
+            "Hidden variables break simple DAG learning",
+            (
+                "The project targets observational data where latent "
+                "confounders or selection effects may exist, so the output is "
+                "a PAG rather than an overconfident single DAG."
+            ),
+        ),
+        (
+            "Paper Idea",
+            "Sparse FCI+ avoids broad D-SEP growth",
+            (
+                "The paper's key move is to exploit sparse bounded-degree "
+                "structure and replace the broad Possible-D-Sep search with a "
+                "hierarchical D-SEP strategy."
+            ),
+        ),
+        (
+            "Implementation",
+            "Auditable FCI+ pipeline in Python",
+            (
+                "This package implements PC-style skeleton search, FCI+ "
+                "hierarchical D-SEP refinement, PAG orientation rules, CI "
+                "caching, and edge-level explanations."
+            ),
+        ),
+        (
+            "Evidence",
+            f"{case_count} oracle cases plus external references",
+            (
+                "The benchmark compares learned PAGs against hand-written "
+                "oracle PAGs, with optional R pcalg and causal-learn results "
+                "used as context rather than ground truth."
+            ),
+        ),
+    ]
+    card_html = "".join(
+        "<div class='roadmap-card'>"
+        f"<div class='roadmap-label'>{_esc(label)}</div>"
+        f"<div class='roadmap-title'>{_esc(title)}</div>"
+        f"<p>{_esc(body)}</p>"
+        "</div>"
+        for label, title, body in cards
+    )
+    return (
+        f"<div class='roadmap-grid'>{card_html}</div>"
+        "<div class='callout'>"
+        "Recommended demo path: start with this roadmap, show the head-to-head "
+        "summary, open one per-case graph, then click a differing edge to "
+        "explain PAG endpoints and orientation evidence."
+        "</div>"
+    )
+
+
+def render_paper_code_map() -> str:
+    steps = [
+        (
+            "1",
+            "Initial skeleton",
+            "Start from a complete circle-edge PAG and remove edges using CI tests.",
+            "src/fci_engine/discovery/skeleton.py",
+        ),
+        (
+            "2",
+            "Augmented graph",
+            "Build the FCI+ augmented skeleton used to identify candidate D-SEP links.",
+            "build_augmented_skeleton",
+        ),
+        (
+            "3",
+            "Possible D-SEP links",
+            "Find local bidirected witness patterns compatible with FCI+ D-SEP links.",
+            "possible_dsep_links",
+        ),
+        (
+            "4",
+            "HIE expansion",
+            "Expand candidate sets through recorded separating sets.",
+            "hierarchy",
+        ),
+        (
+            "5",
+            "Minimal D-SEP",
+            "Remove redundant conditioning variables after a separating set is found.",
+            "minimal_dsep",
+        ),
+        (
+            "6",
+            "PAG orientation",
+            "Orient endpoints with collider discovery and Zhang-style PAG rules.",
+            "src/fci_engine/discovery/rules.py",
+        ),
+    ]
+    step_html = "".join(
+        "<div class='pipeline-step'>"
+        f"<div class='pipeline-index'>Step {_esc(index)}</div>"
+        f"<h3>{_esc(title)}</h3>"
+        f"<p>{_esc(body)}</p>"
+        f"<div class='pipeline-code'>{_esc(code)}</div>"
+        "</div>"
+        for index, title, body, code in steps
+    )
+    return (
+        "<p>This map is the bridge from the paper to the repository. It is the "
+        "part to show when the discussion moves from theory to implementation.</p>"
+        f"<div class='pipeline'>{step_html}</div>"
+    )
+
+
+def render_evidence_guide() -> str:
+    cards = [
+        (
+            "Semantic F1",
+            (
+                "Compatibility-aware PAG score. It is useful because a circle "
+                "endpoint can mean deliberate uncertainty rather than a wrong "
+                "direction."
+            ),
+        ),
+        (
+            "Exact F1",
+            (
+                "Strict edge-and-endpoint match against the oracle PAG. This is "
+                "harder to satisfy and highlights under- or over-orientation."
+            ),
+        ),
+        (
+            "CI tests and time",
+            (
+                "Efficiency context. FCI+ is expected to reduce expensive "
+                "D-SEP candidate growth most clearly on sparse larger graphs."
+            ),
+        ),
+    ]
+    card_html = "".join(
+        "<div class='guide-card'>"
+        f"<h3>{_esc(title)}</h3>"
+        f"<p>{_esc(body)}</p>"
+        "</div>"
+        for title, body in cards
+    )
+    return (
+        f"<div class='guide-grid'>{card_html}</div>"
+        "<div class='callout'>"
+        "Interpretation rule for the presentation: the oracle cases validate "
+        "algorithm behavior on known graph shapes; they do not prove universal "
+        "dominance over every FCI+ implementation or every dataset."
+        "</div>"
+    )
 
 
 def render_interaction_script() -> str:

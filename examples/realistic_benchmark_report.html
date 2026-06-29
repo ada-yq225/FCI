@@ -28,7 +28,10 @@
   }
   h1 { margin: 0 0 8px; font-size: 28px; line-height: 1.15; }
   h2 { margin: 0 0 14px; font-size: 18px; }
+  h3 { margin: 0 0 8px; font-size: 14px; }
   p { margin: 0; color: var(--muted); line-height: 1.5; }
+  a { color: #2563eb; text-decoration: none; }
+  a:hover { text-decoration: underline; }
   main {
     width: min(1680px, calc(100vw - 36px));
     margin: 24px auto 40px;
@@ -44,6 +47,80 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px;
+  }
+  .roadmap-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .roadmap-card {
+    border: 1px solid #eaecf0;
+    border-radius: 8px;
+    background: #fbfcfe;
+    padding: 12px;
+  }
+  .roadmap-label {
+    color: #475467;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  .roadmap-title {
+    font-size: 14px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+  .roadmap-card p,
+  .guide-card p {
+    font-size: 13px;
+  }
+  .pipeline {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .pipeline-step {
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 10px;
+    min-height: 88px;
+  }
+  .pipeline-index {
+    color: #047857;
+    font-size: 11px;
+    font-weight: 800;
+    margin-bottom: 5px;
+  }
+  .pipeline-code {
+    color: #475467;
+    font-size: 11px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+  .guide-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .guide-card {
+    border: 1px solid #eaecf0;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 12px;
+  }
+  .callout {
+    border-left: 4px solid #047857;
+    background: #ecfdf3;
+    color: #064e3b;
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 10px 12px;
   }
   .graph-gallery {
     display: grid;
@@ -383,7 +460,8 @@
   svg text { font-family: inherit; }
   @media (max-width: 1220px) {
     main { width: min(100vw - 24px, 900px); }
-    .grid, .diff-row, .summary-grid, .edge-explainer-grid {
+    .grid, .diff-row, .summary-grid, .edge-explainer-grid,
+    .roadmap-grid, .pipeline, .guide-grid {
       grid-template-columns: 1fr;
     }
   }
@@ -391,12 +469,25 @@
 </head>
 <body>
 <header>
-  <h1>FCI+ vs R pcalg Oracle Benchmark</h1>
-  <p>14 hand-written oracle cases. The primary comparison is
-  fci_engine FCI+ robust strategy against R pcalg::fciPlus; causal-learn
-  remains in the lower score table as context, not as ground truth.</p>
+  <h1>FCI+ Sparse Causal Discovery Benchmark</h1>
+  <p>Advisor-facing report for the FCI+ implementation inspired by
+  <a href="https://arxiv.org/abs/1309.6824">Learning Sparse Causal Models is not NP-hard</a>.
+  The report explains what the paper contributes, where the implementation
+  maps to that method, and how to read the benchmark evidence.</p>
 </header>
 <main>
+  <section>
+    <h2>Reviewer Roadmap</h2>
+    <div class='roadmap-grid'><div class='roadmap-card'><div class='roadmap-label'>Problem</div><div class='roadmap-title'>Hidden variables break simple DAG learning</div><p>The project targets observational data where latent confounders or selection effects may exist, so the output is a PAG rather than an overconfident single DAG.</p></div><div class='roadmap-card'><div class='roadmap-label'>Paper Idea</div><div class='roadmap-title'>Sparse FCI+ avoids broad D-SEP growth</div><p>The paper's key move is to exploit sparse bounded-degree structure and replace the broad Possible-D-Sep search with a hierarchical D-SEP strategy.</p></div><div class='roadmap-card'><div class='roadmap-label'>Implementation</div><div class='roadmap-title'>Auditable FCI+ pipeline in Python</div><p>This package implements PC-style skeleton search, FCI+ hierarchical D-SEP refinement, PAG orientation rules, CI caching, and edge-level explanations.</p></div><div class='roadmap-card'><div class='roadmap-label'>Evidence</div><div class='roadmap-title'>14 oracle cases plus external references</div><p>The benchmark compares learned PAGs against hand-written oracle PAGs, with optional R pcalg and causal-learn results used as context rather than ground truth.</p></div></div><div class='callout'>Recommended demo path: start with this roadmap, show the head-to-head summary, open one per-case graph, then click a differing edge to explain PAG endpoints and orientation evidence.</div>
+  </section>
+  <section>
+    <h2>Paper Method To Code Map</h2>
+    <p>This map is the bridge from the paper to the repository. It is the part to show when the discussion moves from theory to implementation.</p><div class='pipeline'><div class='pipeline-step'><div class='pipeline-index'>Step 1</div><h3>Initial skeleton</h3><p>Start from a complete circle-edge PAG and remove edges using CI tests.</p><div class='pipeline-code'>src/fci_engine/discovery/skeleton.py</div></div><div class='pipeline-step'><div class='pipeline-index'>Step 2</div><h3>Augmented graph</h3><p>Build the FCI+ augmented skeleton used to identify candidate D-SEP links.</p><div class='pipeline-code'>build_augmented_skeleton</div></div><div class='pipeline-step'><div class='pipeline-index'>Step 3</div><h3>Possible D-SEP links</h3><p>Find local bidirected witness patterns compatible with FCI+ D-SEP links.</p><div class='pipeline-code'>possible_dsep_links</div></div><div class='pipeline-step'><div class='pipeline-index'>Step 4</div><h3>HIE expansion</h3><p>Expand candidate sets through recorded separating sets.</p><div class='pipeline-code'>hierarchy</div></div><div class='pipeline-step'><div class='pipeline-index'>Step 5</div><h3>Minimal D-SEP</h3><p>Remove redundant conditioning variables after a separating set is found.</p><div class='pipeline-code'>minimal_dsep</div></div><div class='pipeline-step'><div class='pipeline-index'>Step 6</div><h3>PAG orientation</h3><p>Orient endpoints with collider discovery and Zhang-style PAG rules.</p><div class='pipeline-code'>src/fci_engine/discovery/rules.py</div></div></div>
+  </section>
+  <section>
+    <h2>How To Read The Evidence</h2>
+    <div class='guide-grid'><div class='guide-card'><h3>Semantic F1</h3><p>Compatibility-aware PAG score. It is useful because a circle endpoint can mean deliberate uncertainty rather than a wrong direction.</p></div><div class='guide-card'><h3>Exact F1</h3><p>Strict edge-and-endpoint match against the oracle PAG. This is harder to satisfy and highlights under- or over-orientation.</p></div><div class='guide-card'><h3>CI tests and time</h3><p>Efficiency context. FCI+ is expected to reduce expensive D-SEP candidate growth most clearly on sparse larger graphs.</p></div></div><div class='callout'>Interpretation rule for the presentation: the oracle cases validate algorithm behavior on known graph shapes; they do not prove universal dominance over every FCI+ implementation or every dataset.</div>
+  </section>
   <section>
     <h2>Head-To-Head: fci_engine FCI+ Robust vs R pcalg::fciPlus</h2>
     <div class='summary-grid'><div class='metric-card'><div class='metric-label'>Compared cases</div><div class='metric-value '>14</div></div><div class='metric-card'><div class='metric-label'>fci_engine wins</div><div class='metric-value delta-pos'>8</div></div><div class='metric-card'><div class='metric-label'>Ties</div><div class='metric-value delta-zero'>6</div></div><div class='metric-card'><div class='metric-label'>R pcalg wins</div><div class='metric-value delta-neg'>0</div></div><div class='metric-card'><div class='metric-label'>Mean semantic delta</div><div class='metric-value delta-pos'>+0.035</div></div><div class='metric-card'><div class='metric-label'>Mean exact delta</div><div class='metric-value delta-pos'>+0.127</div></div></div><div class='table-scroll'><table><thead><tr><th>Case</th><th>Winner</th><th>Our Semantic F1</th><th>R Semantic F1</th><th>Semantic Delta</th><th>Our Exact F1</th><th>R Exact F1</th><th>Exact Delta</th><th>Skeleton Delta</th><th>Endpoint Delta</th></tr></thead><tbody><tr><td>independent_noise</td><td><span class='winner winner-tie'>tie</span></td><td class='score'>1.000</td><td class='score'>1.000</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'>1.000</td><td class='score'>1.000</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td></tr><tr><td>latent_medical</td><td><span class='winner winner-tie'>tie</span></td><td class='score'>1.000</td><td class='score'>1.000</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'>1.000</td><td class='score'>1.000</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td></tr><tr><td>nonlinear_common_cause</td><td><span class='winner winner-engine'>fci_engine</span></td><td class='score'>1.000</td><td class='score'>0.800</td><td class='score'><span class='delta-pos'>+0.200</span></td><td class='score'>1.000</td><td class='score'>0.800</td><td class='score'><span class='delta-pos'>+0.200</span></td><td class='score'><span class='delta-pos'>+0.200</span></td><td class='score'><span class='delta-pos'>+0.333</span></td></tr><tr><td>sparse_two_latent</td><td><span class='winner winner-tie'>tie</span></td><td class='score'>1.000</td><td class='score'>1.000</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'>0.667</td><td class='score'>0.667</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td></tr><tr><td>hospital_triage_r1</td><td><span class='winner winner-engine'>fci_engine</span></td><td class='score'>1.000</td><td class='score'>0.857</td><td class='score'><span class='delta-pos'>+0.143</span></td><td class='score'>0.714</td><td class='score'>0.571</td><td class='score'><span class='delta-pos'>+0.143</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-pos'>+0.071</span></td></tr><tr><td>microservice_incident_r1</td><td><span class='winner winner-tie'>tie</span></td><td class='score'>0.923</td><td class='score'>0.923</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'>0.462</td><td class='score'>0.462</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td></tr><tr><td>finance_risk_r1</td><td><span class='winner winner-engine'>fci_engine</span></td><td class='score'>1.000</td><td class='score'>1.000</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'>1.000</td><td class='score'>0.571</td><td class='score'><span class='delta-pos'>+0.429</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-pos'>+0.214</span></td></tr><tr><td>manufacturing_quality_r1</td><td><span class='winner winner-engine'>fci_engine</span></td><td class='score'>1.000</td><td class='score'>1.000</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'>0.857</td><td class='score'>0.571</td><td class='score'><span class='delta-pos'>+0.286</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-pos'>+0.143</span></td></tr><tr><td>enterprise_monitoring_r1</td><td><span class='winner winner-engine'>fci_engine</span></td><td class='score'>1.000</td><td class='score'>1.000</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'>0.615</td><td class='score'>0.538</td><td class='score'><span class='delta-pos'>+0.077</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td></tr><tr><td>hospital_triage_r2</td><td><span class='winner winner-engine'>fci_engine</span></td><td class='score'>1.000</td><td class='score'>0.857</td><td class='score'><span class='delta-pos'>+0.143</span></td><td class='score'>0.714</td><td class='score'>0.571</td><td class='score'><span class='delta-pos'>+0.143</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-pos'>+0.071</span></td></tr><tr><td>microservice_incident_r2</td><td><span class='winner winner-tie'>tie</span></td><td class='score'>0.923</td><td class='score'>0.923</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'>0.462</td><td class='score'>0.462</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td></tr><tr><td>finance_risk_r2</td><td><span class='winner winner-engine'>fci_engine</span></td><td class='score'>1.000</td><td class='score'>1.000</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'>1.000</td><td class='score'>0.571</td><td class='score'><span class='delta-pos'>+0.429</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-pos'>+0.214</span></td></tr><tr><td>manufacturing_quality_r2</td><td><span class='winner winner-tie'>tie</span></td><td class='score'>0.923</td><td class='score'>0.923</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'>0.462</td><td class='score'>0.462</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td></tr><tr><td>enterprise_monitoring_r2</td><td><span class='winner winner-engine'>fci_engine</span></td><td class='score'>1.000</td><td class='score'>1.000</td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'>0.615</td><td class='score'>0.538</td><td class='score'><span class='delta-pos'>+0.077</span></td><td class='score'><span class='delta-zero'>+0.000</span></td><td class='score'><span class='delta-zero'>+0.000</span></td></tr></tbody></table></div>
