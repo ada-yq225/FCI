@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import deque
 from collections.abc import Hashable
 from itertools import combinations
 from typing import Optional
@@ -14,7 +15,7 @@ from fci_engine.discovery.skeleton import (
     SepsetSourceMap,
     _prepare_data_for_graph,
 )
-from fci_engine.graph import Endpoint, PAG
+from fci_engine.graph import PAG
 
 
 def build_augmented_skeleton(
@@ -51,15 +52,16 @@ def possible_dsep_links(augmented_graph: PAG) -> list[tuple[Hashable, Hashable]]
 
     A D-SEP link in the augmented skeleton has the characteristic local form
     ``u <-> x <-> y <-> v`` with ``u`` and ``v`` not adjacent. We use that
-    pattern when the available endpoint marks support it. For finite-sample
-    robustness, a circle endpoint is treated as potentially compatible, but the
-    witness nodes must also be connected by not-against-arrowhead paths in the
-    cross direction, matching the FCI+ PosDsepLinks criterion.
+    pattern only when all three links are actually bidirected in the augmented
+    skeleton. The witness nodes must also be connected by
+    not-against-arrowhead paths in the cross direction. These are the literal
+    conditions in Lemma 4 and ``GetPDseps`` of Claassen et al. (2013); unresolved
+    circle endpoints are not substitutes for invariant arrowheads.
     """
 
     candidates: list[tuple[Hashable, Hashable]] = []
     for x, y in augmented_graph.edges():
-        if not _edge_can_be_bidirected(augmented_graph, x, y):
+        if not augmented_graph.is_bidirected_edge(x, y):
             continue
         if _has_dsep_link_witness(augmented_graph, x, y):
             candidates.append((x, y))
@@ -151,9 +153,10 @@ def refine_skeleton_with_fci_plus_dsep(
     """Refine the skeleton using the FCI+ hierarchical D-SEP search.
 
     This follows the D-SEP stage of Claassen et al.'s Algorithm 2. For each
-    candidate edge ``X-Y`` from the augmented skeleton, it enumerates separate
-    base subsets ``ZX <= BaseX`` and ``ZY <= BaseY`` of size at most the sparse
-    degree bound ``k``. Each pair seeds ``HIE({X,Y} union ZX union ZY, I)``;
+    candidate edge ``X-Y`` from the augmented skeleton, it follows the paper's
+    nested ``n=1..k`` and ``m=1..k`` loops over separate subsets
+    ``ZX <= BaseX`` and ``ZY <= BaseY``. Each pair seeds
+    ``HIE({X,Y} union ZX union ZY, I)``;
     if that hierarchy separates ``X`` and ``Y``, the edge is removed and the
     augmented skeleton/candidate list is rebuilt.
     """
@@ -195,14 +198,18 @@ def refine_skeleton_with_fci_plus_dsep(
         base_y = [node for node in augmented.neighbors(y) if node != x]
         removed = False
         tested_conditioning_sets: set[frozenset[Hashable]] = set()
-        for depth in _algorithm2_base_depths(base_x, base_y, max_degree=max_degree):
-            best_at_depth: Optional[tuple[float, set[Hashable]]] = None
-            for zx_candidate, zy_candidate in _base_combinations_at_depth(
+        for size_x, size_y in _algorithm2_base_sizes(
+            base_x,
+            base_y,
+            max_degree=max_degree,
+        ):
+            best_at_sizes: Optional[tuple[float, set[Hashable]]] = None
+            for zx_candidate, zy_candidate in _base_combinations_for_sizes(
                 graph,
                 base_x,
                 base_y,
-                depth,
-                max_degree=max_degree,
+                size_x,
+                size_y,
             ):
                 seed = {x, y, *zx_candidate, *zy_candidate}
                 hierarchy_key = frozenset(seed)
@@ -248,12 +255,12 @@ def refine_skeleton_with_fci_plus_dsep(
 
                 cond_set = set(cond_ordered)
                 if sepset_selection == "first":
-                    best_at_depth = (result.p_value, cond_set)
+                    best_at_sizes = (result.p_value, cond_set)
                     break
-                if best_at_depth is None or result.p_value > best_at_depth[0]:
-                    best_at_depth = (result.p_value, cond_set)
+                if best_at_sizes is None or result.p_value > best_at_sizes[0]:
+                    best_at_sizes = (result.p_value, cond_set)
 
-            if best_at_depth is None:
+            if best_at_sizes is None:
                 continue
 
             minimized = minimal_dsep(
@@ -261,7 +268,7 @@ def refine_skeleton_with_fci_plus_dsep(
                 graph,
                 x,
                 y,
-                best_at_depth[1],
+                best_at_sizes[1],
                 ci_test,
                 allow_nan=allow_nan,
             )
@@ -294,61 +301,48 @@ def refine_skeleton_with_fci_plus_dsep(
     return graph, sepsets
 
 
-def _edge_can_be_bidirected(graph: PAG, x: Hashable, y: Hashable) -> bool:
-    return (
-        graph.get_endpoint(x, y) in (Endpoint.ARROW, Endpoint.CIRCLE)
-        and graph.get_endpoint(y, x) in (Endpoint.ARROW, Endpoint.CIRCLE)
-    )
-
-
-def _algorithm2_base_depths(
+def _algorithm2_base_sizes(
     base_x: list[Hashable],
     base_y: list[Hashable],
     max_degree: Optional[int],
-) -> range:
+) -> list[tuple[int, int]]:
     max_x = len(base_x)
     max_y = len(base_y)
     if max_degree is not None:
         max_x = min(max_x, max_degree)
         max_y = min(max_y, max_degree)
     if max_x == 0 or max_y == 0:
-        return range(0)
-    return range(2, max_x + max_y + 1)
+        return []
+    return [
+        (size_x, size_y)
+        for size_x in range(1, max_x + 1)
+        for size_y in range(1, max_y + 1)
+    ]
 
 
-def _base_combinations_at_depth(
+def _base_combinations_for_sizes(
     graph: PAG,
     base_x: list[Hashable],
     base_y: list[Hashable],
-    depth: int,
-    max_degree: Optional[int],
+    size_x: int,
+    size_y: int,
 ) -> list[tuple[tuple[Hashable, ...], tuple[Hashable, ...]]]:
-    """Return Algorithm 2 ``ZX``/``ZY`` pairs with ``|ZX| + |ZY| == depth``."""
-
-    max_x = len(base_x)
-    max_y = len(base_y)
-    if max_degree is not None:
-        max_x = min(max_x, max_degree)
-        max_y = min(max_y, max_degree)
+    """Return all Algorithm 2 subset pairs for one literal ``(n, m)`` loop."""
 
     pairs: list[tuple[tuple[Hashable, ...], tuple[Hashable, ...]]] = []
     seen: set[tuple[frozenset[Hashable], frozenset[Hashable]]] = set()
-    for size_x in range(1, max_x + 1):
-        size_y = depth - size_x
-        if size_y < 1 or size_y > max_y:
-            continue
-        for zx in combinations(base_x, size_x):
-            for zy in combinations(base_y, size_y):
-                key = (frozenset(zx), frozenset(zy))
-                if key in seen:
-                    continue
-                seen.add(key)
-                pairs.append(
-                    (
-                        tuple(node for node in graph.nodes if node in set(zx)),
-                        tuple(node for node in graph.nodes if node in set(zy)),
-                    )
+    for zx in combinations(base_x, size_x):
+        for zy in combinations(base_y, size_y):
+            key = (frozenset(zx), frozenset(zy))
+            if key in seen:
+                continue
+            seen.add(key)
+            pairs.append(
+                (
+                    tuple(node for node in graph.nodes if node in set(zx)),
+                    tuple(node for node in graph.nodes if node in set(zy)),
                 )
+            )
     return pairs
 
 
@@ -356,12 +350,12 @@ def _has_dsep_link_witness(graph: PAG, x: Hashable, y: Hashable) -> bool:
     left_witnesses = [
         node
         for node in graph.neighbors(x)
-        if node != y and _edge_can_be_bidirected(graph, node, x)
+        if node != y and graph.is_bidirected_edge(node, x)
     ]
     right_witnesses = [
         node
         for node in graph.neighbors(y)
-        if node != x and _edge_can_be_bidirected(graph, y, node)
+        if node != x and graph.is_bidirected_edge(y, node)
     ]
     ancestors_of_x = _not_against_arrowhead_reachable(graph, x)
     ancestors_of_y = _not_against_arrowhead_reachable(graph, y)
@@ -380,8 +374,39 @@ def _not_against_arrowhead_reachable(graph: PAG, target: Hashable) -> set[Hashab
     return {
         node
         for node in graph.nodes
-        if node != target and graph.is_possible_ancestor(node, target)
+        if node != target
+        and _has_not_against_arrowhead_path_to_target(graph, node, target)
     }
+
+
+def _has_not_against_arrowhead_path_to_target(
+    graph: PAG,
+    source: Hashable,
+    target: Hashable,
+) -> bool:
+    """Return whether ``source ... -> target`` satisfies Lemma 4.
+
+    Every step must avoid an arrowhead at the node being left, and the final
+    edge must have the arrowhead at ``target`` shown explicitly in the lemma.
+    A merely possible ``o-o`` arrival at the target is insufficient.
+    """
+
+    visited = {source}
+    frontier = deque([source])
+    while frontier:
+        current = frontier.popleft()
+        for neighbor in graph.neighbors(current):
+            if graph.has_arrowhead(neighbor, current):
+                continue
+            if neighbor == target:
+                if graph.has_arrowhead(current, target):
+                    return True
+                continue
+            if neighbor in visited:
+                continue
+            visited.add(neighbor)
+            frontier.append(neighbor)
+    return False
 
 
 def _augment_with_single_node_dependencies(

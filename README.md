@@ -1,8 +1,8 @@
 # fci-engine: Fast Causal Inference for Auditable PAG Learning
 
 `fci-engine` learns **Partial Ancestral Graphs (PAGs)** from observational data
-with standard **Fast Causal Inference (FCI)** and an FCI+ style sparse D-SEP
-refinement.
+with standard **Fast Causal Inference (FCI)** and the sparse hierarchical D-SEP
+stage from FCI+ Algorithm 2.
 
 It is designed for cases where a simple correlation graph or PC-style algorithm
 is too optimistic: latent confounding, selection effects, missing values,
@@ -53,8 +53,8 @@ that represents the causal facts identifiable from the observed conditional
 independence structure.
 
 ```text
-X --> Y    X is an ancestor/cause candidate of Y
-X <-> Y    latent confounding is supported
+X --> Y    X is an invariant ancestor of Y (not necessarily a direct cause)
+X <-> Y    invariant arrowheads; compatible with latent confounding
 X o-> Y    Y is not an ancestor of X, but X's endpoint is still uncertain
 X o-o Y    direction is not identifiable from the current evidence
 X --- Y    selection-bias style undirected dependence
@@ -87,19 +87,21 @@ from fci_engine import fci_plus, stable_fci_plus
 
 data = pd.read_csv("observational_data.csv")
 
-# Fast first pass.
+# Paper-aligned FCI+ run. Use the same k in both search stages.
 result = fci_plus(
     data,
-    alpha="auto",
+    alpha=0.01,
     max_cond_set_size=3,
     sparsity_bound=3,
-    orientation_strategy="robust",
+    max_path_length=None,
+    sepset_selection="first",
+    orientation_strategy="standard",
 )
 
 print(result.summary())
 print(result.to_pandas_edges())
 
-# More conservative finite-sample pass.
+# Optional finite-sample sensitivity analysis (not the paper's oracle mode).
 stable = stable_fci_plus(
     data,
     n_bootstraps=50,
@@ -210,9 +212,11 @@ for x, y in result.graph.edges():
     print(f"- {result.graph.edge_repr(x, y)}")
 ```
 
-### 2. Identifying Latent Confounders
+### 2. Finding Structures Compatible With Latent Confounding
 
-One of FCI's greatest strengths is recognizing unobserved hidden variables via bidirectional arrows (`<->`).
+FCI can return invariant bidirected endpoints (`<->`). This is compatible with
+latent confounding, but it does not identify or prove one particular hidden
+variable.
 
 ```python
 import numpy as np
@@ -234,7 +238,7 @@ df = pd.DataFrame({"I1": I1, "I2": I2, "A": A, "B": B})
 result = fci(df, alpha="auto")
 for x, y in result.graph.edges():
     if "<->" in result.graph.edge_repr(x, y):
-        print(f"Latent Confounder Detected!: {result.graph.edge_repr(x, y)}")
+        print(f"Bidirected PAG edge: {result.graph.edge_repr(x, y)}")
         # Output: A <-> B
 ```
 
@@ -309,8 +313,8 @@ Standard Causal Discovery algorithms like PC assume **Causal Sufficiency**: the 
 ### Reading a PAG (Endpoint Meaning)
 
 A PAG contains several types of endpoints denoting sets of DAGs (Markov equivalence classes) consistent with the data constraints:
-*   `X --> Y` (Tail to Arrow): $X$ is a cause of $Y$.
-*   `X <-> Y` (Arrow to Arrow): Spurious correlation; there is an unobserved latent confounder causing both $X$ and $Y$ ($X \leftarrow U \rightarrow Y$).
+*   `X --> Y` (Tail to Arrow): $X$ is an invariant ancestor of $Y$ in the represented equivalence class; the edge need not be a direct effect.
+*   `X <-> Y` (Arrow to Arrow): neither endpoint is an ancestor of the other in the represented MAG/PAG. This is compatible with latent confounding, but does not identify a specific latent variable.
 *   `X o-> Y` (Circle to Arrow): It is either $X \rightarrow Y$ or $X \leftrightarrow Y$. $X$ is purely not an effect of $Y$.
 *   `X o-o Y` (Circle to Circle): No information is known about the direction. (Could be $\rightarrow, \leftarrow, \text{or} \leftrightarrow$).
 *   `X --- Y` (Tail to Tail): Known as a selection-bias edge. Very rare unless dealing with uniquely conditioned datasets.
@@ -323,7 +327,30 @@ The structural learning happens in four phases directly implemented in `fci-engi
 3.  **Possible-D-SEP**: Generates larger conditioning candidates that earlier
     rounds may miss. The implementation uses finite edge-state BFS instead of
     enumerating every simple path, avoiding path explosion on dense PAGs.
-4.  **Zhang's Orientation Rules (R1 - R10)**: Iteratively closes reasoning gaps over the generated graph by tracing causal endpoints to monotonic conclusions without cycles.
+4.  **Zhang's Orientation Rules (R1 - R10)**: closes R1-R4, applies R5,
+    closes R6-R7, then closes R8-R10, matching the complete-rule schedule.
+
+### Paper-aligned oracle validation
+
+The regression suite includes FCI+ Figure 4(b), Zhang's orientation example,
+and the Spirtes (1997) latent-variable example. The Figure 4(b) test verifies
+that PC leaves `X-Y`, FCI+ removes it only in the hierarchical D-SEP stage with
+the unique separator `{U, V, Z}`, and the complete PAG is unchanged under
+variable permutations. A seeded 50,000-row latent linear SEM supplies a
+separate finite-sample integration test.
+
+```bash
+python -m pytest tests/test_published_reference_graphs.py -q
+```
+
+The oracle guarantees require the causal Markov and faithfulness assumptions,
+an underlying acyclic causal DAG (latent and selection variables are allowed),
+sound/complete CI answers, and—for FCI+'s polynomial bound—a sparse observed
+MAG with maximum degree `k`. Finite samples do not inherit the oracle guarantee.
+
+Primary specifications: [FCI+ UAI 2013 Algorithm 2](https://auai.org/uai2013/prints/papers/121.pdf),
+[Zhang's complete PAG rules](https://doi.org/10.1016/j.artint.2008.08.001),
+and [pcalg's reference FCI tests](https://github.com/cran/pcalg/blob/master/tests/test_fci.R).
 
 ---
 
@@ -402,6 +429,15 @@ To write the focused FCI+ versus `pcalg::fciPlus` comparison as HTML and CSV:
 
 ```bash
 PYTHONPATH=src python examples/09_pcalg_fci_plus_comparison.py
+```
+
+For an advisor-facing showcase that explains the Algorithm 2 alignment,
+FCI+ D-SEP diagnostics, reference comparisons, and the user API in one HTML
+page:
+
+```bash
+PYTHONPATH=src python examples/10_fci_plus_advisor_showcase.py
+open examples/advisor_showcase.html
 ```
 
 The benchmark output includes both strict exact-edge F1 and compatibility-aware

@@ -1,6 +1,15 @@
 import numpy as np
+import pytest
 
 from fci_engine.ci import FisherZTest
+
+
+def test_insufficient_degrees_of_freedom_raises_instead_of_deleting_edge() -> None:
+    rng = np.random.default_rng(99)
+    data = rng.normal(size=(5, 4))
+
+    with pytest.raises(ValueError, match="positive degrees of freedom"):
+        FisherZTest(alpha=0.05).test(data, 0, 1, [2, 3])
 
 
 def test_independent_gaussian_variables_return_independent() -> None:

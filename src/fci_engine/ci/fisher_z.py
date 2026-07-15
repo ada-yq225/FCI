@@ -40,11 +40,13 @@ class FisherZTest(CITest):
 
         effective_n = n_samples - len(cond_tuple) - 3
         if effective_n <= 0:
-            statistic = 0.0
-            p_value = 1.0
-        else:
-            statistic = float(np.sqrt(effective_n) * np.arctanh(partial_corr))
-            p_value = float(2.0 * norm.sf(abs(statistic)))
+            raise ValueError(
+                "FisherZTest requires n_samples - len(cond_set) - 3 > 0; "
+                "the requested conditioning set has no positive degrees of "
+                "freedom."
+            )
+        statistic = float(np.sqrt(effective_n) * np.arctanh(partial_corr))
+        p_value = float(2.0 * norm.sf(abs(statistic)))
 
         return CITestResult(
             independent=p_value > self.alpha,

@@ -25,6 +25,18 @@ def test_r5_orients_uncovered_circle_path_to_undirected_edges() -> None:
     assert graph.edge_repr("D", "B") == "D --- B"
 
 
+def test_r5_requires_endpoint_nonadjacency_conditions() -> None:
+    graph = PAG(["A", "B", "C", "D", "E"])
+    for edge in [("A", "B"), ("A", "C"), ("C", "D"), ("D", "E"), ("E", "B")]:
+        graph.add_circle_edge(*edge)
+    # E is the penultimate path node, so A-E violates Zhang's R5 premise.
+    graph.add_circle_edge("A", "E")
+
+    rule_uncovered_circle_path_selection_bias(graph, {})
+
+    assert graph.edge_repr("A", "B") == "A o-o B"
+
+
 def test_r6_propagates_tail_from_undirected_edge() -> None:
     graph = PAG(["A", "B", "C"])
     graph.add_edge("A", "B", Endpoint.TAIL, Endpoint.TAIL)

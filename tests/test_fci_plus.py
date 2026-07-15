@@ -1,10 +1,13 @@
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 
 from fci_engine import FCIPlus, fci, fci_plus
 from fci_engine.ci import CITest, CITestResult, MissingValueFisherZTest
 from fci_engine.discovery.dsep import (
-    _base_combinations_at_depth,
+    _algorithm2_base_sizes,
+    _base_combinations_for_sizes,
     build_augmented_skeleton,
     hierarchy,
     minimal_dsep,
@@ -51,17 +54,33 @@ def test_hierarchy_recursively_adds_known_sepsets() -> None:
 
 
 def test_possible_dsep_links_detects_bidirected_witness_pattern() -> None:
-    graph = PAG(["U", "X", "Y", "V"])
-    graph.add_circle_edge("U", "X")
-    graph.add_circle_edge("X", "Y")
-    graph.add_circle_edge("Y", "V")
+    graph = _strict_dsep_candidate_graph(["U", "X", "Y", "V"])
 
     assert possible_dsep_links(graph) == [("X", "Y")]
 
 
 def test_possible_dsep_links_requires_not_against_arrowhead_paths() -> None:
     graph = PAG(["U", "X", "Y", "V"])
-    graph.add_edge("U", "X", Endpoint.ARROW, Endpoint.CIRCLE)
+    graph.add_edge("U", "X", Endpoint.ARROW, Endpoint.ARROW)
+    graph.add_edge("X", "Y", Endpoint.ARROW, Endpoint.ARROW)
+    graph.add_edge("Y", "V", Endpoint.ARROW, Endpoint.ARROW)
+
+    assert possible_dsep_links(graph) == []
+
+
+def test_possible_dsep_cross_paths_require_arrowheads_at_targets() -> None:
+    graph = PAG(["U", "X", "Y", "V"])
+    for x, y in [("U", "X"), ("X", "Y"), ("Y", "V")]:
+        graph.add_edge(x, y, Endpoint.ARROW, Endpoint.ARROW)
+    graph.add_circle_edge("U", "Y")
+    graph.add_circle_edge("V", "X")
+
+    assert possible_dsep_links(graph) == []
+
+
+def test_possible_dsep_links_rejects_unresolved_circle_pattern() -> None:
+    graph = PAG(["U", "X", "Y", "V"])
+    graph.add_circle_edge("U", "X")
     graph.add_circle_edge("X", "Y")
     graph.add_circle_edge("Y", "V")
 
@@ -116,9 +135,10 @@ def test_minimal_dsep_rechecks_nodes_until_fixed_point() -> None:
 
 def test_fci_plus_dsep_refinement_uses_hierarchical_sepsets() -> None:
     nodes = ["U", "X", "Y", "V", "A", "B", "Z"]
-    graph = PAG(nodes)
-    for edge in [("U", "X"), ("X", "Y"), ("Y", "V"), ("X", "A"), ("Y", "B")]:
-        graph.add_circle_edge(*edge)
+    graph = _strict_dsep_candidate_graph(
+        nodes,
+        extra_circle_edges=[("X", "A"), ("Y", "B")],
+    )
 
     sepsets = {
         ("A", "B"): {"Z"},
@@ -149,17 +169,10 @@ def test_fci_plus_dsep_refinement_uses_hierarchical_sepsets() -> None:
 
 def test_fci_plus_dsep_selects_strongest_sepset_at_same_depth() -> None:
     nodes = ["U", "X", "Y", "V", "A", "B", "C", "D"]
-    graph = PAG(nodes)
-    for edge in [
-        ("U", "X"),
-        ("X", "Y"),
-        ("Y", "V"),
-        ("X", "A"),
-        ("Y", "B"),
-        ("X", "C"),
-        ("Y", "D"),
-    ]:
-        graph.add_circle_edge(*edge)
+    graph = _strict_dsep_candidate_graph(
+        nodes,
+        extra_circle_edges=[("X", "A"), ("Y", "B"), ("X", "C"), ("Y", "D")],
+    )
 
     weak = _oracle_key("X", "Y", frozenset({"A", "B"}))
     strong = _oracle_key("X", "Y", frozenset({"C", "D"}))
@@ -189,12 +202,12 @@ def test_fci_plus_dsep_selects_strongest_sepset_at_same_depth() -> None:
 def test_algorithm2_base_loop_enumerates_separate_endpoint_bases() -> None:
     graph = PAG(["X", "Y", "A", "B", "C", "D"])
 
-    pairs = _base_combinations_at_depth(
+    pairs = _base_combinations_for_sizes(
         graph,
         base_x=["A", "C"],
         base_y=["B", "D"],
-        depth=2,
-        max_degree=1,
+        size_x=1,
+        size_y=1,
     )
 
     assert pairs == [
@@ -205,19 +218,20 @@ def test_algorithm2_base_loop_enumerates_separate_endpoint_bases() -> None:
     ]
 
 
+def test_algorithm2_base_loop_uses_literal_nested_n_then_m_order() -> None:
+    assert _algorithm2_base_sizes(
+        ["A", "C"],
+        ["B", "D"],
+        max_degree=2,
+    ) == [(1, 1), (1, 2), (2, 1), (2, 2)]
+
+
 def test_fci_plus_sparsity_bound_is_separate_from_conditioning_cap() -> None:
     nodes = ["U", "X", "Y", "V", "A", "B", "C", "D"]
-    graph = PAG(nodes)
-    for edge in [
-        ("U", "X"),
-        ("X", "Y"),
-        ("Y", "V"),
-        ("X", "A"),
-        ("Y", "B"),
-        ("X", "C"),
-        ("Y", "D"),
-    ]:
-        graph.add_circle_edge(*edge)
+    graph = _strict_dsep_candidate_graph(
+        nodes,
+        extra_circle_edges=[("X", "A"), ("Y", "B"), ("X", "C"), ("Y", "D")],
+    )
 
     separating = _oracle_key("X", "Y", frozenset({"A", "C", "B", "D"}))
     oracle = OracleCITest(nodes, {separating})
@@ -295,9 +309,10 @@ def test_fci_plus_result_records_explicit_sparsity_bound() -> None:
 
 def test_fci_plus_result_records_dsep_diagnostics() -> None:
     nodes = ["U", "X", "Y", "V", "A", "B", "Z"]
-    graph = PAG(nodes)
-    for edge in [("U", "X"), ("X", "Y"), ("Y", "V"), ("X", "A"), ("Y", "B")]:
-        graph.add_circle_edge(*edge)
+    graph = _strict_dsep_candidate_graph(
+        nodes,
+        extra_circle_edges=[("X", "A"), ("Y", "B")],
+    )
 
     sepsets = {
         ("A", "B"): {"Z"},
@@ -345,6 +360,22 @@ def test_fci_plus_accepts_missing_values_with_missing_value_ci_test() -> None:
 
     assert result.graph.nodes == ("X0", "X1", "X2")
     assert {event.method for event in result.ci_test_trace} == {"mv_fisher_z"}
+    assert result.config.alpha == 0.001
+
+
+def test_robust_fci_plus_accepts_missing_values_during_orientation() -> None:
+    rng = np.random.default_rng(127)
+    data = rng.normal(size=(180, 4))
+    data[::9, 2] = np.nan
+
+    result = fci_plus(
+        data,
+        ci_test=MissingValueFisherZTest(alpha=0.001),
+        max_cond_set_size=1,
+        orientation_strategy="robust",
+    )
+
+    assert result.graph.nodes == ("X0", "X1", "X2", "X3")
 
 
 def _oracle_key(
@@ -354,3 +385,20 @@ def _oracle_key(
 ) -> tuple[str, str, frozenset[str]]:
     ordered = tuple(sorted((x, y)))
     return ordered[0], ordered[1], cond_set
+
+
+def _strict_dsep_candidate_graph(
+    nodes: list[str],
+    extra_circle_edges: list[tuple[str, str]] | None = None,
+) -> PAG:
+    """Build the literal Lemma 4 witness used by Algorithm 2 tests."""
+
+    graph = PAG(nodes)
+    for x, y in [("U", "X"), ("X", "Y"), ("Y", "V")]:
+        graph.add_edge(x, y, Endpoint.ARROW, Endpoint.ARROW)
+    # Cross paths U ..> Y and V ..> X must not run against arrowheads.
+    graph.add_edge("U", "Y", Endpoint.CIRCLE, Endpoint.ARROW)
+    graph.add_edge("V", "X", Endpoint.CIRCLE, Endpoint.ARROW)
+    for edge in extra_circle_edges or []:
+        graph.add_circle_edge(*edge)
+    return graph

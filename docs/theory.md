@@ -14,9 +14,9 @@ Latent confounding occurs when an unobserved variable causally affects two or
 more observed variables. FCI is designed to remain conservative in this setting.
 Instead of forcing a single DAG, it learns a PAG over the observed variables.
 
-An edge like `X <-> Y` often signals that neither endpoint can be an ancestor of
-the other in the represented equivalence class, which is commonly interpreted as
-evidence compatible with latent confounding.
+An edge like `X <-> Y` says that neither endpoint can be an ancestor of the
+other in the represented equivalence class. It is compatible with latent
+confounding, but it does not identify a particular latent variable.
 
 ## Selection Bias
 
@@ -41,7 +41,9 @@ Examples:
 - `X <-> Y`: arrowheads at both endpoints
 - `X o-o Y`: unresolved at both endpoints
 
-A PAG is an equivalence-class object. It is not a unique true DAG.
+A PAG is an equivalence-class object. It is not a unique true DAG. In
+particular, `X --> Y` is an invariant ancestral statement and need not be a
+direct causal effect.
 
 ## Skeleton Discovery
 
@@ -67,18 +69,17 @@ keeps dense or cyclic PAGs from triggering avoidable path explosion.
 ## Orientation Rules
 
 After skeleton discovery, FCI orients unshielded colliders using separating
-sets. It then applies PAG orientation rules iteratively to propagate reliable
-endpoint information while avoiding new unshielded colliders and directed
-cycles.
+sets. It then follows the complete-rule schedule: close R1-R4, apply R5, close
+R6-R7, and finally close R8-R10.
 
 The standard discriminating path rule is included. The orientation rule suite is
 kept readable and tested against small reference shapes, including an optional
 causal-learn comparison test.
 
-The implementation also includes conservative Zhang-style R5-R10 rules:
+The standard strategy implements Zhang's R1-R10 rules:
 
 - R1: avoid introducing new unshielded colliders
-- R2: avoid directed cycles and propagate directed-path consequences
+- R2: propagate an arrowhead through either local directed-chain pattern
 - R3: orient double-triangle arrowheads
 - R4: use discriminating paths for collider/noncollider orientation
 - R5: orient uncovered circle paths as undirected selection-bias edges
@@ -93,10 +94,11 @@ Each endpoint change can be inspected through `FCIResult.orientation_trace`.
 ## FCI+ Hierarchical D-SEP
 
 The FCI+ pipeline follows Claassen, Mooij, and Heskes' sparse hierarchical
-D-SEP search at the level of Algorithm 2: it builds an augmented skeleton,
-identifies candidate D-sep links through the bidirected witness pattern, and
-enumerates separate endpoint-base subsets `ZX <= BaseX` and `ZY <= BaseY` up to
-the sparse degree bound `k`.
+D-SEP search in Algorithm 2: it builds an augmented skeleton, identifies
+candidates only through the literal bidirected witness pattern
+`U <-> X <-> Y <-> V` plus the two not-against-arrowhead cross paths, and
+enumerates separate endpoint-base subsets in the paper's nested `n=1..k`,
+`m=1..k` order.
 
 The implementation deliberately separates two limits:
 
@@ -104,9 +106,12 @@ The implementation deliberately separates two limits:
 - `sparsity_bound` is the FCI+ sparse degree bound used for the D-SEP base
   subsets.
 
-Finite-sample engineering choices are explicit rather than hidden. At each
-base depth, `sepset_selection="max_pvalue"` can scan all passing candidates and
-keep the strongest independence evidence. The result includes
+Finite-sample engineering choices are explicit rather than hidden.
+`sepset_selection="first"`, equal PC/D-SEP bounds, unlimited orientation paths,
+and `orientation_strategy="standard"` are the paper-aligned settings.
+`sepset_selection="max_pvalue"`, `alpha="auto"`, conservative/leaf orientation,
+and path limits are optional engineering profiles, not claims from the paper.
+The result includes
 `dsep_diagnostics` counters for candidate edges, revisits, hierarchy-cache
 hits, duplicate conditioning-set skips, D-SEP CI tests, removed edges, and the
 maximum D-SEP conditioning size.
@@ -122,6 +127,46 @@ sets at the same depth and records the independent set with the largest
 p-value. This costs more CI tests but reduces orientation sensitivity to
 candidate ordering. Set `sepset_selection="first"` for traditional
 early-stopping behavior.
+
+## Assumptions, Guarantee, And Complexity
+
+The soundness/completeness statements are oracle results. They assume causal
+Markov and faithfulness, an underlying acyclic causal DAG, and correct
+conditional-independence answers; latent and selection variables may be
+present. FCI+ additionally assumes that the observed MAG is sparse with maximum
+degree `k`. Under those assumptions FCI+ replaces only the D-SEP stage and must
+return the same complete PAG as standard FCI.
+
+The proved worst-case number of CI tests is `O(N^(2(k+2)))`. The main paper and
+supplement theorem agree on this exponent; the `N^(2(k+1))` text on the
+supplement's arXiv abstract page is inconsistent with its own theorem. Larger
+finite-sample conditioning sets also have lower statistical power, so
+polynomial oracle complexity does not imply better finite-sample accuracy.
+
+Primary sources:
+
+- [FCI+ paper and Algorithm 2](https://auai.org/uai2013/prints/papers/121.pdf)
+- [FCI+ proof supplement](https://staff.fnwi.uva.nl/j.m.mooij/articles/UAI2013_121_sup.pdf)
+- [Zhang (2008), complete orientation rules](https://doi.org/10.1016/j.artint.2008.08.001)
+- [Readable R1-R10 rule table and schedule](https://www.cs.ru.nl/~tomc/docs/UAI2011_LCCausD.pdf)
+
+## Published Oracle Regression Graphs
+
+`tests/test_published_reference_graphs.py` runs both FCI and FCI+ against exact
+m-separation on three published structures. The flagship FCI+ Figure 4(b) case
+has the unique separator `{U, V, Z}` for `X-Y`, where `Z` is adjacent to neither
+endpoint. The test requires the edge source to be `fci_plus_dsep`, compares all
+PAG endpoints, and repeats the run under multiple variable orders. A separate
+seeded latent linear SEM checks the same graph with 50,000 sampled rows.
+
+## Reference Implementation Caveat
+
+External packages are differential references, not truth. In particular,
+`pcalg` 2.7-12's `PosDsepLinks` creates `NAAA` entries only for indices `2:p`
+but can later read `NAAA[[1]]`. On Figure 4(b), this can retain the false
+`X-Y` link when an endpoint occupies index 1. The regression suite therefore
+tests variable permutations directly instead of copying pcalg output. See the
+[CRAN FCI+ source](https://rdrr.io/cran/pcalg/src/R/fciPlus.R).
 
 ## Background Knowledge
 
@@ -141,6 +186,9 @@ not force edges to exist when CI tests remove them from the skeleton.
 - Kernel CI is available through RBF-HSIC for unconditional tests and a
   kernel-ridge residualized KCI-style conditional statistic for nonlinear data.
 - Finite-sample CI decisions may be unstable near the significance threshold.
+- FCI+ candidate recognition needs invariant arrowheads in the augmented
+  skeleton. At moderate sample sizes these may be missed, so standard FCI can
+  be more reliable even when FCI+ uses fewer oracle CI tests.
 - Output is a PAG, not a DAG.
 - FCI+ is available as a sparse hierarchical D-SEP implementation with explicit
   finite-sample diagnostics. It shares the same PAG orientation stage as
