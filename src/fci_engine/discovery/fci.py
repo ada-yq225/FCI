@@ -68,6 +68,8 @@ class FCI:
         base_ci_test = resolved_config.ci_test
         if base_ci_test is None:
             base_ci_test = FisherZTest(alpha=resolved_alpha)
+        else:
+            resolved_config = replace(resolved_config, alpha=base_ci_test.alpha)
         allow_nan = getattr(base_ci_test, "allow_nan", False)
         ci_test = CITestCache(base_ci_test)
         self.ci_test_cache_ = ci_test
@@ -102,6 +104,7 @@ class FCI:
                 ci_test,
                 max_cond_set_size=resolved_config.max_cond_set_size,
                 trace=orientation_trace,
+                allow_nan=allow_nan,
             )
         else:
             orient_unshielded_colliders(graph, sepsets, trace=orientation_trace)
@@ -136,6 +139,7 @@ class FCI:
                     ci_test,
                     max_cond_set_size=resolved_config.max_cond_set_size,
                     trace=orientation_trace,
+                    allow_nan=allow_nan,
                 )
             else:
                 orient_unshielded_colliders(graph, sepsets, trace=orientation_trace)

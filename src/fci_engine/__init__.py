@@ -45,6 +45,9 @@ from fci_engine.simulation import (
     canonical_dsep_mag,
     default_oracle_cases,
     realistic_oracle_cases,
+    sample_canonical_dsep_data,
+    spirtes_latent_reference_mag,
+    zhang_orientation_reference_mag,
 )
 
 __version__ = "0.1.0"
@@ -80,6 +83,9 @@ __all__ = [
     "compare_pag_to_shape_semantic",
     "compare_pag_to_shape",
     "canonical_dsep_mag",
+    "sample_canonical_dsep_data",
+    "spirtes_latent_reference_mag",
+    "zhang_orientation_reference_mag",
     "default_oracle_cases",
     "realistic_oracle_cases",
     "fci",

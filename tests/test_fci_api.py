@@ -112,6 +112,23 @@ def test_fci_accepts_missing_values_with_missing_value_ci_test() -> None:
     assert isinstance(result, FCIResult)
     assert result.graph.nodes == ("X0", "X1", "X2")
     assert {event.method for event in result.ci_test_trace} == {"mv_fisher_z"}
+    assert result.config.alpha == 0.001
+
+
+def test_robust_fci_accepts_missing_values_during_conservative_orientation() -> None:
+    rng = np.random.default_rng(81)
+    data = rng.normal(size=(180, 4))
+    data[::9, 2] = np.nan
+
+    result = fci(
+        data,
+        ci_test=MissingValueFisherZTest(alpha=0.001),
+        max_cond_set_size=1,
+        do_pdsep=False,
+        orientation_strategy="robust",
+    )
+
+    assert result.graph.nodes == ("X0", "X1", "X2", "X3")
 
 
 def test_conservative_colliders_report_ambiguous_triples() -> None:

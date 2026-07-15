@@ -116,9 +116,24 @@ result = fci(data_with_nan, ci_test=MissingValueFisherZTest(alpha=0.01))
 ```python
 from fci_engine import FCIPlus, fci_plus
 
-result = fci_plus(data, alpha=0.01, max_cond_set_size=3)
+result = fci_plus(
+    data,
+    alpha=0.01,
+    max_cond_set_size=3,
+    sparsity_bound=3,
+    max_path_length=None,
+    sepset_selection="first",
+    orientation_strategy="standard",
+)
 
-estimator = FCIPlus(alpha=0.01, max_cond_set_size=3)
+estimator = FCIPlus(
+    alpha=0.01,
+    max_cond_set_size=3,
+    sparsity_bound=3,
+    max_path_length=None,
+    sepset_selection="first",
+    orientation_strategy="standard",
+)
 result = estimator.fit(data)
 ```
 
@@ -126,6 +141,10 @@ FCI+ uses the same `FCIResult` and PAG representation as standard FCI. The
 difference is the refinement stage: standard FCI uses Possible-D-Sep search,
 while FCI+ uses a sparse hierarchical D-SEP search driven by separating sets
 already discovered in earlier stages.
+
+The explicit settings above are the paper-aligned profile. `alpha="auto"`,
+max-p-value sepset selection, finite path caps, and robust/leaf orientation are
+optional finite-sample engineering choices.
 
 ## Stability-Selected FCI+
 

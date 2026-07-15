@@ -144,6 +144,7 @@ def orient_unshielded_colliders_conservative(
     ci_test: CITest,
     max_cond_set_size: Optional[int] = None,
     trace: Optional[list[OrientationEvent]] = None,
+    allow_nan: bool = False,
 ) -> tuple[PAG, list[Triple]]:
     """Conservatively orient unshielded colliders.
 
@@ -157,7 +158,11 @@ def orient_unshielded_colliders_conservative(
     if max_cond_set_size is not None and max_cond_set_size < 0:
         raise ValueError("max_cond_set_size must be non-negative.")
 
-    normalized_data, node_to_index = _prepare_data_for_graph(data, graph)
+    normalized_data, node_to_index = _prepare_data_for_graph(
+        data,
+        graph,
+        allow_nan=allow_nan,
+    )
     ambiguous_triples: list[Triple] = []
 
     for x, z, y in find_unshielded_triples(graph):

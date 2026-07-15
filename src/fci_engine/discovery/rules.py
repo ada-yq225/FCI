@@ -21,7 +21,7 @@ AmbiguousTripleKey = tuple[frozenset[Hashable], Hashable]
 
 ORIENTATION_RULE_REFERENCE: dict[str, str] = {
     "R1": "Avoid introducing new unshielded colliders.",
-    "R2": "Avoid directed cycles and propagate directed-path consequences.",
+    "R2": "Propagate arrowheads through the two local directed-chain patterns.",
     "R3": "Orient double-triangle arrowheads.",
     "R4": "Use discriminating paths for collider/noncollider orientation.",
     "R5": "Orient uncovered circle paths as undirected selection-bias edges.",
@@ -44,7 +44,13 @@ def apply_orientation_rules(
     conservative_orientation: bool = False,
     orientation_strategy: str = "standard",
 ) -> PAG:
-    """Apply FCI orientation rules until convergence."""
+    """Apply the complete FCI orientation rules.
+
+    The ``standard`` strategy follows Zhang's rule schedule: close R1--R4,
+    apply R5, close R6--R7, then close R8--R10. The other strategies are
+    deliberately conservative finite-sample profiles and do not claim the
+    oracle completeness of the standard schedule.
+    """
 
     if max_iter < 0:
         raise ValueError("max_iter must be non-negative.")
@@ -60,84 +66,235 @@ def apply_orientation_rules(
     if orientation_strategy == "robust":
         orientation_strategy = "leaf"
 
-    arrowhead_rules = [
-        rule_propagate_arrowheads,
-        rule_double_triangle_arrowheads,
-        rule_propagate_arrowheads_along_directed_paths,
-    ]
-    tail_rules = [
-        rule_avoid_directed_cycles,
-        rule_selection_bias_tail_from_undirected,
-        rule_selection_bias_tail_from_noncollider,
-        rule_orient_tail_along_directed_chain,
-    ]
-    tail_enabled = orientation_strategy == "standard"
-    leaf_tail_enabled = orientation_strategy == "leaf"
-    rules = arrowhead_rules if not tail_enabled else arrowhead_rules + tail_rules
+    if max_iter == 0:
+        return graph
 
-    for iteration in range(max_iter):
-        changed = False
-        if tail_enabled or leaf_tail_enabled:
-            rule_changed = rule_avoid_new_unshielded_colliders(
-                graph,
-                sepsets,
-                trace=trace,
-                iteration=iteration,
-                ambiguous_triples=ambiguous_triples,
-                leaf_only=leaf_tail_enabled,
-            )
-            if verbose and rule_changed:
-                print(
-                    "rule_avoid_new_unshielded_colliders changed graph "
-                    f"at iteration {iteration}."
-                )
-            changed = changed or rule_changed
-        for rule in rules:
-            rule_changed = rule(
-                graph,
-                sepsets,
-                trace=trace,
-                iteration=iteration,
-            )
-            if verbose and rule_changed:
-                print(f"{rule.__name__} changed graph at iteration {iteration}.")
-            changed = changed or rule_changed
-        rule_changed = rule_discriminating_paths(
+    if orientation_strategy == "standard":
+        iteration = _close_r1_to_r4(
             graph,
             sepsets,
+            max_iter=max_iter,
             max_path_length=max_path_length,
+            verbose=verbose,
             trace=trace,
-            iteration=iteration,
-            conservative_orientation=not tail_enabled,
+            ambiguous_triples=ambiguous_triples,
+            start_iteration=0,
         )
-        if verbose and rule_changed:
-            print(
-                "rule_discriminating_paths changed graph "
-                f"at iteration {iteration}."
-            )
-        changed = changed or rule_changed
-        if tail_enabled:
-            for path_rule in (
-                rule_uncovered_circle_path_selection_bias,
+        _run_rule(
+            rule_uncovered_circle_path_selection_bias,
+            graph,
+            sepsets,
+            iteration=iteration,
+            max_path_length=max_path_length,
+            verbose=verbose,
+            trace=trace,
+        )
+        iteration += 1
+        iteration = _close_simple_rule_phase(
+            graph,
+            sepsets,
+            rules=(
+                rule_selection_bias_tail_from_undirected,
+                rule_selection_bias_tail_from_noncollider,
+            ),
+            max_iter=max_iter,
+            start_iteration=iteration,
+            verbose=verbose,
+            trace=trace,
+        )
+        _close_path_rule_phase(
+            graph,
+            sepsets,
+            rules=(
+                rule_orient_tail_along_directed_chain,
                 rule_orient_tail_along_uncovered_pd_path,
                 rule_orient_tail_with_two_directed_parents,
-            ):
-                rule_changed = path_rule(
+            ),
+            max_iter=max_iter,
+            max_path_length=max_path_length,
+            start_iteration=iteration,
+            verbose=verbose,
+            trace=trace,
+        )
+        return graph
+
+    # Conservative/leaf profiles retain only sound arrowhead propagation and,
+    # for leaf mode, the deliberately restricted R1 tail orientation.
+    leaf_only = orientation_strategy == "leaf"
+    for iteration in range(max_iter):
+        changed = False
+        if leaf_only:
+            changed = (
+                rule_avoid_new_unshielded_colliders(
                     graph,
                     sepsets,
-                    max_path_length=max_path_length,
                     trace=trace,
                     iteration=iteration,
+                    ambiguous_triples=ambiguous_triples,
+                    leaf_only=True,
                 )
-                if verbose and rule_changed:
-                    print(
-                        f"{path_rule.__name__} changed graph at iteration "
-                        f"{iteration}."
-                    )
-                changed = changed or rule_changed
+                or changed
+            )
+        for rule in (rule_propagate_arrowheads, rule_double_triangle_arrowheads):
+            changed = (
+                _run_rule(
+                    rule,
+                    graph,
+                    sepsets,
+                    iteration=iteration,
+                    verbose=verbose,
+                    trace=trace,
+                )
+                or changed
+            )
+        changed = (
+            rule_discriminating_paths(
+                graph,
+                sepsets,
+                max_path_length=max_path_length,
+                trace=trace,
+                iteration=iteration,
+                conservative_orientation=True,
+            )
+            or changed
+        )
         if not changed:
             break
     return graph
+
+
+def _close_r1_to_r4(
+    graph: PAG,
+    sepsets: SepsetMap,
+    max_iter: int,
+    max_path_length: Optional[int],
+    verbose: bool,
+    trace: Optional[list[OrientationEvent]],
+    ambiguous_triples: Optional[Iterable[Triple]],
+    start_iteration: int,
+) -> int:
+    iteration = start_iteration
+    for _ in range(max_iter):
+        changed = rule_avoid_new_unshielded_colliders(
+            graph,
+            sepsets,
+            trace=trace,
+            iteration=iteration,
+            ambiguous_triples=ambiguous_triples,
+        )
+        for rule in (rule_propagate_arrowheads, rule_double_triangle_arrowheads):
+            changed = (
+                _run_rule(
+                    rule,
+                    graph,
+                    sepsets,
+                    iteration=iteration,
+                    verbose=verbose,
+                    trace=trace,
+                )
+                or changed
+            )
+        changed = (
+            rule_discriminating_paths(
+                graph,
+                sepsets,
+                max_path_length=max_path_length,
+                trace=trace,
+                iteration=iteration,
+            )
+            or changed
+        )
+        iteration += 1
+        if not changed:
+            break
+    return iteration
+
+
+def _close_simple_rule_phase(
+    graph: PAG,
+    sepsets: SepsetMap,
+    rules: tuple[object, ...],
+    max_iter: int,
+    start_iteration: int,
+    verbose: bool,
+    trace: Optional[list[OrientationEvent]],
+) -> int:
+    iteration = start_iteration
+    for _ in range(max_iter):
+        changed = False
+        for rule in rules:
+            changed = (
+                _run_rule(
+                    rule,
+                    graph,
+                    sepsets,
+                    iteration=iteration,
+                    verbose=verbose,
+                    trace=trace,
+                )
+                or changed
+            )
+        iteration += 1
+        if not changed:
+            break
+    return iteration
+
+
+def _close_path_rule_phase(
+    graph: PAG,
+    sepsets: SepsetMap,
+    rules: tuple[object, ...],
+    max_iter: int,
+    max_path_length: Optional[int],
+    start_iteration: int,
+    verbose: bool,
+    trace: Optional[list[OrientationEvent]],
+) -> int:
+    iteration = start_iteration
+    for _ in range(max_iter):
+        changed = False
+        for rule in rules:
+            changed = (
+                _run_rule(
+                    rule,
+                    graph,
+                    sepsets,
+                    iteration=iteration,
+                    max_path_length=max_path_length,
+                    verbose=verbose,
+                    trace=trace,
+                )
+                or changed
+            )
+        iteration += 1
+        if not changed:
+            break
+    return iteration
+
+
+def _run_rule(
+    rule: object,
+    graph: PAG,
+    sepsets: SepsetMap,
+    iteration: int,
+    verbose: bool,
+    trace: Optional[list[OrientationEvent]],
+    max_path_length: Optional[int] = None,
+) -> bool:
+    kwargs: dict[str, object] = {
+        "trace": trace,
+        "iteration": iteration,
+    }
+    if rule in {
+        rule_uncovered_circle_path_selection_bias,
+        rule_orient_tail_along_uncovered_pd_path,
+        rule_orient_tail_with_two_directed_parents,
+    }:
+        kwargs["max_path_length"] = max_path_length
+    changed = rule(graph, sepsets, **kwargs)  # type: ignore[operator]
+    if verbose and changed:
+        print(f"{rule.__name__} changed graph at iteration {iteration}.")
+    return bool(changed)
 
 
 def rule_avoid_new_unshielded_colliders(
@@ -380,10 +537,10 @@ def rule_discriminating_paths(
             if conservative_orientation:
                 continue
             changed = (
-                _orient_tail_if_circle(
+                _orient_directed_if_possible(
                     graph,
-                    c,
                     b,
+                    c,
                     trace=trace,
                     rule="R4",
                     iteration=iteration,
@@ -393,10 +550,11 @@ def rule_discriminating_paths(
             )
         else:
             changed = (
-                _orient_arrowhead_if_circle(
+                _orient_endpoint_for_rule(
                     graph,
                     a,
                     b,
+                    Endpoint.ARROW,
                     trace=trace,
                     rule="R4",
                     iteration=iteration,
@@ -405,10 +563,24 @@ def rule_discriminating_paths(
                 or changed
             )
             changed = (
-                _orient_arrowhead_if_circle(
+                _orient_endpoint_for_rule(
                     graph,
                     c,
                     b,
+                    Endpoint.ARROW,
+                    trace=trace,
+                    rule="R4",
+                    iteration=iteration,
+                    reason=f"discriminating path {path!r}; {b!r} not in sepset",
+                )
+                or changed
+            )
+            changed = (
+                _orient_endpoint_for_rule(
+                    graph,
+                    b,
+                    c,
+                    Endpoint.ARROW,
                     trace=trace,
                     rule="R4",
                     iteration=iteration,
@@ -441,7 +613,17 @@ def rule_uncovered_circle_path_selection_bias(
         if not paths:
             continue
 
-        path = paths[0]
+        path = next(
+            (
+                candidate
+                for candidate in paths
+                if not graph.is_adjacent(a, candidate[-2])
+                and not graph.is_adjacent(b, candidate[1])
+            ),
+            None,
+        )
+        if path is None:
+            continue
         reason = f"uncovered circle path {path!r}"
         changed = _orient_undirected_if_circles(
             graph,
@@ -959,7 +1141,13 @@ def _orient_directed_if_possible(
     iteration: Optional[int] = None,
     reason: str = "",
 ) -> bool:
-    """Orient ``source`` to ``target`` without overwriting fixed endpoints."""
+    """Apply an R1/R4 conclusion ``source --> target``.
+
+    The premise fixes a circle at ``source`` but leaves the target mark as the
+    wildcard ``*``. Consequently a pre-existing target tail must be replaced
+    by the arrowhead required by the rule, rather than silently producing an
+    undirected edge.
+    """
 
     if not graph.has_circle(target, source):
         return False
@@ -978,10 +1166,11 @@ def _orient_directed_if_possible(
         or changed
     )
     changed = (
-        _orient_arrowhead_if_circle(
+        _orient_endpoint_for_rule(
             graph,
             source,
             target,
+            Endpoint.ARROW,
             trace=trace,
             rule=rule,
             iteration=iteration,
@@ -990,6 +1179,40 @@ def _orient_directed_if_possible(
         or changed
     )
     return changed
+
+
+def _orient_endpoint_for_rule(
+    graph: PAG,
+    x: Hashable,
+    y: Hashable,
+    endpoint: Endpoint,
+    trace: Optional[list[OrientationEvent]] = None,
+    rule: str = "",
+    iteration: Optional[int] = None,
+    reason: str = "",
+) -> bool:
+    """Set an endpoint to the exact mark concluded by a sound FCI rule."""
+
+    current = graph.get_endpoint(x, y)
+    if current is endpoint:
+        return False
+    before_edge = graph.edge_repr(x, y)
+    graph.set_endpoint(x, y, endpoint)
+    if trace is not None:
+        trace.append(
+            OrientationEvent(
+                rule=rule,
+                edge=(x, y),
+                oriented_endpoint=y,
+                before=current,
+                after=endpoint,
+                before_edge=before_edge,
+                after_edge=graph.edge_repr(x, y),
+                iteration=iteration,
+                reason=reason,
+            )
+        )
+    return True
 
 
 def _apply_local_arrowhead_propagation(

@@ -41,7 +41,8 @@ result = estimator.fit(data)
 Configuration options:
 
 - `alpha`: significance level for the default Fisher-Z CI test
-- `ci_test`: custom conditional independence test
+- `ci_test`: custom conditional independence test. Its own `alpha` is the
+  effective threshold and is copied into the returned result configuration.
 - `max_cond_set_size`: maximum conditioning set size
 - `sparsity_bound`: FCI+ sparse degree bound `k` for hierarchical D-SEP base
   subsets. If omitted, FCI+ falls back to `max_cond_set_size`.
@@ -82,6 +83,9 @@ result = estimator.fit(data)
 `sparsity_bound` for the paper's sparse degree bound `k`; `max_cond_set_size`
 continues to limit ordinary CI conditioning depth. If `sparsity_bound` is not
 provided, FCI+ falls back to `max_cond_set_size` for backward compatibility.
+For a literal Algorithm 2 run, set the two limits to the same `k`, use
+`sepset_selection="first"`, `max_path_length=None`, and
+`orientation_strategy="standard"`.
 
 ## `FCIResult`
 

@@ -263,31 +263,124 @@ class MAGOracleCITest(CITest):
         )
 
 
-def canonical_dsep_mag() -> MAGSpec:
-    """Return a small MAG with the canonical FCI D-sep pattern.
+def canonical_dsep_mag(
+    node_order: Optional[Iterable[str]] = None,
+) -> MAGSpec:
+    """Return the FCI+ paper's canonical Figure 4(b) D-sep MAG.
 
-    The path ``X <-> U <-> Z -> V <-> Y`` is blocked by noncollider ``Z`` only
-    when conditioning includes ``Z`` together with the adjacent ancestors
-    ``U`` and ``V``.
+    ``X`` and ``Y`` remain adjacent after PC adjacency search and have the
+    unique minimal separator ``{U, V, Z}``; the nonadjacent node ``Z`` makes
+    this a genuine D-sep link. This fixture is therefore suitable for testing
+    the complete FCI/FCI+ pipeline rather than m-separation in isolation.
     """
 
-    return MAGSpec(
-        nodes=["X", "U", "Z", "V", "Y"],
-        directed_edges=[
-            ("Z", "V"),
-        ],
-        bidirected_edges=[
-            ("X", "U"),
-            ("U", "Z"),
-            ("V", "Y"),
-        ],
-        pag_shape={
-            ("X", "U"): ("ARROW", "ARROW"),
-            ("U", "Z"): ("ARROW", "ARROW"),
-            ("Z", "V"): ("TAIL", "ARROW"),
-            ("V", "Y"): ("ARROW", "ARROW"),
-        },
+    nodes = _reference_node_order(node_order, ("Z", "U", "V", "X", "Y"))
+    order = {node: index for index, node in enumerate(nodes)}
+    pag_shape = dict(
+        [
+            _ordered_endpoint_pair("Z", "U", "CIRCLE", "ARROW", order),
+            _ordered_endpoint_pair("Z", "V", "CIRCLE", "ARROW", order),
+            _ordered_endpoint_pair("U", "X", "ARROW", "ARROW", order),
+            _ordered_endpoint_pair("U", "Y", "TAIL", "ARROW", order),
+            _ordered_endpoint_pair("V", "X", "TAIL", "ARROW", order),
+            _ordered_endpoint_pair("V", "Y", "ARROW", "ARROW", order),
+        ]
     )
+    return MAGSpec(
+        nodes=nodes,
+        directed_edges=[("Z", "U"), ("Z", "V"), ("U", "Y"), ("V", "X")],
+        bidirected_edges=[("X", "U"), ("V", "Y")],
+        pag_shape=pag_shape,
+    )
+
+
+def sample_canonical_dsep_data(
+    n_samples: int = 50_000,
+    seed: int = 1,
+) -> pd.DataFrame:
+    """Sample a linear-Gaussian latent DAG inducing ``canonical_dsep_mag``.
+
+    The unobserved variables ``L_XU`` and ``L_VY`` generate the two bidirected
+    MAG edges. Fixed coefficients keep this useful as a reproducible
+    finite-sample integration fixture; unlike the exact oracle, recovery is
+    statistical rather than guaranteed.
+    """
+
+    if n_samples < 1:
+        raise ValueError("n_samples must be positive.")
+    rng = np.random.default_rng(seed)
+    z = rng.normal(size=n_samples)
+    latent_xu = rng.normal(size=n_samples)
+    latent_vy = rng.normal(size=n_samples)
+    u = 0.8 * z + 0.8 * latent_xu + rng.normal(scale=0.5, size=n_samples)
+    v = 0.8 * z + 0.8 * latent_vy + rng.normal(scale=0.5, size=n_samples)
+    x = 0.8 * v + 0.8 * latent_xu + rng.normal(scale=0.5, size=n_samples)
+    y = 0.8 * u + 0.8 * latent_vy + rng.normal(scale=0.5, size=n_samples)
+    return pd.DataFrame({"Z": z, "U": u, "V": v, "X": x, "Y": y})
+
+
+def spirtes_latent_reference_mag(
+    node_order: Optional[Iterable[str]] = None,
+) -> MAGSpec:
+    """Return the latent-variable example of Spirtes (1997, pp. 21--24)."""
+
+    nodes = _reference_node_order(node_order, ("3", "4", "5", "6", "7"))
+    order = {node: index for index, node in enumerate(nodes)}
+    pag_shape = dict(
+        [
+            _ordered_endpoint_pair("3", "4", "CIRCLE", "ARROW", order),
+            _ordered_endpoint_pair("3", "6", "CIRCLE", "ARROW", order),
+            _ordered_endpoint_pair("4", "5", "TAIL", "ARROW", order),
+            _ordered_endpoint_pair("4", "7", "ARROW", "ARROW", order),
+            _ordered_endpoint_pair("5", "6", "ARROW", "ARROW", order),
+            _ordered_endpoint_pair("6", "7", "TAIL", "ARROW", order),
+        ]
+    )
+    return MAGSpec(
+        nodes=nodes,
+        directed_edges=[("3", "4"), ("3", "6"), ("4", "5"), ("6", "7")],
+        bidirected_edges=[("4", "7"), ("5", "6")],
+        pag_shape=pag_shape,
+    )
+
+
+def zhang_orientation_reference_mag(
+    node_order: Optional[Iterable[str]] = None,
+) -> MAGSpec:
+    """Return the observed independence model of Zhang (2006), Figure 5.2."""
+
+    nodes = _reference_node_order(node_order, ("A", "B", "C", "D", "E"))
+    order = {node: index for index, node in enumerate(nodes)}
+    pag_shape = dict(
+        [
+            _ordered_endpoint_pair("A", "D", "CIRCLE", "ARROW", order),
+            _ordered_endpoint_pair("B", "D", "CIRCLE", "ARROW", order),
+            _ordered_endpoint_pair("B", "E", "TAIL", "ARROW", order),
+            _ordered_endpoint_pair("C", "D", "CIRCLE", "ARROW", order),
+            _ordered_endpoint_pair("D", "E", "TAIL", "ARROW", order),
+        ]
+    )
+    return MAGSpec(
+        nodes=nodes,
+        directed_edges=[
+            ("A", "D"),
+            ("B", "D"),
+            ("C", "D"),
+            ("B", "E"),
+            ("D", "E"),
+        ],
+        pag_shape=pag_shape,
+    )
+
+
+def _reference_node_order(
+    requested: Optional[Iterable[str]],
+    default: tuple[str, ...],
+) -> tuple[str, ...]:
+    nodes = default if requested is None else tuple(requested)
+    if len(nodes) != len(default) or set(nodes) != set(default):
+        raise ValueError(f"node_order must be a permutation of {default!r}.")
+    return nodes
 
 
 def _unordered_edge(x: str, y: str) -> frozenset[str]:

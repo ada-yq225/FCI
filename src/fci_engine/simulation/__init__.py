@@ -5,6 +5,9 @@ from fci_engine.simulation.mag_oracle import (
     MAGOracleCITest,
     MAGSpec,
     canonical_dsep_mag,
+    sample_canonical_dsep_data,
+    spirtes_latent_reference_mag,
+    zhang_orientation_reference_mag,
 )
 from fci_engine.simulation.oracle_cases import (
     OracleCase,
@@ -27,6 +30,9 @@ __all__ = [
     "MAGOracleCITest",
     "MAGSpec",
     "canonical_dsep_mag",
+    "sample_canonical_dsep_data",
+    "spirtes_latent_reference_mag",
+    "zhang_orientation_reference_mag",
     "default_oracle_cases",
     "realistic_oracle_cases",
     "make_enterprise_monitoring_case",

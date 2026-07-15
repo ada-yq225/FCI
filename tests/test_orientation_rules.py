@@ -80,6 +80,17 @@ def test_rule_avoid_new_unshielded_colliders_orients_away_from_collider() -> Non
     assert graph.edge_repr("Z", "Y") == "Z --> Y"
 
 
+def test_r1_wildcard_target_tail_is_replaced_by_required_arrowhead() -> None:
+    graph = PAG(["X", "Z", "Y"])
+    graph.add_edge("X", "Z", Endpoint.CIRCLE, Endpoint.ARROW)
+    graph.add_edge("Z", "Y", Endpoint.CIRCLE, Endpoint.TAIL)
+
+    changed = rule_avoid_new_unshielded_colliders(graph, {})
+
+    assert changed
+    assert graph.edge_repr("Z", "Y") == "Z --> Y"
+
+
 def test_rule_avoid_new_unshielded_colliders_skips_ambiguous_triples() -> None:
     graph = PAG(["X", "Z", "Y"])
     graph.add_edge("X", "Z", Endpoint.CIRCLE, Endpoint.ARROW)
@@ -114,6 +125,8 @@ def test_rule_propagate_arrowheads_along_directed_paths() -> None:
     graph.add_edge("B", "C", Endpoint.TAIL, Endpoint.ARROW)
     graph.add_edge("C", "D", Endpoint.TAIL, Endpoint.ARROW)
     graph.add_circle_edge("A", "D")
+    # Shield C-D-A without creating either of R2's local arrowhead patterns.
+    graph.add_edge("A", "C", Endpoint.CIRCLE, Endpoint.TAIL)
 
     changed = rule_propagate_arrowheads_along_directed_paths(graph, {})
 
@@ -143,6 +156,20 @@ def test_apply_orientation_rules_converges_iteratively() -> None:
 
     assert result is graph
     assert graph.edge_repr("A", "C") == "A --> C"
+
+
+def test_standard_schedule_does_not_use_nonstandard_global_path_heuristic() -> None:
+    graph = PAG(["A", "B", "C", "D"])
+    graph.add_edge("A", "B", Endpoint.TAIL, Endpoint.ARROW)
+    graph.add_edge("B", "C", Endpoint.TAIL, Endpoint.ARROW)
+    graph.add_edge("C", "D", Endpoint.TAIL, Endpoint.ARROW)
+    graph.add_circle_edge("A", "D")
+    # Shield C-D-A without creating either of R2's local arrowhead patterns.
+    graph.add_edge("A", "C", Endpoint.CIRCLE, Endpoint.TAIL)
+
+    apply_orientation_rules(graph, {})
+
+    assert graph.edge_repr("A", "D") == "A o-o D"
 
 
 def test_apply_orientation_rules_respects_ambiguous_triples_in_r1() -> None:
@@ -268,12 +295,39 @@ def test_discriminating_path_rule_r4_orients_tail_when_center_in_sepset() -> Non
     assert graph.edge_repr("B", "C") == "B --> C"
 
 
+def test_r4_noncollider_wildcard_target_is_replaced_by_arrowhead() -> None:
+    graph = PAG(["D", "A", "B", "C"])
+    graph.add_edge("D", "A", Endpoint.CIRCLE, Endpoint.ARROW)
+    graph.add_edge("A", "B", Endpoint.ARROW, Endpoint.CIRCLE)
+    graph.add_edge("A", "C", Endpoint.TAIL, Endpoint.ARROW)
+    graph.add_edge("B", "C", Endpoint.CIRCLE, Endpoint.TAIL)
+
+    changed = rule_discriminating_paths(graph, {("D", "C"): {"B"}})
+
+    assert changed
+    assert graph.edge_repr("B", "C") == "B --> C"
+
+
 def test_discriminating_path_rule_r4_orients_collider_when_center_not_in_sepset() -> None:
     graph = PAG(["D", "A", "B", "C"])
     graph.add_edge("D", "A", Endpoint.CIRCLE, Endpoint.ARROW)
     graph.add_edge("A", "B", Endpoint.ARROW, Endpoint.CIRCLE)
     graph.add_edge("A", "C", Endpoint.TAIL, Endpoint.ARROW)
     graph.add_edge("B", "C", Endpoint.CIRCLE, Endpoint.ARROW)
+
+    changed = rule_discriminating_paths(graph, {("D", "C"): {"A"}})
+
+    assert changed
+    assert graph.edge_repr("A", "B") == "A <-> B"
+    assert graph.edge_repr("B", "C") == "B <-> C"
+
+
+def test_r4_collider_conclusion_replaces_wildcard_tail_at_center() -> None:
+    graph = PAG(["D", "A", "B", "C"])
+    graph.add_edge("D", "A", Endpoint.CIRCLE, Endpoint.ARROW)
+    graph.add_edge("A", "B", Endpoint.ARROW, Endpoint.TAIL)
+    graph.add_edge("A", "C", Endpoint.TAIL, Endpoint.ARROW)
+    graph.add_edge("B", "C", Endpoint.CIRCLE, Endpoint.TAIL)
 
     changed = rule_discriminating_paths(graph, {("D", "C"): {"A"}})
 

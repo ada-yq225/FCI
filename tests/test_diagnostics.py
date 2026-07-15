@@ -56,6 +56,6 @@ def test_orientation_rule_trace_records_before_and_after_edges() -> None:
     apply_orientation_rules(graph, {}, trace=trace)
 
     assert graph.edge_repr("A", "C") == "A --> C"
-    assert [event.rule for event in trace] == ["R2", "R2"]
+    assert [event.rule for event in trace] == ["R2", "R8"]
     assert trace[0].before_edge == "A o-o C"
     assert trace[-1].after_edge == "C <-- A"
