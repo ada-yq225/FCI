@@ -18,9 +18,11 @@ finite-sample instability, and production audit requirements.
 - **Research focus**: stable skeleton discovery, accuracy-first separating-set
   selection, conservative orientation options, bootstrap stability filtering,
   and explicit audit traces.
-- **Validation**: oracle PAG cases, semantic PAG metrics, optional
-  causal-learn comparison, optional R `pcalg::fciPlus` comparison, and a
-  Python 3.9-3.13 CI matrix.
+- **Validation**: published oracle PAG cases, representative variable-order
+  checks, seeded latent-SEM integration tests, optional reference-package
+  comparisons, and a Python 3.9-3.13 CI matrix.
+- **Advisor view**: [open the committed evidence-first showcase](examples/advisor_showcase.html)
+  or regenerate it from the current checkout.
 
 ```mermaid
 flowchart LR
@@ -133,6 +135,37 @@ The correct way to claim accuracy is to run a transparent benchmark on known
 oracle graphs. This repository includes that workflow instead of treating any
 external implementation as ground truth.
 
+## Paper-Aligned Validation Snapshot
+
+The strongest regression fixture is the D-SEP MAG in FCI+ Figure 4(b). Exact
+m-separation supplies the CI answers, so this test isolates algorithm fidelity
+from sampling error. Both algorithms recover the complete published PAG; FCI+
+removes `X-Y` in its hierarchical D-SEP stage with the unique separator
+`{U, V, Z}`.
+
+| Reproducible run | FCI+ | Standard FCI | What it shows |
+| --- | --- | --- | --- |
+| Figure 4(b), exact oracle | Exact PAG; 63 CI queries | Exact PAG; 102 CI queries | 39 fewer queries (about 38%) on this fixture only. |
+| Seeded latent SEM, `N=5,000` | Extra `X <-> Y`; exact F1 0.923 | Exact PAG; exact F1 1.000 | Finite-sample CI error can prevent FCI+ candidate recognition. |
+| Same SEM, `N=50,000` | Exact PAG; exact F1 1.000 | Exact PAG; exact F1 1.000 | A reproducible integration result, not a universal sample-size threshold. |
+
+The committed tests also cover the complete PAG for three published reference
+graphs and four representative variable orders for Figure 4(b). The oracle
+result establishes correctness under exact CI answers; it does not promise
+finite-sample recovery on arbitrary data.
+
+```bash
+python -m pytest -q
+python -m ruff check src tests examples
+```
+
+Current validation snapshot: **238 tests passed** and Ruff reported no errors.
+The full graphs, diagnostics, same-data FCI baseline, configuration, and
+limitations are collected in the
+[advisor showcase](examples/advisor_showcase.html). Its metrics are computed by
+[`examples/10_fci_plus_advisor_showcase.py`](examples/10_fci_plus_advisor_showcase.py),
+not entered by hand.
+
 ## Benchmark Snapshot
 
 The visual benchmark report compares hand-written oracle PAGs, `fci_engine`
@@ -152,16 +185,11 @@ The report includes:
 - per-edge missing, extra, under-oriented, and over-oriented differences;
 - orientation-rule traces for explainability.
 
-Current committed reference snapshot, generated on the preset oracle suite with
-R `pcalg` available:
-
-| Compared cases | fci_engine wins | Ties | R pcalg wins | Mean semantic delta | Mean exact delta |
-| ---: | ---: | ---: | ---: | ---: | ---: |
-| 14 | 8 | 6 | 0 | +0.035 | +0.127 |
-
-This is a benchmark on preset oracle graphs, not a universal dominance claim.
-When the algorithm changes, rerun the report and review the per-case edge
-explanations before citing the numbers.
+The committed HTML is a presentation snapshot, not a universal dominance
+claim. Regenerate it after any algorithm or configuration change and review the
+per-case edge explanations before citing its aggregate numbers. This visual
+report uses a different cohort from the paper-aligned Figure 4(b) experiment
+above.
 
 ## Installation
 
@@ -239,7 +267,7 @@ result = fci(df, alpha="auto")
 for x, y in result.graph.edges():
     if "<->" in result.graph.edge_repr(x, y):
         print(f"Bidirected PAG edge: {result.graph.edge_repr(x, y)}")
-        # Output: A <-> B
+        # Possible example output: A <-> B (finite samples can differ)
 ```
 
 ### 3. Object-Oriented Estimator 
@@ -306,18 +334,23 @@ silent data loss does not happen accidentally.
 
 ### The Need for FCI
 
-Standard Causal Discovery algorithms like PC assume **Causal Sufficiency**: the assumption that there are *no unmeasured common causes (latent confounders)*. In real-world data, this is almost never true. If you run a PC algorithm on data that has latent variables, it frequently draws incorrect causal pathways.
+Standard causal-discovery algorithms such as PC assume **causal sufficiency**:
+there are no unmeasured common causes among the modeled variables. This
+assumption is often questionable in observational studies. When it is violated,
+PC's causal guarantees need not hold and the learned graph can be misleading.
 
 **FCI (Fast Causal Inference)** drops this assumption. Instead of learning a single Directed Acyclic Graph (DAG) or a CPDAG, it learns a **PAG (Partial Ancestral Graph)**.
 
 ### Reading a PAG (Endpoint Meaning)
 
-A PAG contains several types of endpoints denoting sets of DAGs (Markov equivalence classes) consistent with the data constraints:
+A PAG represents a Markov-equivalence class of MAGs; those MAGs summarize the
+observed-margin constraints induced by latent-variable causal DAGs. Its endpoint
+marks have the following meanings:
 *   `X --> Y` (Tail to Arrow): $X$ is an invariant ancestor of $Y$ in the represented equivalence class; the edge need not be a direct effect.
 *   `X <-> Y` (Arrow to Arrow): neither endpoint is an ancestor of the other in the represented MAG/PAG. This is compatible with latent confounding, but does not identify a specific latent variable.
-*   `X o-> Y` (Circle to Arrow): It is either $X \rightarrow Y$ or $X \leftrightarrow Y$. $X$ is purely not an effect of $Y$.
+*   `X o-> Y` (Circle to Arrow): the arrowhead at $Y$ rules out $Y$ as an ancestor of $X$; the endpoint at $X$ remains unresolved.
 *   `X o-o Y` (Circle to Circle): No information is known about the direction. (Could be $\rightarrow, \leftarrow, \text{or} \leftrightarrow$).
-*   `X --- Y` (Tail to Tail): Known as a selection-bias edge. Very rare unless dealing with uniquely conditioned datasets.
+*   `X --- Y` (Tail to Tail): compatible with selection effects in the represented ancestral graph, but does not prove one specific selection mechanism.
 
 ### FCI Stages
 
@@ -335,9 +368,9 @@ The structural learning happens in four phases directly implemented in `fci-engi
 The regression suite includes FCI+ Figure 4(b), Zhang's orientation example,
 and the Spirtes (1997) latent-variable example. The Figure 4(b) test verifies
 that PC leaves `X-Y`, FCI+ removes it only in the hierarchical D-SEP stage with
-the unique separator `{U, V, Z}`, and the complete PAG is unchanged under
-variable permutations. A seeded 50,000-row latent linear SEM supplies a
-separate finite-sample integration test.
+the unique separator `{U, V, Z}`, and the complete PAG is unchanged across four
+representative variable orders. A seeded 50,000-row latent linear SEM supplies
+a separate finite-sample integration test.
 
 ```bash
 python -m pytest tests/test_published_reference_graphs.py -q
@@ -461,12 +494,15 @@ PYTHONPATH=src python examples/08_visual_benchmark_report.py
 - **Discrete Data**: Provided Chi-square and G-square implementations.
 - **Nonlinear CI**: `KernelCITest` provides RBF-HSIC for unconditional tests and
   kernel-ridge residualized KCI-style conditional tests for nonlinear data.
-- **Soundness & Convergence**: Supports deterministic Zhang-style rule closures (R1-R10) eliminating false cyclic patterns.
+- **Orientation Rules**: Applies the standard Zhang R1-R10 schedule. Oracle
+  guarantees require Markov, faithfulness, acyclicity, and exact-CI assumptions;
+  finite-sample errors remain possible.
 - **Stability Selection**: `stable_fci` can filter edges with weak bootstrap support.
 - **Background Knowledge**: Required and forbidden edge directions are supported.
-- **FCI+**: Available as `fci_plus(...)` / `FCIPlus`; this first release uses
-  hierarchical D-SEP refinement, separates the sparse degree bound `k` from the
-  conditioning-set cap, and reuses the standard FCI orientation rules.
+- **FCI+**: Available as `fci_plus(...)` / `FCIPlus`, with hierarchical D-SEP
+  refinement and the standard FCI orientation rules. The API can separate the
+  sparse degree bound from the conditioning-set cap as an engineering extension;
+  the paper-aligned profile sets both to the same `k`.
 - **Reference Benchmarks**: Preset oracle cases can compare `fci_engine`,
   causal-learn, and R `pcalg::fciPlus` when those optional tools are installed.
 
