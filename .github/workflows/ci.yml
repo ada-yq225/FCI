@@ -54,11 +54,13 @@ jobs:
 
       - name: Run Ruff
         run: |
-          python -m ruff check src tests examples
-          python -m ruff format --check src tests examples
+          python -m ruff check src tests examples case_studies
+          python -m ruff format --check src tests examples case_studies
 
       - name: Run MyPy
-        run: python -m mypy
+        run: |
+          python -m mypy
+          python -m mypy case_studies/tennessee_star
 
       - name: Verify typed public API examples
         run: |

@@ -1,0 +1,7 @@
+panel,algorithm,samples,nodes,edges,ci_tests,median_elapsed_seconds,temporal_flag_count
+attrition,fci,5744,9,14,1705,4.554520374999811,1
+attrition,fci_plus,5744,9,17,793,3.28010012499999,0
+longitudinal,fci,2787,9,10,960,2.27313679100007,0
+longitudinal,fci_plus,2787,9,13,335,0.44527170899982593,1
+focused_treatment,fci,2976,8,10,291,0.2795028749997073,0
+focused_treatment,fci_plus,2976,8,10,185,0.254823999999644,0

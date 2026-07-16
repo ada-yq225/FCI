@@ -1,0 +1,27 @@
+{
+  "dataset": "Tennessee's Student Teacher Achievement Ratio (STAR) project",
+  "persistent_id": "doi:10.7910/DVN/SIWH9F",
+  "persistent_url": "https://doi.org/10.7910/DVN/SIWH9F",
+  "version": "V1",
+  "license": "CC0-1.0",
+  "retrieved_on": "2026-07-16",
+  "files": [
+    {
+      "dataverse_file_id": 666716,
+      "source_name": "STAR_Students.tab",
+      "source_url": "https://dataverse.harvard.edu/api/access/datafile/666716",
+      "local_name": "STAR_Students.tab.gz",
+      "local_format": "deterministic gzip of the Dataverse tabular export",
+      "rows": 11601,
+      "columns": 379,
+      "sha256": "2ffa578822eb30fcd6626fa7c5cc734a721fd05dd522403f0d643f89e891bac8"
+    },
+    {
+      "dataverse_file_id": 666705,
+      "source_name": "starUsersGuide.pdf",
+      "source_url": "https://dataverse.harvard.edu/api/access/datafile/666705",
+      "local_name": "starUsersGuide.pdf",
+      "sha256": "e51ff1d28d5af28c128196b3a133957f9f2cd872b1abe348f156022193550130"
+    }
+  ]
+}

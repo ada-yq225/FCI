@@ -1,0 +1,9 @@
+bins,alpha,algorithm,adjacent,edge,edge_count,ci_tests
+3,0.01,fci,False,,8,225
+3,0.01,fci_plus,False,,8,150
+3,0.05,fci,True,K_Class <-> Grade3_Achievement,11,305
+3,0.05,fci_plus,True,K_Class <-> Grade3_Achievement,11,214
+4,0.01,fci,False,,9,252
+4,0.01,fci_plus,False,,9,163
+4,0.05,fci,True,K_Class <-> Grade3_Achievement,10,291
+4,0.05,fci_plus,True,K_Class <-> Grade3_Achievement,10,185

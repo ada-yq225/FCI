@@ -344,6 +344,25 @@ per-case edge explanations before citing its aggregate numbers. This visual
 report uses a different cohort from the paper-aligned Figure 4(b) experiment
 above.
 
+## Tennessee STAR Applied Case Study
+
+The repository now includes a separate real-data application to the Tennessee
+Student/Teacher Achievement Ratio randomized class-size experiment:
+
+- [case-study methodology and reproduction guide](case_studies/tennessee_star/README.md)
+- [standalone visual report](case_studies/tennessee_star/output/star_case_study_report.html)
+- [machine-readable result summary](case_studies/tennessee_star/output/star_case_study_summary.json)
+
+The application is intentionally outside `src/fci_engine`: STAR-specific data
+coding, cohort selection, school-cluster bootstrap, visualizations, and
+researcher conclusions are not mixed into the reusable algorithm package.
+
+Rebuild every STAR artifact with:
+
+```bash
+PYTHONPATH=src python -m case_studies.tennessee_star.run_case_study
+```
+
 ## Installation
 
 Supported Python versions: **3.9, 3.10, 3.11, 3.12, and 3.13**.

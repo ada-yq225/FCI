@@ -1,0 +1,1908 @@
+{
+  "cohorts": {
+    "kindergarten_rows": 6325,
+    "kindergarten_schools": 79,
+    "panels": {
+      "attrition": {
+        "description": "Kindergarten entrants with observed kindergarten achievement and covariates. The endpoint is whether both grade-3 reading and math scores are observed.",
+        "nodes": 9,
+        "rows": 5744
+      },
+      "focused_treatment": {
+        "description": "Complete grade-3 cases without kindergarten achievement in the node set. This focused specification avoids allowing an early outcome to act as a separator between randomized class assignment and grade-3 achievement.",
+        "nodes": 8,
+        "rows": 2976
+      },
+      "longitudinal": {
+        "description": "Complete cases with kindergarten and grade-3 achievement. Kindergarten achievement is retained to study achievement persistence.",
+        "nodes": 9,
+        "rows": 2787
+      }
+    },
+    "raw_rows": 11601
+  },
+  "comparisons": {
+    "attrition": {
+      "fci_plus_ci_test_ratio": 0.46510263929618767,
+      "fci_plus_runtime_ratio": 0.7201856298645115,
+      "skeleton_jaccard": 0.8235294117647058
+    },
+    "focused_treatment": {
+      "fci_plus_ci_test_ratio": 0.6357388316151202,
+      "fci_plus_runtime_ratio": 0.9117043966002528,
+      "skeleton_jaccard": 1.0
+    },
+    "longitudinal": {
+      "fci_plus_ci_test_ratio": 0.3489583333333333,
+      "fci_plus_runtime_ratio": 0.19588425595976913,
+      "skeleton_jaccard": 0.7692307692307693
+    }
+  },
+  "configuration": {
+    "alpha": 0.05,
+    "ci_test": "G-square on discretized variables",
+    "cluster_bootstraps": 12,
+    "fci_plus_k": 3,
+    "fci_plus_profile": "paper",
+    "fci_profile": "paper"
+  },
+  "descriptives": {
+    "arms": {
+      "grade3_observed_rate": {
+        "Regular": {
+          "ci_high": 0.5214253850183885,
+          "ci_low": 0.42716711989055994,
+          "estimate": 0.4772105742935278,
+          "n": 2194
+        },
+        "Regular + aide": {
+          "ci_high": 0.5039455366060437,
+          "ci_low": 0.40636636686875693,
+          "estimate": 0.45674585387718514,
+          "n": 2231
+        },
+        "Small": {
+          "ci_high": 0.5376838505406418,
+          "ci_low": 0.4445523974403927,
+          "estimate": 0.4926315789473684,
+          "n": 1900
+        }
+      },
+      "grade3_score": {
+        "Regular": {
+          "ci_high": 1254.014434890271,
+          "ci_low": 1238.957437896117,
+          "estimate": 1246.741165234002,
+          "n": 1047
+        },
+        "Regular + aide": {
+          "ci_high": 1255.478186783148,
+          "ci_low": 1238.5298712586844,
+          "estimate": 1247.253189401374,
+          "n": 1019
+        },
+        "Small": {
+          "ci_high": 1266.172210281951,
+          "ci_low": 1250.5792560192924,
+          "estimate": 1258.431623931624,
+          "n": 936
+        }
+      },
+      "kindergarten_score": {
+        "Regular": {
+          "ci_high": 927.0544545004238,
+          "ci_low": 908.7788034724323,
+          "estimate": 918.0428927680798,
+          "n": 2005
+        },
+        "Regular + aide": {
+          "ci_high": 927.0728055138678,
+          "ci_low": 908.5178694640668,
+          "estimate": 918.3568281938326,
+          "n": 2043
+        },
+        "Small": {
+          "ci_high": 940.1223538191396,
+          "ci_low": 922.7048141562601,
+          "estimate": 931.9418872266973,
+          "n": 1738
+        }
+      }
+    },
+    "bootstrap_repeats": 1000,
+    "bootstrap_unit": "kindergarten school",
+    "contrasts": [
+      {
+        "ci_high": 7.383102267812753,
+        "ci_low": -7.395221972435172,
+        "comparison": "Regular + aide - Regular",
+        "estimate": 0.31393542575278843,
+        "metric": "kindergarten_score"
+      },
+      {
+        "ci_high": 22.070090740613214,
+        "ci_low": 5.211021962889004,
+        "comparison": "Small - Regular",
+        "estimate": 13.898994458617494,
+        "metric": "kindergarten_score"
+      },
+      {
+        "ci_high": 7.223846495151378,
+        "ci_low": -5.702202124795593,
+        "comparison": "Regular + aide - Regular",
+        "estimate": 0.5120241673719192,
+        "metric": "grade3_score"
+      },
+      {
+        "ci_high": 19.37908617111215,
+        "ci_low": 3.7443798387666334,
+        "comparison": "Small - Regular",
+        "estimate": 11.690458697622034,
+        "metric": "grade3_score"
+      },
+      {
+        "ci_high": 0.014086600002846783,
+        "ci_low": -0.053451792163275155,
+        "comparison": "Regular + aide - Regular",
+        "estimate": -0.020464720416342674,
+        "metric": "grade3_observed_rate"
+      },
+      {
+        "ci_high": 0.04561210780336201,
+        "ci_low": -0.017323334421460262,
+        "comparison": "Small - Regular",
+        "estimate": 0.015421004653840609,
+        "metric": "grade3_observed_rate"
+      }
+    ]
+  },
+  "runs": [
+    {
+      "algorithm": "fci",
+      "assumption_notes": [
+        "The output is a PAG equivalence class, not a unique DAG; retained adjacencies are not automatically direct causal effects.",
+        "Discrete chi-square/G-square tests require adequate expected cell counts for every tested contingency table."
+      ],
+      "bootstrap_adjacencies": [
+        {
+          "frequency": 0.5833333333333334,
+          "x": "Entry_Age",
+          "y": "Ethnicity"
+        },
+        {
+          "frequency": 0.5,
+          "x": "Entry_Age",
+          "y": "Free_Lunch"
+        },
+        {
+          "frequency": 0.5,
+          "x": "Entry_Age",
+          "y": "Gender"
+        },
+        {
+          "frequency": 0.8333333333333334,
+          "x": "Entry_Age",
+          "y": "Grade3_Observed"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Entry_Age",
+          "y": "K_Achievement"
+        },
+        {
+          "frequency": 0.5833333333333334,
+          "x": "Entry_Age",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 0.6666666666666666,
+          "x": "Entry_Age",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Ethnicity",
+          "y": "Free_Lunch"
+        },
+        {
+          "frequency": 0.16666666666666666,
+          "x": "Ethnicity",
+          "y": "Gender"
+        },
+        {
+          "frequency": 0.5,
+          "x": "Ethnicity",
+          "y": "Grade3_Observed"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Ethnicity",
+          "y": "K_Achievement"
+        },
+        {
+          "frequency": 0.25,
+          "x": "Ethnicity",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Ethnicity",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Ethnicity",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Free_Lunch",
+          "y": "Grade3_Observed"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Free_Lunch",
+          "y": "K_Achievement"
+        },
+        {
+          "frequency": 0.16666666666666666,
+          "x": "Free_Lunch",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Free_Lunch",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 0.9166666666666666,
+          "x": "Free_Lunch",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 0.3333333333333333,
+          "x": "Gender",
+          "y": "Grade3_Observed"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Gender",
+          "y": "K_Achievement"
+        },
+        {
+          "frequency": 0.16666666666666666,
+          "x": "Gender",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Grade3_Observed",
+          "y": "K_Achievement"
+        },
+        {
+          "frequency": 0.16666666666666666,
+          "x": "Grade3_Observed",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Grade3_Observed",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 0.5,
+          "x": "Grade3_Observed",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 1.0,
+          "x": "K_Achievement",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 1.0,
+          "x": "K_Achievement",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 1.0,
+          "x": "K_Achievement",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 0.5833333333333334,
+          "x": "K_Class",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 1.0,
+          "x": "K_Class",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 1.0,
+          "x": "School_Context",
+          "y": "Teacher_Experience"
+        }
+      ],
+      "ci_tests": 1705,
+      "edges": 14,
+      "elapsed_runs_seconds": [
+        4.554520374999811,
+        4.565437749999546,
+        4.5531002500001705
+      ],
+      "median_elapsed_seconds": 4.554520374999811,
+      "node_names": [
+        "K_Class",
+        "Gender",
+        "Ethnicity",
+        "Free_Lunch",
+        "School_Context",
+        "Entry_Age",
+        "Teacher_Experience",
+        "K_Achievement",
+        "Grade3_Observed"
+      ],
+      "nodes": 9,
+      "pag_edges": [
+        {
+          "bootstrap_frequency": null,
+          "edge": "K_Class o-> Teacher_Experience",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "K_Class",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity o-> Free_Lunch",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "Free_Lunch"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity o-> School_Context",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "School_Context"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity o-> Teacher_Experience",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch o-> School_Context",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "School_Context"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch <-> Teacher_Experience",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch --> K_Achievement",
+          "endpoint_x": "TAIL",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "K_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch <-o Grade3_Observed",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "CIRCLE",
+          "x": "Free_Lunch",
+          "y": "Grade3_Observed"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "School_Context <-> Teacher_Experience",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "School_Context",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "School_Context <-> K_Achievement",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "School_Context",
+          "y": "K_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "School_Context <-o Grade3_Observed",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "CIRCLE",
+          "x": "School_Context",
+          "y": "Grade3_Observed"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Entry_Age o-> K_Achievement",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Entry_Age",
+          "y": "K_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Teacher_Experience <-> K_Achievement",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Teacher_Experience",
+          "y": "K_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "K_Achievement <-- Grade3_Observed",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "TAIL",
+          "x": "K_Achievement",
+          "y": "Grade3_Observed"
+        }
+      ],
+      "panel": "attrition",
+      "samples": 5744,
+      "temporal_flags": [
+        "Grade3_Observed --> K_Achievement"
+      ]
+    },
+    {
+      "algorithm": "fci_plus",
+      "assumption_notes": [
+        "The output is a PAG equivalence class, not a unique DAG; retained adjacencies are not automatically direct causal effects.",
+        "Discrete chi-square/G-square tests require adequate expected cell counts for every tested contingency table.",
+        "FCI+ paper guarantees require faithfulness and a true MAG maximum degree no larger than k=3."
+      ],
+      "bootstrap_adjacencies": [
+        {
+          "frequency": 0.4166666666666667,
+          "x": "Entry_Age",
+          "y": "Ethnicity"
+        },
+        {
+          "frequency": 0.6666666666666666,
+          "x": "Entry_Age",
+          "y": "Free_Lunch"
+        },
+        {
+          "frequency": 0.5,
+          "x": "Entry_Age",
+          "y": "Gender"
+        },
+        {
+          "frequency": 0.8333333333333334,
+          "x": "Entry_Age",
+          "y": "Grade3_Observed"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Entry_Age",
+          "y": "K_Achievement"
+        },
+        {
+          "frequency": 0.16666666666666666,
+          "x": "Entry_Age",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 0.6666666666666666,
+          "x": "Entry_Age",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 0.75,
+          "x": "Entry_Age",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Ethnicity",
+          "y": "Free_Lunch"
+        },
+        {
+          "frequency": 0.16666666666666666,
+          "x": "Ethnicity",
+          "y": "Gender"
+        },
+        {
+          "frequency": 0.4166666666666667,
+          "x": "Ethnicity",
+          "y": "Grade3_Observed"
+        },
+        {
+          "frequency": 0.9166666666666666,
+          "x": "Ethnicity",
+          "y": "K_Achievement"
+        },
+        {
+          "frequency": 0.3333333333333333,
+          "x": "Ethnicity",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Ethnicity",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Ethnicity",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Free_Lunch",
+          "y": "Grade3_Observed"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Free_Lunch",
+          "y": "K_Achievement"
+        },
+        {
+          "frequency": 0.25,
+          "x": "Free_Lunch",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Free_Lunch",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 0.9166666666666666,
+          "x": "Free_Lunch",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 0.5833333333333334,
+          "x": "Gender",
+          "y": "Grade3_Observed"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Gender",
+          "y": "K_Achievement"
+        },
+        {
+          "frequency": 0.08333333333333333,
+          "x": "Gender",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 0.25,
+          "x": "Gender",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Grade3_Observed",
+          "y": "K_Achievement"
+        },
+        {
+          "frequency": 0.08333333333333333,
+          "x": "Grade3_Observed",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Grade3_Observed",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 0.3333333333333333,
+          "x": "Grade3_Observed",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 1.0,
+          "x": "K_Achievement",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 1.0,
+          "x": "K_Achievement",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 1.0,
+          "x": "K_Achievement",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 0.5833333333333334,
+          "x": "K_Class",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 1.0,
+          "x": "K_Class",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 1.0,
+          "x": "School_Context",
+          "y": "Teacher_Experience"
+        }
+      ],
+      "ci_tests": 793,
+      "edges": 17,
+      "elapsed_runs_seconds": [
+        3.28010012499999,
+        3.7081755830004113,
+        2.8743705830002
+      ],
+      "median_elapsed_seconds": 3.28010012499999,
+      "node_names": [
+        "K_Class",
+        "Gender",
+        "Ethnicity",
+        "Free_Lunch",
+        "School_Context",
+        "Entry_Age",
+        "Teacher_Experience",
+        "K_Achievement",
+        "Grade3_Observed"
+      ],
+      "nodes": 9,
+      "pag_edges": [
+        {
+          "bootstrap_frequency": null,
+          "edge": "K_Class o-> Teacher_Experience",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "K_Class",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "K_Class o-> K_Achievement",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "K_Class",
+          "y": "K_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Gender o-> K_Achievement",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Gender",
+          "y": "K_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity o-> Free_Lunch",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "Free_Lunch"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity <-- School_Context",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "TAIL",
+          "x": "Ethnicity",
+          "y": "School_Context"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity <-> Teacher_Experience",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity o-> K_Achievement",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "K_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch <-o School_Context",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "CIRCLE",
+          "x": "Free_Lunch",
+          "y": "School_Context"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch <-> Teacher_Experience",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch o-> K_Achievement",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "K_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch <-o Grade3_Observed",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "CIRCLE",
+          "x": "Free_Lunch",
+          "y": "Grade3_Observed"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "School_Context <-> Teacher_Experience",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "School_Context",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "School_Context o-> K_Achievement",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "School_Context",
+          "y": "K_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "School_Context <-o Grade3_Observed",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "CIRCLE",
+          "x": "School_Context",
+          "y": "Grade3_Observed"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Entry_Age o-> K_Achievement",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Entry_Age",
+          "y": "K_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Teacher_Experience o-> K_Achievement",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Teacher_Experience",
+          "y": "K_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "K_Achievement <-o Grade3_Observed",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "CIRCLE",
+          "x": "K_Achievement",
+          "y": "Grade3_Observed"
+        }
+      ],
+      "panel": "attrition",
+      "samples": 5744,
+      "temporal_flags": []
+    },
+    {
+      "algorithm": "fci",
+      "assumption_notes": [
+        "The output is a PAG equivalence class, not a unique DAG; retained adjacencies are not automatically direct causal effects.",
+        "Discrete chi-square/G-square tests require adequate expected cell counts for every tested contingency table."
+      ],
+      "bootstrap_adjacencies": [
+        {
+          "frequency": 0.5,
+          "x": "Entry_Age",
+          "y": "Ethnicity"
+        },
+        {
+          "frequency": 0.16666666666666666,
+          "x": "Entry_Age",
+          "y": "Gender"
+        },
+        {
+          "frequency": 0.4166666666666667,
+          "x": "Entry_Age",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Entry_Age",
+          "y": "K_Achievement"
+        },
+        {
+          "frequency": 0.08333333333333333,
+          "x": "Entry_Age",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 0.16666666666666666,
+          "x": "Entry_Age",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Ethnicity",
+          "y": "Free_Lunch"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Ethnicity",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "frequency": 0.8333333333333334,
+          "x": "Ethnicity",
+          "y": "K_Achievement"
+        },
+        {
+          "frequency": 0.16666666666666666,
+          "x": "Ethnicity",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Ethnicity",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 0.9166666666666666,
+          "x": "Ethnicity",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Free_Lunch",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Free_Lunch",
+          "y": "K_Achievement"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Free_Lunch",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Free_Lunch",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 0.16666666666666666,
+          "x": "Gender",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "frequency": 0.16666666666666666,
+          "x": "Gender",
+          "y": "K_Achievement"
+        },
+        {
+          "frequency": 0.16666666666666666,
+          "x": "Gender",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Grade3_Achievement",
+          "y": "K_Achievement"
+        },
+        {
+          "frequency": 0.5,
+          "x": "Grade3_Achievement",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Grade3_Achievement",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 0.8333333333333334,
+          "x": "Grade3_Achievement",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 0.75,
+          "x": "K_Achievement",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 1.0,
+          "x": "K_Achievement",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 1.0,
+          "x": "K_Achievement",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 0.5833333333333334,
+          "x": "K_Class",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 1.0,
+          "x": "K_Class",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 1.0,
+          "x": "School_Context",
+          "y": "Teacher_Experience"
+        }
+      ],
+      "ci_tests": 960,
+      "edges": 10,
+      "elapsed_runs_seconds": [
+        2.250466417000098,
+        2.27313679100007,
+        2.31492179199995
+      ],
+      "median_elapsed_seconds": 2.27313679100007,
+      "node_names": [
+        "K_Class",
+        "Gender",
+        "Ethnicity",
+        "Free_Lunch",
+        "School_Context",
+        "Entry_Age",
+        "Teacher_Experience",
+        "K_Achievement",
+        "Grade3_Achievement"
+      ],
+      "nodes": 9,
+      "pag_edges": [
+        {
+          "bootstrap_frequency": null,
+          "edge": "K_Class o-> Teacher_Experience",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "K_Class",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity <-- Free_Lunch",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "TAIL",
+          "x": "Ethnicity",
+          "y": "Free_Lunch"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity <-- School_Context",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "TAIL",
+          "x": "Ethnicity",
+          "y": "School_Context"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity <-> Teacher_Experience",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch <-> School_Context",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "School_Context"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch <-> Teacher_Experience",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch <-o Grade3_Achievement",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "CIRCLE",
+          "x": "Free_Lunch",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "School_Context <-> Teacher_Experience",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "School_Context",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "School_Context <-> K_Achievement",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "School_Context",
+          "y": "K_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "K_Achievement <-o Grade3_Achievement",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "CIRCLE",
+          "x": "K_Achievement",
+          "y": "Grade3_Achievement"
+        }
+      ],
+      "panel": "longitudinal",
+      "samples": 2787,
+      "temporal_flags": []
+    },
+    {
+      "algorithm": "fci_plus",
+      "assumption_notes": [
+        "The output is a PAG equivalence class, not a unique DAG; retained adjacencies are not automatically direct causal effects.",
+        "Discrete chi-square/G-square tests require adequate expected cell counts for every tested contingency table.",
+        "FCI+ paper guarantees require faithfulness and a true MAG maximum degree no larger than k=3."
+      ],
+      "bootstrap_adjacencies": [
+        {
+          "frequency": 0.3333333333333333,
+          "x": "Entry_Age",
+          "y": "Ethnicity"
+        },
+        {
+          "frequency": 0.25,
+          "x": "Entry_Age",
+          "y": "Free_Lunch"
+        },
+        {
+          "frequency": 0.25,
+          "x": "Entry_Age",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Entry_Age",
+          "y": "K_Achievement"
+        },
+        {
+          "frequency": 0.08333333333333333,
+          "x": "Entry_Age",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 0.4166666666666667,
+          "x": "Entry_Age",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 0.3333333333333333,
+          "x": "Entry_Age",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Ethnicity",
+          "y": "Free_Lunch"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Ethnicity",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "frequency": 0.75,
+          "x": "Ethnicity",
+          "y": "K_Achievement"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Ethnicity",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Ethnicity",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Free_Lunch",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Free_Lunch",
+          "y": "K_Achievement"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Free_Lunch",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Free_Lunch",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 0.25,
+          "x": "Gender",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "frequency": 0.16666666666666666,
+          "x": "Gender",
+          "y": "K_Achievement"
+        },
+        {
+          "frequency": 0.3333333333333333,
+          "x": "Gender",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Grade3_Achievement",
+          "y": "K_Achievement"
+        },
+        {
+          "frequency": 0.6666666666666666,
+          "x": "Grade3_Achievement",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Grade3_Achievement",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 0.9166666666666666,
+          "x": "Grade3_Achievement",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 1.0,
+          "x": "K_Achievement",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 0.9166666666666666,
+          "x": "K_Achievement",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 0.9166666666666666,
+          "x": "K_Achievement",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 0.5833333333333334,
+          "x": "K_Class",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 1.0,
+          "x": "K_Class",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 1.0,
+          "x": "School_Context",
+          "y": "Teacher_Experience"
+        }
+      ],
+      "ci_tests": 335,
+      "edges": 13,
+      "elapsed_runs_seconds": [
+        0.4687710419993891,
+        0.44527170899982593,
+        0.41767608300051506
+      ],
+      "median_elapsed_seconds": 0.44527170899982593,
+      "node_names": [
+        "K_Class",
+        "Gender",
+        "Ethnicity",
+        "Free_Lunch",
+        "School_Context",
+        "Entry_Age",
+        "Teacher_Experience",
+        "K_Achievement",
+        "Grade3_Achievement"
+      ],
+      "nodes": 9,
+      "pag_edges": [
+        {
+          "bootstrap_frequency": null,
+          "edge": "K_Class o-> Teacher_Experience",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "K_Class",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity <-> Free_Lunch",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "Free_Lunch"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity <-- School_Context",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "TAIL",
+          "x": "Ethnicity",
+          "y": "School_Context"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity o-> Teacher_Experience",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity --> Grade3_Achievement",
+          "endpoint_x": "TAIL",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch <-> School_Context",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "School_Context"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch <-> Teacher_Experience",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch <-> Grade3_Achievement",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "School_Context o-> Teacher_Experience",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "School_Context",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "School_Context <-> K_Achievement",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "School_Context",
+          "y": "K_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Entry_Age o-> K_Achievement",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Entry_Age",
+          "y": "K_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Teacher_Experience <-> K_Achievement",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Teacher_Experience",
+          "y": "K_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "K_Achievement <-- Grade3_Achievement",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "TAIL",
+          "x": "K_Achievement",
+          "y": "Grade3_Achievement"
+        }
+      ],
+      "panel": "longitudinal",
+      "samples": 2787,
+      "temporal_flags": [
+        "Grade3_Achievement --> K_Achievement"
+      ]
+    },
+    {
+      "algorithm": "fci",
+      "assumption_notes": [
+        "The output is a PAG equivalence class, not a unique DAG; retained adjacencies are not automatically direct causal effects.",
+        "Discrete chi-square/G-square tests require adequate expected cell counts for every tested contingency table."
+      ],
+      "bootstrap_adjacencies": [
+        {
+          "frequency": 0.8333333333333334,
+          "x": "Entry_Age",
+          "y": "Ethnicity"
+        },
+        {
+          "frequency": 0.08333333333333333,
+          "x": "Entry_Age",
+          "y": "Free_Lunch"
+        },
+        {
+          "frequency": 0.25,
+          "x": "Entry_Age",
+          "y": "Gender"
+        },
+        {
+          "frequency": 0.25,
+          "x": "Entry_Age",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "frequency": 0.16666666666666666,
+          "x": "Entry_Age",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 0.4166666666666667,
+          "x": "Entry_Age",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 0.25,
+          "x": "Entry_Age",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Ethnicity",
+          "y": "Free_Lunch"
+        },
+        {
+          "frequency": 0.08333333333333333,
+          "x": "Ethnicity",
+          "y": "Gender"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Ethnicity",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "frequency": 0.25,
+          "x": "Ethnicity",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Ethnicity",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Ethnicity",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Free_Lunch",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Free_Lunch",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 0.8333333333333334,
+          "x": "Free_Lunch",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 0.3333333333333333,
+          "x": "Gender",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "frequency": 0.16666666666666666,
+          "x": "Gender",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 0.9166666666666666,
+          "x": "Grade3_Achievement",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 0.9166666666666666,
+          "x": "Grade3_Achievement",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 0.5833333333333334,
+          "x": "Grade3_Achievement",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 0.75,
+          "x": "K_Class",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 1.0,
+          "x": "K_Class",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 1.0,
+          "x": "School_Context",
+          "y": "Teacher_Experience"
+        }
+      ],
+      "ci_tests": 291,
+      "edges": 10,
+      "elapsed_runs_seconds": [
+        0.2928090000004886,
+        0.2795028749997073,
+        0.2745746249993317
+      ],
+      "median_elapsed_seconds": 0.2795028749997073,
+      "node_names": [
+        "K_Class",
+        "Gender",
+        "Ethnicity",
+        "Free_Lunch",
+        "School_Context",
+        "Entry_Age",
+        "Teacher_Experience",
+        "Grade3_Achievement"
+      ],
+      "nodes": 8,
+      "pag_edges": [
+        {
+          "bootstrap_frequency": null,
+          "edge": "K_Class <-> Teacher_Experience",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "K_Class",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "K_Class <-> Grade3_Achievement",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "K_Class",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity o-> Free_Lunch",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "Free_Lunch"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity --> School_Context",
+          "endpoint_x": "TAIL",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "School_Context"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity o-> Teacher_Experience",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity o-> Grade3_Achievement",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch --> School_Context",
+          "endpoint_x": "TAIL",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "School_Context"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch <-> Teacher_Experience",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch <-> Grade3_Achievement",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "School_Context <-> Teacher_Experience",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "School_Context",
+          "y": "Teacher_Experience"
+        }
+      ],
+      "panel": "focused_treatment",
+      "samples": 2976,
+      "temporal_flags": []
+    },
+    {
+      "algorithm": "fci_plus",
+      "assumption_notes": [
+        "The output is a PAG equivalence class, not a unique DAG; retained adjacencies are not automatically direct causal effects.",
+        "Discrete chi-square/G-square tests require adequate expected cell counts for every tested contingency table.",
+        "FCI+ paper guarantees require faithfulness and a true MAG maximum degree no larger than k=3."
+      ],
+      "bootstrap_adjacencies": [
+        {
+          "frequency": 0.6666666666666666,
+          "x": "Entry_Age",
+          "y": "Ethnicity"
+        },
+        {
+          "frequency": 0.25,
+          "x": "Entry_Age",
+          "y": "Gender"
+        },
+        {
+          "frequency": 0.4166666666666667,
+          "x": "Entry_Age",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "frequency": 0.25,
+          "x": "Entry_Age",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 0.16666666666666666,
+          "x": "Entry_Age",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 0.16666666666666666,
+          "x": "Entry_Age",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Ethnicity",
+          "y": "Free_Lunch"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Ethnicity",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "frequency": 0.08333333333333333,
+          "x": "Ethnicity",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Ethnicity",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Ethnicity",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 0.08333333333333333,
+          "x": "Free_Lunch",
+          "y": "Gender"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Free_Lunch",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "frequency": 0.16666666666666666,
+          "x": "Free_Lunch",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Free_Lunch",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 0.8333333333333334,
+          "x": "Free_Lunch",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 0.4166666666666667,
+          "x": "Gender",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "frequency": 0.25,
+          "x": "Gender",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 0.08333333333333333,
+          "x": "Gender",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 0.8333333333333334,
+          "x": "Grade3_Achievement",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 0.9166666666666666,
+          "x": "Grade3_Achievement",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Grade3_Achievement",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 0.75,
+          "x": "K_Class",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 1.0,
+          "x": "K_Class",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 1.0,
+          "x": "School_Context",
+          "y": "Teacher_Experience"
+        }
+      ],
+      "ci_tests": 185,
+      "edges": 10,
+      "elapsed_runs_seconds": [
+        0.2271382500002801,
+        0.26033708399972966,
+        0.254823999999644
+      ],
+      "median_elapsed_seconds": 0.254823999999644,
+      "node_names": [
+        "K_Class",
+        "Gender",
+        "Ethnicity",
+        "Free_Lunch",
+        "School_Context",
+        "Entry_Age",
+        "Teacher_Experience",
+        "Grade3_Achievement"
+      ],
+      "nodes": 8,
+      "pag_edges": [
+        {
+          "bootstrap_frequency": null,
+          "edge": "K_Class <-> Teacher_Experience",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "K_Class",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "K_Class <-> Grade3_Achievement",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "K_Class",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity o-> Free_Lunch",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "Free_Lunch"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity --> School_Context",
+          "endpoint_x": "TAIL",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "School_Context"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity o-> Teacher_Experience",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity o-> Grade3_Achievement",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch --> School_Context",
+          "endpoint_x": "TAIL",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "School_Context"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch <-> Teacher_Experience",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch <-> Grade3_Achievement",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "School_Context <-> Teacher_Experience",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "School_Context",
+          "y": "Teacher_Experience"
+        }
+      ],
+      "panel": "focused_treatment",
+      "samples": 2976,
+      "temporal_flags": []
+    }
+  ],
+  "sensitivity": [
+    {
+      "adjacent": false,
+      "algorithm": "fci",
+      "alpha": 0.01,
+      "bins": 3,
+      "ci_tests": 225,
+      "edge": null,
+      "edge_count": 8
+    },
+    {
+      "adjacent": false,
+      "algorithm": "fci_plus",
+      "alpha": 0.01,
+      "bins": 3,
+      "ci_tests": 150,
+      "edge": null,
+      "edge_count": 8
+    },
+    {
+      "adjacent": true,
+      "algorithm": "fci",
+      "alpha": 0.05,
+      "bins": 3,
+      "ci_tests": 305,
+      "edge": "K_Class <-> Grade3_Achievement",
+      "edge_count": 11
+    },
+    {
+      "adjacent": true,
+      "algorithm": "fci_plus",
+      "alpha": 0.05,
+      "bins": 3,
+      "ci_tests": 214,
+      "edge": "K_Class <-> Grade3_Achievement",
+      "edge_count": 11
+    },
+    {
+      "adjacent": false,
+      "algorithm": "fci",
+      "alpha": 0.01,
+      "bins": 4,
+      "ci_tests": 252,
+      "edge": null,
+      "edge_count": 9
+    },
+    {
+      "adjacent": false,
+      "algorithm": "fci_plus",
+      "alpha": 0.01,
+      "bins": 4,
+      "ci_tests": 163,
+      "edge": null,
+      "edge_count": 9
+    },
+    {
+      "adjacent": true,
+      "algorithm": "fci",
+      "alpha": 0.05,
+      "bins": 4,
+      "ci_tests": 291,
+      "edge": "K_Class <-> Grade3_Achievement",
+      "edge_count": 10
+    },
+    {
+      "adjacent": true,
+      "algorithm": "fci_plus",
+      "alpha": 0.05,
+      "bins": 4,
+      "ci_tests": 185,
+      "edge": "K_Class <-> Grade3_Achievement",
+      "edge_count": 10
+    }
+  ],
+  "source": {
+    "doi": "https://doi.org/10.7910/DVN/SIWH9F",
+    "license": "CC0 1.0",
+    "student_file": "/Users/yq225/FCI/case_studies/tennessee_star/data/raw/STAR_Students.tab.gz",
+    "title": "Tennessee Student/Teacher Achievement Ratio (STAR)",
+    "user_guide": "/Users/yq225/FCI/case_studies/tennessee_star/data/raw/starUsersGuide.pdf"
+  }
+}

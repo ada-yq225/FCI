@@ -16,3 +16,8 @@ tmp/
 /IRP_Project_Plan.*
 /custom_data_report.html
 /missfont.log
+
+# Uncompressed/intermediate STAR downloads. The committed case study keeps the
+# deterministic gzip export and the official user guide.
+/case_studies/tennessee_star/data/raw/STAR_Students.tab
+/case_studies/tennessee_star/data/raw/STAR.csv
