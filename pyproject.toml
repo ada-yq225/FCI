@@ -43,6 +43,8 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "build>=1",
+  # NumPy 2.5 stubs use PEP 695 syntax that MyPy cannot parse as Python 3.9.
+  "numpy<2.5",
   "pytest>=7",
   "pytest-cov>=4",
   "ruff>=0.4",
