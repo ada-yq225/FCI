@@ -3,25 +3,21 @@
 from __future__ import annotations
 
 from collections import deque
-from collections.abc import Hashable
 from itertools import combinations
 from typing import Optional
 
 from fci_engine.ci import CITest
-from fci_engine.discovery.skeleton import (
-    SepsetMap,
-    SepsetSourceMap,
-    _prepare_data_for_graph,
-)
+from fci_engine.discovery.skeleton import _prepare_data_for_graph
 from fci_engine.graph import PAG
+from fci_engine.types import SepsetMap, SepsetSourceMap
 
 
 def possible_dsep(
     graph: PAG,
-    x: Hashable,
-    y: Hashable,
+    x: str,
+    y: str,
     max_path_length: Optional[int] = None,
-) -> set[Hashable]:
+) -> set[str]:
     """Return conservative Possible-D-Sep candidates for ``x`` relative to ``y``.
 
     A node is reached through a path from ``x`` where each intermediate triple is
@@ -35,13 +31,11 @@ def possible_dsep(
     if max_path_length == 0:
         return set()
 
-    candidates: set[Hashable] = set()
-    visited_states: set[tuple[Hashable, Hashable]] = set()
-    queue: deque[tuple[Hashable, Hashable, int]] = deque()
+    candidates: set[str] = set()
+    visited_states: set[tuple[str, str]] = set()
+    queue: deque[tuple[str, str, int]] = deque()
 
     for neighbor in graph.neighbors(x):
-        if neighbor == y:
-            continue
         state = (x, neighbor)
         queue.append((x, neighbor, 1))
         visited_states.add(state)
@@ -53,7 +47,7 @@ def possible_dsep(
             continue
 
         for next_node in graph.neighbors(current):
-            if next_node in {x, y, previous}:
+            if next_node in {x, previous}:
                 continue
             if not _is_pds_step_allowed(graph, previous, current, next_node):
                 continue
@@ -97,57 +91,67 @@ def refine_skeleton_with_pdsep(
     )
 
     search_graph = graph.copy() if stable else graph
-    pending_removals: list[tuple[Hashable, Hashable, set[Hashable]]] = []
-    marked_for_removal: set[frozenset[Hashable]] = set()
+    pending_removals: list[tuple[str, str, set[str]]] = []
+    marked_for_removal: set[frozenset[str]] = set()
 
     for x, y in list(search_graph.edges()):
         edge_key = frozenset((x, y))
         if edge_key in marked_for_removal or not graph.is_adjacent(x, y):
             continue
 
-        candidates = possible_dsep(
-            search_graph,
-            x,
-            y,
-            max_path_length=max_path_length,
-        )
-        candidates.update(
+        candidate_pools = [
+            possible_dsep(
+                search_graph,
+                x,
+                y,
+                max_path_length=max_path_length,
+            ),
             possible_dsep(
                 search_graph,
                 y,
                 x,
                 max_path_length=max_path_length,
-            )
-        )
-        candidate_nodes = [node for node in graph.nodes if node in candidates]
-        max_size = len(candidate_nodes)
+            ),
+        ]
+        ordered_pools = [
+            [node for node in graph.nodes if node in candidates]
+            for candidates in candidate_pools
+        ]
+        max_size = max((len(pool) for pool in ordered_pools), default=0)
         if max_cond_set_size is not None:
             max_size = min(max_size, max_cond_set_size)
 
-        separating_set: Optional[set[Hashable]] = None
+        separating_set: Optional[set[str]] = None
+        seen_conditioning_sets: set[frozenset[str]] = set()
         for cond_size in range(max_size + 1):
-            if len(candidate_nodes) < cond_size:
-                continue
+            best_at_depth: Optional[tuple[float, set[str]]] = None
+            for candidate_nodes in ordered_pools:
+                if len(candidate_nodes) < cond_size:
+                    continue
+                for cond_set in combinations(candidate_nodes, cond_size):
+                    cond_key = frozenset(cond_set)
+                    if cond_key in seen_conditioning_sets:
+                        continue
+                    seen_conditioning_sets.add(cond_key)
+                    result = ci_test.test(
+                        normalized_data,
+                        node_to_index[x],
+                        node_to_index[y],
+                        tuple(node_to_index[node] for node in cond_set),
+                    )
+                    if verbose:
+                        status = "independent" if result.independent else "dependent"
+                        print(f"PDS-CI({x}, {y} | {set(cond_set)}) -> {status}")
 
-            best_at_depth: Optional[tuple[float, set[Hashable]]] = None
-            for cond_set in combinations(candidate_nodes, cond_size):
-                result = ci_test.test(
-                    normalized_data,
-                    node_to_index[x],
-                    node_to_index[y],
-                    tuple(node_to_index[node] for node in cond_set),
-                )
-                if verbose:
-                    status = "independent" if result.independent else "dependent"
-                    print(f"PDS-CI({x}, {y} | {set(cond_set)}) -> {status}")
-
-                if result.independent:
-                    sepset = set(cond_set)
-                    if sepset_selection == "first":
-                        separating_set = sepset
-                        break
-                    if best_at_depth is None or result.p_value > best_at_depth[0]:
-                        best_at_depth = (result.p_value, sepset)
+                    if result.independent:
+                        sepset = set(cond_set)
+                        if sepset_selection == "first":
+                            separating_set = sepset
+                            break
+                        if best_at_depth is None or result.p_value > best_at_depth[0]:
+                            best_at_depth = (result.p_value, sepset)
+                if separating_set is not None:
+                    break
             if best_at_depth is not None:
                 separating_set = best_at_depth[1]
             if separating_set is not None:
@@ -185,9 +189,9 @@ def refine_skeleton_with_pdsep(
 def _remove_edge_with_pdsep(
     graph: PAG,
     sepsets: SepsetMap,
-    x: Hashable,
-    y: Hashable,
-    sepset: set[Hashable],
+    x: str,
+    y: str,
+    sepset: set[str],
     sepset_sources: Optional[SepsetSourceMap] = None,
 ) -> None:
     if graph.is_adjacent(x, y):
@@ -201,21 +205,42 @@ def _remove_edge_with_pdsep(
 
 def _is_pds_step_allowed(
     graph: PAG,
-    previous: Hashable,
-    current: Hashable,
-    next_node: Hashable,
+    previous: str,
+    current: str,
+    next_node: str,
 ) -> bool:
-    return _is_collider(graph, previous, current, next_node) or graph.is_adjacent(
-        previous, next_node
+    if _is_collider(graph, previous, current, next_node):
+        return True
+    if not graph.is_adjacent(previous, next_node):
+        return False
+    return not _has_definite_noncollider_mark(
+        graph,
+        previous,
+        current,
+        next_node,
     )
 
 
 def _is_collider(
     graph: PAG,
-    previous: Hashable,
-    current: Hashable,
-    next_node: Hashable,
+    previous: str,
+    current: str,
+    next_node: str,
 ) -> bool:
     return graph.has_arrowhead(previous, current) and graph.has_arrowhead(
         next_node, current
+    )
+
+
+def _has_definite_noncollider_mark(
+    graph: PAG,
+    previous: str,
+    current: str,
+    next_node: str,
+) -> bool:
+    """Return whether a tail proves ``current`` is a noncollider on the path."""
+
+    return graph.has_tail(previous, current) or graph.has_tail(
+        next_node,
+        current,
     )

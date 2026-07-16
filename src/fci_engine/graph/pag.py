@@ -22,8 +22,7 @@ class PAG:
 
         self._node_set = set(self._nodes)
         self._endpoints: dict[str, dict[str, Endpoint]] = {
-            x: {y: Endpoint.NONE for y in self._nodes if y != x}
-            for x in self._nodes
+            x: {y: Endpoint.NONE for y in self._nodes if y != x} for x in self._nodes
         }
 
     @property
@@ -46,8 +45,6 @@ class PAG:
         """
 
         self._validate_pair(x, y)
-        endpoint_x = self._coerce_endpoint(endpoint_x)
-        endpoint_y = self._coerce_endpoint(endpoint_y)
         if Endpoint.NONE in (endpoint_x, endpoint_y):
             raise ValueError("Edges must use non-NONE endpoints.")
 
@@ -91,7 +88,6 @@ class PAG:
         """Set the endpoint at ``y`` on edge ``x-y``."""
 
         self._validate_pair(x, y)
-        endpoint = self._coerce_endpoint(endpoint)
         if endpoint is Endpoint.NONE:
             raise ValueError("Use remove_edge() to remove PAG edges.")
         if not self.is_adjacent(x, y):
@@ -259,12 +255,6 @@ class PAG:
             (x, y, self.get_endpoint(y, x), self.get_endpoint(x, y))
             for x, y in self.edges()
         ]
-
-    @staticmethod
-    def _coerce_endpoint(endpoint: Endpoint) -> Endpoint:
-        if isinstance(endpoint, Endpoint):
-            return endpoint
-        return Endpoint(endpoint)
 
     def _validate_node(self, node: str) -> None:
         if node not in self._node_set:

@@ -3,17 +3,27 @@
 from __future__ import annotations
 
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
+from copy import deepcopy
 from dataclasses import replace
 from math import ceil
-from typing import Any, Optional
+from typing import Any, Literal, Optional, overload
 
 import numpy as np
 import pandas as pd
+from typing_extensions import Unpack
 
+from fci_engine.config import (
+    FCIOptions,
+    FCIPlusConfig,
+    FCIPlusPaperOptions,
+)
+from fci_engine.discovery.base import BaseFCIEstimator
 from fci_engine.discovery.fci import FCI
 from fci_engine.discovery.fci_plus import FCIPlus
 from fci_engine.graph import PAG
 from fci_engine.result import FCIResult
+from fci_engine.types import Array
 
 
 def bootstrap_edge_frequencies(
@@ -21,7 +31,8 @@ def bootstrap_edge_frequencies(
     n_bootstraps: int = 20,
     sample_fraction: float = 1.0,
     random_state: Optional[int] = None,
-    **fci_kwargs: object,
+    n_jobs: int = 1,
+    **fci_kwargs: Unpack[FCIOptions],
 ) -> dict[str, float]:
     """Return exact PAG edge representation frequencies over bootstrap runs."""
 
@@ -30,18 +41,17 @@ def bootstrap_edge_frequencies(
     if sample_fraction <= 0.0:
         raise ValueError("sample_fraction must be positive.")
 
-    n_samples = _n_rows(data)
-    if n_samples == 0:
-        raise ValueError("Cannot bootstrap an empty dataset.")
-
-    bootstrap_size = max(1, int(ceil(n_samples * sample_fraction)))
-    rng = np.random.default_rng(random_state)
     counts: Counter[str] = Counter()
-
-    for _ in range(n_bootstraps):
-        indices = rng.integers(0, n_samples, size=bootstrap_size)
-        sample = _sample_rows(data, indices)
-        result = FCI(**fci_kwargs).fit(sample)
+    results = _bootstrap_results(
+        FCI,
+        data,
+        n_bootstraps=n_bootstraps,
+        sample_fraction=sample_fraction,
+        random_state=random_state,
+        n_jobs=n_jobs,
+        fci_kwargs=dict(fci_kwargs),
+    )
+    for result in results:
         for x, y in result.graph.edges():
             counts[result.graph.edge_repr(x, y)] += 1
 
@@ -56,7 +66,8 @@ def bootstrap_adjacency_frequencies(
     n_bootstraps: int = 20,
     sample_fraction: float = 1.0,
     random_state: Optional[int] = None,
-    **fci_kwargs: object,
+    n_jobs: int = 1,
+    **fci_kwargs: Unpack[FCIOptions],
 ) -> dict[tuple[str, str], float]:
     """Return unordered adjacency frequencies over bootstrap FCI runs."""
 
@@ -65,18 +76,17 @@ def bootstrap_adjacency_frequencies(
     if sample_fraction <= 0.0:
         raise ValueError("sample_fraction must be positive.")
 
-    n_samples = _n_rows(data)
-    if n_samples == 0:
-        raise ValueError("Cannot bootstrap an empty dataset.")
-
-    bootstrap_size = max(1, int(ceil(n_samples * sample_fraction)))
-    rng = np.random.default_rng(random_state)
     counts: Counter[tuple[str, str]] = Counter()
-
-    for _ in range(n_bootstraps):
-        indices = rng.integers(0, n_samples, size=bootstrap_size)
-        sample = _sample_rows(data, indices)
-        result = FCI(**fci_kwargs).fit(sample)
+    results = _bootstrap_results(
+        FCI,
+        data,
+        n_bootstraps=n_bootstraps,
+        sample_fraction=sample_fraction,
+        random_state=random_state,
+        n_jobs=n_jobs,
+        fci_kwargs=dict(fci_kwargs),
+    )
+    for result in results:
         for x, y in result.graph.edges():
             counts[(str(x), str(y))] += 1
 
@@ -92,7 +102,8 @@ def stable_fci(
     edge_threshold: float = 0.5,
     sample_fraction: float = 1.0,
     random_state: Optional[int] = None,
-    **fci_kwargs: object,
+    n_jobs: int = 1,
+    **fci_kwargs: Unpack[FCIOptions],
 ) -> FCIResult:
     """Run FCI and remove edges with low bootstrap adjacency frequency.
 
@@ -108,8 +119,48 @@ def stable_fci(
         edge_threshold=edge_threshold,
         sample_fraction=sample_fraction,
         random_state=random_state,
+        n_jobs=n_jobs,
         **fci_kwargs,
     )
+
+
+@overload
+def stable_fci_plus(
+    data: object,
+    n_bootstraps: int = 20,
+    edge_threshold: float = 0.5,
+    sample_fraction: float = 1.0,
+    random_state: Optional[int] = None,
+    n_jobs: int = 1,
+    profile: None = None,
+    **fci_kwargs: Unpack[FCIOptions],
+) -> FCIResult: ...
+
+
+@overload
+def stable_fci_plus(
+    data: object,
+    n_bootstraps: int = 20,
+    edge_threshold: float = 0.5,
+    sample_fraction: float = 1.0,
+    random_state: Optional[int] = None,
+    n_jobs: int = 1,
+    profile: Literal["practical"] = "practical",
+    **fci_kwargs: Unpack[FCIOptions],
+) -> FCIResult: ...
+
+
+@overload
+def stable_fci_plus(
+    data: object,
+    n_bootstraps: int = 20,
+    edge_threshold: float = 0.5,
+    sample_fraction: float = 1.0,
+    random_state: Optional[int] = None,
+    n_jobs: int = 1,
+    profile: Literal["paper", "paper_aligned"] = "paper",
+    **fci_kwargs: Unpack[FCIPlusPaperOptions],
+) -> FCIResult: ...
 
 
 def stable_fci_plus(
@@ -118,7 +169,9 @@ def stable_fci_plus(
     edge_threshold: float = 0.5,
     sample_fraction: float = 1.0,
     random_state: Optional[int] = None,
-    **fci_kwargs: object,
+    n_jobs: int = 1,
+    profile: Optional[str] = None,
+    **fci_kwargs: Any,
 ) -> FCIResult:
     """Run FCI+ and remove edges with low bootstrap adjacency frequency.
 
@@ -127,6 +180,10 @@ def stable_fci_plus(
     bootstrap replicate.
     """
 
+    if profile is not None:
+        config = FCIPlusConfig.from_profile(profile, **fci_kwargs)
+        fci_kwargs = {"config": config}
+
     return _stable_discovery(
         FCIPlus,
         data,
@@ -134,18 +191,20 @@ def stable_fci_plus(
         edge_threshold=edge_threshold,
         sample_fraction=sample_fraction,
         random_state=random_state,
+        n_jobs=n_jobs,
         **fci_kwargs,
     )
 
 
 def _stable_discovery(
-    estimator_cls: type[Any],
+    estimator_cls: type[BaseFCIEstimator],
     data: object,
     n_bootstraps: int,
     edge_threshold: float,
     sample_fraction: float,
     random_state: Optional[int],
-    **fci_kwargs: object,
+    n_jobs: int,
+    **fci_kwargs: Any,
 ) -> FCIResult:
     if not 0.0 <= edge_threshold <= 1.0:
         raise ValueError("edge_threshold must be between 0 and 1.")
@@ -157,6 +216,7 @@ def _stable_discovery(
         n_bootstraps=n_bootstraps,
         sample_fraction=sample_fraction,
         random_state=random_state,
+        n_jobs=n_jobs,
         **fci_kwargs,
     )
 
@@ -173,30 +233,30 @@ def _stable_discovery(
 
 
 def _bootstrap_adjacency_frequencies(
-    estimator_cls: type[Any],
+    estimator_cls: type[BaseFCIEstimator],
     data: object,
     n_bootstraps: int = 20,
     sample_fraction: float = 1.0,
     random_state: Optional[int] = None,
-    **fci_kwargs: object,
+    n_jobs: int = 1,
+    **fci_kwargs: Any,
 ) -> dict[tuple[str, str], float]:
     if n_bootstraps <= 0:
         raise ValueError("n_bootstraps must be positive.")
     if sample_fraction <= 0.0:
         raise ValueError("sample_fraction must be positive.")
 
-    n_samples = _n_rows(data)
-    if n_samples == 0:
-        raise ValueError("Cannot bootstrap an empty dataset.")
-
-    bootstrap_size = max(1, int(ceil(n_samples * sample_fraction)))
-    rng = np.random.default_rng(random_state)
     counts: Counter[tuple[str, str]] = Counter()
-
-    for _ in range(n_bootstraps):
-        indices = rng.integers(0, n_samples, size=bootstrap_size)
-        sample = _sample_rows(data, indices)
-        result = estimator_cls(**fci_kwargs).fit(sample)
+    results = _bootstrap_results(
+        estimator_cls,
+        data,
+        n_bootstraps=n_bootstraps,
+        sample_fraction=sample_fraction,
+        random_state=random_state,
+        n_jobs=n_jobs,
+        fci_kwargs=fci_kwargs,
+    )
+    for result in results:
         for x, y in result.graph.edges():
             counts[(str(x), str(y))] += 1
 
@@ -204,6 +264,44 @@ def _bootstrap_adjacency_frequencies(
         edge: count / n_bootstraps
         for edge, count in sorted(counts.items(), key=lambda item: item[0])
     }
+
+
+def _bootstrap_results(
+    estimator_cls: type[BaseFCIEstimator],
+    data: object,
+    *,
+    n_bootstraps: int,
+    sample_fraction: float,
+    random_state: Optional[int],
+    n_jobs: int,
+    fci_kwargs: dict[str, Any],
+) -> list[FCIResult]:
+    if n_bootstraps <= 0:
+        raise ValueError("n_bootstraps must be positive.")
+    if sample_fraction <= 0.0:
+        raise ValueError("sample_fraction must be positive.")
+    if n_jobs <= 0:
+        raise ValueError("n_jobs must be positive.")
+
+    n_samples = _n_rows(data)
+    if n_samples == 0:
+        raise ValueError("Cannot bootstrap an empty dataset.")
+
+    bootstrap_size = max(1, int(ceil(n_samples * sample_fraction)))
+    rng = np.random.default_rng(random_state)
+    index_sets = [
+        rng.integers(0, n_samples, size=bootstrap_size) for _ in range(n_bootstraps)
+    ]
+
+    def fit_one(indices: Array) -> FCIResult:
+        kwargs = fci_kwargs if n_jobs == 1 else deepcopy(fci_kwargs)
+        sample = _sample_rows(data, indices)
+        return estimator_cls(**kwargs).fit(sample)
+
+    if n_jobs == 1:
+        return [fit_one(indices) for indices in index_sets]
+    with ThreadPoolExecutor(max_workers=n_jobs) as executor:
+        return list(executor.map(fit_one, index_sets))
 
 
 def _edge_repr_frequencies(
@@ -225,7 +323,7 @@ def _n_rows(data: object) -> int:
     return int(array.shape[0])
 
 
-def _sample_rows(data: object, indices: np.ndarray) -> object:
+def _sample_rows(data: object, indices: Array) -> object:
     if isinstance(data, pd.DataFrame):
         return data.iloc[indices].reset_index(drop=True)
     return np.asarray(data)[indices]

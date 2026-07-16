@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 
 import fci_engine.discovery.fci as fci_pipeline
-from fci_engine import BackgroundKnowledge, FCI, FCIResult, fci
+from fci_engine import BackgroundKnowledge, FCI, FCIConfig, FCIResult, fci
 from fci_engine.ci import CITest, CITestResult, MissingValueFisherZTest
 
 
@@ -42,6 +42,34 @@ def test_function_api_fci_works() -> None:
 
     assert isinstance(result, FCIResult)
     assert result.graph.nodes == ("X0", "X1")
+
+
+def test_fci_paper_profile_matches_spirtes_search_schedule() -> None:
+    config = FCIConfig.paper(alpha=0.01)
+
+    assert config.alpha == 0.01
+    assert config.max_cond_set_size is None
+    assert config.max_path_length is None
+    assert config.do_pdsep is True
+    assert config.skeleton_stable is False
+    assert config.pdsep_stable is True
+    assert config.sepset_selection == "first"
+    assert config.orientation_strategy == "standard"
+
+
+def test_function_api_accepts_fci_paper_profile() -> None:
+    data = np.random.default_rng(11).normal(size=(80, 2))
+
+    result = fci(
+        data,
+        profile="paper",
+        ci_test=AlwaysDependentCITest(),
+        alpha=0.01,
+    )
+
+    assert result.config.skeleton_stable is False
+    assert result.config.pdsep_stable is True
+    assert result.config.sepset_selection == "first"
 
 
 def test_result_summary_contains_useful_information() -> None:

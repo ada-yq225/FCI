@@ -1,155 +1,90 @@
-"""FCI+ discovery pipeline."""
+"""Integrated FCI+ estimator and sparse hierarchical D-SEP pipeline."""
 
 from __future__ import annotations
 
 from dataclasses import replace
 from time import perf_counter
-from typing import Optional
+from typing import Any, Optional
 
-from fci_engine.ci import CITestCache, FisherZTest
-from fci_engine.config import FCIConfig
-from fci_engine.diagnostics import DSEPDiagnostics, OrientationEvent
-from fci_engine.discovery.dsep import refine_skeleton_with_fci_plus_dsep
-from fci_engine.discovery.fci import _name_ci_trace
-from fci_engine.discovery.orientation import (
-    orient_unshielded_colliders_conservative,
-    orient_unshielded_colliders,
-    reset_endpoint_marks,
+from typing_extensions import Unpack
+
+from fci_engine.config import (
+    FCIConfig,
+    FCIOptions,
+    FCIPlusConfig,
+    FCIPlusPaperOptions,
 )
-from fci_engine.discovery.rules import apply_orientation_rules
-from fci_engine.discovery.skeleton import create_complete_pag, learn_initial_skeleton
-from fci_engine.knowledge import apply_background_knowledge
+from fci_engine.diagnostics import DSEPDiagnostics
+from fci_engine.discovery.base import BaseFCIEstimator
+from fci_engine.discovery.dsep import refine_skeleton_with_fci_plus_dsep
 from fci_engine.result import FCIResult
-from fci_engine.utils.validation import validate_numeric_data
 
 
-class FCIPlus:
-    """Estimator for the FCI+ sparse hierarchical D-SEP variant."""
+class FCIPlus(BaseFCIEstimator):
+    """Estimator for FCI+ with reusable practical and paper profiles."""
 
-    def __init__(self, config: Optional[FCIConfig] = None, **kwargs: object) -> None:
-        if config is None:
-            self.config = FCIConfig(**kwargs)
-        elif kwargs:
-            self.config = replace(config, **kwargs)
-        else:
-            self.config = config
+    algorithm = "fci_plus"
+    config_class = FCIPlusConfig
 
-        self.variable_names: list[str] = []
-        self.result_: Optional[FCIResult] = None
-        self.ci_test_cache_: Optional[CITestCache] = None
+    def __init__(
+        self,
+        config: Optional[FCIPlusConfig] = None,
+        **kwargs: Unpack[FCIOptions],
+    ) -> None:
+        super().__init__(config=config, **kwargs)
+
+    @classmethod
+    def practical(cls, **overrides: Unpack[FCIOptions]) -> "FCIPlus":
+        """Create a bounded conservative finite-sample estimator."""
+
+        return cls(FCIPlusConfig.practical(**overrides))
+
+    @classmethod
+    def paper(cls, **overrides: Unpack[FCIPlusPaperOptions]) -> "FCIPlus":
+        """Create an estimator using literal Algorithm 2 search settings."""
+
+        return cls(FCIPlusConfig.paper(**overrides))
+
+    @classmethod
+    def from_profile(cls, profile: str, **overrides: Any) -> "FCIPlus":
+        """Create an estimator from the ``practical`` or ``paper`` profile."""
+
+        return cls(FCIPlusConfig.from_profile(profile, **overrides))
+
+    def _normalize_algorithm_config(self, config: FCIConfig) -> FCIConfig:
+        return replace(config, do_pdsep=False)
 
     def fit(self, data: object) -> FCIResult:
-        """Run FCI+ and return an ``FCIResult``."""
+        """Run FCI+ and return an :class:`FCIResult`."""
 
         start_time = perf_counter()
-        allow_nan = getattr(self.config.ci_test, "allow_nan", False)
-        normalized_data, variable_names = validate_numeric_data(
-            data,
-            allow_nan=allow_nan,
-        )
-        self.variable_names = variable_names
-        n_samples = normalized_data.shape[0]
+        run = self._prepare_run(data)
+        graph, sepsets = self._learn_initial_skeleton(run)
 
-        resolved_alpha = self.config.alpha
-        if resolved_alpha == "auto":
-            if n_samples < 1000:
-                resolved_alpha = 0.05
-            elif n_samples < 5000:
-                resolved_alpha = 0.01
-            else:
-                resolved_alpha = 0.001
-            if self.config.verbose:
-                print(f"Auto-selected alpha={resolved_alpha} for n_samples={n_samples}")
-
-        resolved_config = replace(self.config, alpha=resolved_alpha, do_pdsep=False)
-        if resolved_config.orientation_strategy == "robust":
-            resolved_config = replace(resolved_config, conservative_colliders=True)
-        base_ci_test = resolved_config.ci_test
-        if base_ci_test is None:
-            base_ci_test = FisherZTest(alpha=resolved_alpha)
-        else:
-            resolved_config = replace(resolved_config, alpha=base_ci_test.alpha)
-        allow_nan = getattr(base_ci_test, "allow_nan", False)
-        ci_test = CITestCache(base_ci_test)
-        self.ci_test_cache_ = ci_test
-
-        orientation_trace: list[OrientationEvent] = []
-        ambiguous_triples: list[tuple[str, str, str]] = []
-        sepset_sources: dict[tuple[str, str], str] = {}
-        dsep_diagnostics = DSEPDiagnostics()
-
-        graph = create_complete_pag(variable_names)
-        graph, sepsets = learn_initial_skeleton(
-            normalized_data,
-            graph,
-            ci_test,
-            max_cond_set_size=resolved_config.max_cond_set_size,
-            verbose=resolved_config.verbose,
-            sepset_sources=sepset_sources,
-            stable=resolved_config.skeleton_stable,
-            sepset_selection=resolved_config.sepset_selection,
-            allow_nan=allow_nan,
-        )
-
-        sparsity_bound = resolved_config.sparsity_bound
+        sparsity_bound = run.config.sparsity_bound
         if sparsity_bound is None:
-            sparsity_bound = resolved_config.max_cond_set_size
+            sparsity_bound = run.config.max_cond_set_size
 
+        diagnostics = DSEPDiagnostics()
         graph, sepsets = refine_skeleton_with_fci_plus_dsep(
-            normalized_data,
+            run.data,
             graph,
             sepsets,
-            ci_test,
+            run.ci_test,
             max_degree=sparsity_bound,
-            verbose=resolved_config.verbose,
-            sepset_sources=sepset_sources,
-            sepset_selection=resolved_config.sepset_selection,
-            allow_nan=allow_nan,
-            diagnostics=dsep_diagnostics,
+            verbose=run.config.verbose,
+            sepset_sources=run.sepset_sources,
+            sepset_selection=run.config.sepset_selection,
+            allow_nan=run.allow_nan,
+            diagnostics=diagnostics,
         )
 
-        reset_endpoint_marks(graph)
-        apply_background_knowledge(
-            graph,
-            resolved_config.background_knowledge,
-            trace=orientation_trace,
-        )
-        if resolved_config.conservative_colliders:
-            graph, ambiguous_triples = orient_unshielded_colliders_conservative(
-                normalized_data,
-                graph,
-                sepsets,
-                ci_test,
-                max_cond_set_size=resolved_config.max_cond_set_size,
-                trace=orientation_trace,
-                allow_nan=allow_nan,
-            )
-        else:
-            orient_unshielded_colliders(graph, sepsets, trace=orientation_trace)
-        apply_orientation_rules(
+        self._orient_colliders(run, graph, sepsets, reset=True)
+        self._apply_orientation_rules(run, graph, sepsets)
+        return self._build_result(
+            run,
             graph,
             sepsets,
-            max_path_length=resolved_config.max_path_length,
-            verbose=resolved_config.verbose,
-            trace=orientation_trace,
-            ambiguous_triples=ambiguous_triples,
-            conservative_orientation=resolved_config.conservative_orientation,
-            orientation_strategy=resolved_config.orientation_strategy,
+            start_time=start_time,
+            dsep_diagnostics=diagnostics.to_dict(),
         )
-
-        result = FCIResult(
-            graph=graph,
-            sepsets=sepsets,
-            ci_test_count=ci_test.n_tests_total,
-            cache_hits=ci_test.n_cache_hits,
-            elapsed_time=perf_counter() - start_time,
-            config=resolved_config,
-            orientation_trace=orientation_trace,
-            ci_test_trace=_name_ci_trace(ci_test.trace, variable_names),
-            sepset_sources=sepset_sources,
-            ambiguous_triples=ambiguous_triples,
-            dsep_diagnostics=dsep_diagnostics.to_dict(),
-            algorithm="fci_plus",
-        )
-        self.result_ = result
-        return result

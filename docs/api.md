@@ -12,6 +12,11 @@ result = fci(data, alpha=0.05, do_pdsep=True)
 
 Runs standard FCI and returns an `FCIResult`.
 
+Use `fci(data, profile="paper", alpha=...)` for the Spirtes et al. adjacency and
+Possible-D-SEP search schedule. It uses immediate PC updates, first-found
+minimal sepsets, unbounded search, a fixed initial graph for the PDS stage, and separate
+`Possible-D-SEP(A,B)` / `Possible-D-SEP(B,A)` candidate pools.
+
 Accepted input:
 
 - `pandas.DataFrame`: column names become variable names
@@ -22,12 +27,23 @@ Accepted input:
 ```python
 from fci_engine import fci_plus
 
-result = fci_plus(data, alpha=0.05, max_cond_set_size=3)
+result = fci_plus(
+    data,
+    profile="practical",
+    max_cond_set_size=3,
+)
 ```
 
 Runs FCI+ and returns an `FCIResult`. FCI+ keeps the same graph, sepset, trace,
 and CI-cache interfaces as standard FCI, but replaces the broad Possible-D-Sep
 refinement with a sparse hierarchical D-SEP search.
+
+Named profiles:
+
+- `profile="practical"`: bounded search, automatic-alpha heuristic,
+  strongest-at-depth sepsets, and conservative finite-sample orientation
+- `profile="paper"`: pass `k=...` for the literal Algorithm 2 search settings,
+  including the same bound in both stages and immediate first-found sepsets
 
 ## `fci_engine.FCI`
 
@@ -40,7 +56,8 @@ result = estimator.fit(data)
 
 Configuration options:
 
-- `alpha`: significance level for the default Fisher-Z CI test
+- `alpha`: significance level for the default Fisher-Z CI test. The default is
+  `0.05`; `"auto"` is an opt-in sample-size heuristic.
 - `ci_test`: custom conditional independence test. Its own `alpha` is the
   effective threshold and is copied into the returned result configuration.
 - `max_cond_set_size`: maximum conditioning set size
@@ -73,19 +90,29 @@ Configuration options:
 ## `fci_engine.FCIPlus`
 
 ```python
-from fci_engine import FCIPlus
+from fci_engine import FCIPlus, FCIPlusConfig
 
-estimator = FCIPlus(alpha=0.01, max_cond_set_size=3)
+estimator = FCIPlus.practical(max_cond_set_size=3)
 result = estimator.fit(data)
+
+paper_estimator = FCIPlus.paper(k=3, alpha=0.01)
+
+config = FCIPlusConfig.practical(
+    max_cond_set_size=3,
+    sparsity_bound=3,
+)
+configured_estimator = FCIPlus(config)
 ```
 
-`FCIPlus` uses the same configuration dataclass as `FCI`. In FCI+, use
+`FCIPlusConfig` extends the shared FCI configuration with FCI+-specific named
+profiles and disables standard Possible-D-Sep. In FCI+, use
 `sparsity_bound` for the paper's sparse degree bound `k`; `max_cond_set_size`
 continues to limit ordinary CI conditioning depth. If `sparsity_bound` is not
 provided, FCI+ falls back to `max_cond_set_size` for backward compatibility.
-For a literal Algorithm 2 run, set the two limits to the same `k`, use
-`sepset_selection="first"`, `max_path_length=None`, and
-`orientation_strategy="standard"`.
+For a literal Algorithm 2 run, prefer `FCIPlus.paper(k=..., alpha=...)`; it
+enforces the same `k` in both stages, immediate PC updates, first-found
+sepsets, no standard Possible-D-SEP stage, and standard complete PAG
+orientation.
 
 ## `FCIResult`
 
@@ -106,8 +133,15 @@ Fields:
 - `bootstrap_edge_frequencies`: optional user-populated stability summary
 - `dsep_diagnostics`: FCI+ hierarchical D-SEP counters, or `None` for standard
   FCI
+- `alpha_was_auto`: whether the resolved alpha came from the opt-in heuristic
 
 Use `result.summary()` for a compact text summary.
+
+Estimator conveniences:
+
+- `estimator.graph_`: fitted PAG
+- `estimator.get_result()`: fitted `FCIResult` with a clear pre-fit error
+- `estimator.fit_predict(data)`: fit and return the PAG directly
 
 Industrial export and audit helpers:
 
@@ -117,8 +151,10 @@ networkx_graph = result.to_networkx()
 payload = result.to_dict()
 result.save_json("fci_result.json")
 result.save_interactive_report("fci_report.html")
+paths = result.save_artifacts("outputs", stem="study_fci_plus")
 
 print(result.explain_edge("X", "Y").summary())
+print(result.assumption_notes())
 ```
 
 - `to_pandas_edges()`: edge table with endpoint marks and edge strings
@@ -127,8 +163,12 @@ print(result.explain_edge("X", "Y").summary())
 - `to_interactive_report()` / `save_interactive_report(path)`: standalone HTML
   report where users can click PAG edges and inspect endpoint meanings,
   skeleton/CI evidence, orientation-rule evidence, and deterministic reasoning
+- `save_artifacts(directory, stem=...)`: save JSON, an edge-table CSV, and the
+  standalone HTML report as one applied-analysis bundle
 - `explain_edge(x, y)`: direct CI tests, sepset, sepset source, and orientation
   events related to a node pair
+- `assumption_notes()`: method-specific statistical assumptions and PAG
+  interpretation warnings for the completed run
 
 ## CI Tests
 
@@ -162,7 +202,12 @@ nonlinear = fci(data, ci_test=KernelCITest(alpha=0.05, n_permutations=200))
 ```python
 from fci_engine import bootstrap_edge_frequencies
 
-frequencies = bootstrap_edge_frequencies(data, n_bootstraps=20, alpha=0.01)
+frequencies = bootstrap_edge_frequencies(
+    data,
+    n_bootstraps=20,
+    n_jobs=4,
+    alpha=0.01,
+)
 ```
 
 The keys are exact PAG edge strings such as `X o-> Y`; values are bootstrap
@@ -173,12 +218,19 @@ For stability selection, use `stable_fci` or `stable_fci_plus`:
 ```python
 from fci_engine import stable_fci, stable_fci_plus
 
-result = stable_fci(data, n_bootstraps=50, edge_threshold=0.6, alpha="auto")
-plus_result = stable_fci_plus(
+result = stable_fci(
     data,
     n_bootstraps=50,
+    n_jobs=4,
     edge_threshold=0.6,
-    alpha="auto",
+    alpha=0.01,
+)
+plus_result = stable_fci_plus(
+    data,
+    profile="practical",
+    n_bootstraps=50,
+    n_jobs=4,
+    edge_threshold=0.6,
     max_cond_set_size=3,
 )
 ```
@@ -186,6 +238,8 @@ plus_result = stable_fci_plus(
 These wrappers run the selected algorithm on the full data, then remove final
 edges that appear in less than `edge_threshold` of bootstrap runs. They are
 engineering robustness wrappers, not replacements for the standard algorithms.
+`n_jobs` parallelizes bootstrap replicates with isolated estimator/CI-test
+copies; it does not change the statistical meaning of the frequencies.
 
 ## Oracle Benchmarks
 

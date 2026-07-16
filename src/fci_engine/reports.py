@@ -438,8 +438,8 @@ def render_pag_svg(result: "FCIResult", width: int = 760, height: int = 560) -> 
 
     node_parts = []
     for node in result.graph.nodes:
-        x, y = positions[str(node)]
-        node_parts.append(_node_svg(str(node), x, y))
+        node_x, node_y = positions[str(node)]
+        node_parts.append(_node_svg(str(node), node_x, node_y))
 
     empty_text = ""
     if not edge_parts:
@@ -947,8 +947,7 @@ def _node_svg(node: str, x: float, y: float) -> str:
     text_lines = []
     for index, line in enumerate(lines):
         text_lines.append(
-            f'<tspan x="{x:.1f}" y="{text_start + index * 14:.1f}">'
-            f"{_esc(line)}</tspan>"
+            f'<tspan x="{x:.1f}" y="{text_start + index * 14:.1f}">{_esc(line)}</tspan>'
         )
     return (
         f"<g><title>{_esc(node)}</title>"

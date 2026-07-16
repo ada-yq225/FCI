@@ -155,7 +155,9 @@ def test_complex_reference_shapes_match_causal_learn_exactly(data_factory) -> No
     assert fci_engine_shape(data) == causal_learn_shape(data)
 
 
-def test_instrumented_two_latent_case_has_high_but_not_exact_reference_agreement() -> None:
+def test_instrumented_two_latent_case_has_high_but_not_exact_reference_agreement() -> (
+    None
+):
     data = make_instrumented_two_latent_data()
     engine_shape = fci_engine_shape(data)
     reference_shape = causal_learn_shape(data)

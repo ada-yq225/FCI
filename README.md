@@ -18,9 +18,9 @@ finite-sample instability, and production audit requirements.
 - **Research focus**: stable skeleton discovery, accuracy-first separating-set
   selection, conservative orientation options, bootstrap stability filtering,
   and explicit audit traces.
-- **Validation**: published oracle PAG cases, representative variable-order
-  checks, seeded latent-SEM integration tests, optional reference-package
-  comparisons, and a Python 3.9-3.13 CI matrix.
+- **Validation**: published oracle PAG cases, variable-order checks, seeded
+  latent-SEM integration tests, discrete/nonlinear/missing-data paths, optional
+  reference-package comparisons, and a Python 3.9-3.13 CI matrix.
 - **Advisor view**: [open the committed evidence-first showcase](examples/advisor_showcase.html)
   or regenerate it from the current checkout.
 
@@ -45,7 +45,7 @@ flowchart LR
 | Multiple CI tests | Fisher-Z, missing-value Fisher-Z, chi-square, G-square, and kernel CI are available. |
 | PAG diagnostics | Records CI traces, sepset sources, orientation events, and edge explanations. |
 | Oracle benchmarks | Compare outputs against known PAG shapes, causal-learn, and R `pcalg` when installed. |
-| Audit exports | Save edge tables, JSON, and NetworkX graphs for downstream review. |
+| Audit exports | Save a JSON audit record, CSV edge table, and interactive HTML report in one call. |
 | D-SEP diagnostics | Inspect FCI+ candidate edges, revisits, hierarchy-cache hits, skipped duplicate conditioning sets, and D-SEP CI tests. |
 
 ## PAG Output At A Glance
@@ -74,47 +74,194 @@ A  <-> B
 
 | Entry point | Best use case |
 | --- | --- |
-| `fci(data)` | Standard FCI pipeline for general continuous data. |
-| `fci_plus(data)` | Sparse graphs where broad Possible-D-Sep search is too expensive. |
+| `fci(data)` | Stable finite-sample FCI defaults with explicit alpha `0.05`. |
+| `fci(data, profile="paper")` | Spirtes et al. adjacency and Possible-D-SEP search schedule. |
+| `fci_plus(data, profile="practical")` | Bounded conservative FCI+ profile; validate it for the dataset at hand. |
 | `FCI(config).fit(data)` | Estimator-style usage with explicit configuration and reusable objects. |
+| `FCIPlus.practical(...).fit(data)` | Reusable bounded FCI+ estimator with conservative finite-sample options. |
+| `FCIPlus.paper(...).fit(data)` | Literal Algorithm 2 search settings for validation and research comparison. |
 | `stable_fci(data)` | Bootstrap stability selection when finite-sample reliability matters. |
 | `stable_fci_plus(data)` | Bootstrap stability selection with the FCI+ sparse D-SEP pipeline. |
 | `run_oracle_benchmark(...)` | Regression testing against preset known graph structures. |
 
-## Minimal Research Workflow
+## FCI+ Usage Guide
+
+### 1. Prepare the data
+
+Pass a numeric `pandas.DataFrame` when possible. Its column names become PAG
+node names, which makes every result and export easier to interpret.
 
 ```python
 import pandas as pd
-from fci_engine import fci_plus, stable_fci_plus
 
 data = pd.read_csv("observational_data.csv")
+feature_columns = ["exposure", "biomarker", "outcome", "site"]
+data = data[feature_columns]
+```
 
-# Paper-aligned FCI+ run. Use the same k in both search stages.
+The default Fisher-Z test expects continuous numeric data without missing or
+infinite values. See the missing-value and custom-CI examples below when those
+assumptions do not match the dataset.
+
+### 2. Run the bounded practical FCI+ profile
+
+For an initial bounded analysis, the `practical` profile enables
+stable skeleton discovery, strongest-at-depth separating-set selection, a
+bounded sparse D-SEP search, automatic alpha selection, and robust finite-sample
+orientation. It is a convenience profile, not a universal statistical optimum;
+compare important results with standard FCI and sensitivity settings.
+
+```python
+from fci_engine import fci_plus
+
 result = fci_plus(
     data,
-    alpha=0.01,
+    profile="practical",
     max_cond_set_size=3,
-    sparsity_bound=3,
-    max_path_length=None,
-    sepset_selection="first",
-    orientation_strategy="standard",
 )
 
 print(result.summary())
 print(result.to_pandas_edges())
+```
 
-# Optional finite-sample sensitivity analysis (not the paper's oracle mode).
+`max_cond_set_size=3` is an example bounded starting point. Increasing it can
+discover separators involving more variables but
+can substantially increase runtime and finite-sample error. The practical
+profile uses the same value as the FCI+ sparsity bound unless
+`sparsity_bound` is specified separately.
+
+### 3. Use a reusable estimator
+
+Use `FCIPlus` when the configuration should be named, reused, inspected, or
+passed through an application service.
+
+```python
+from fci_engine import FCIPlus
+
+estimator = FCIPlus.practical(
+    max_cond_set_size=3,
+    alpha="auto",
+)
+result = estimator.fit(data)
+
+# Available after fit:
+pag = estimator.graph_
+same_result = estimator.get_result()
+
+# Or return the PAG directly:
+pag = estimator.fit_predict(data)
+```
+
+The estimator stores only run metadata and the latest fitted result. Call
+`fit` again to analyze another dataset with the same configuration.
+
+### 4. Run the paper-aligned profile
+
+Use the `paper` profile for Algorithm 2 validation or comparison with another
+FCI+ implementation. It uses the same `k` for ordinary conditioning and the
+sparse hierarchical D-SEP bound, keeps first-found separating sets, and applies
+the standard orientation profile.
+
+```python
+from fci_engine import fci_plus
+
+paper_result = fci_plus(
+    data,
+    profile="paper",
+    k=3,
+    alpha=0.01,
+)
+```
+
+This profile fixes both PC adjacency depth and the hierarchical base size to
+the same `k`, uses immediate graph updates and first-found minimal separating
+sets, and disables standard FCI's Possible-D-SEP stage. It is intended for
+algorithm fidelity checks, not as an automatic finite-sample recommendation.
+
+### 5. Read and export the result
+
+`FCIResult` keeps the learned PAG together with the configuration, separating
+sets, CI-test trace, orientation trace, runtime, and FCI+ D-SEP diagnostics.
+
+```python
+# Compact edge table for analysis code
+edges = result.to_pandas_edges()
+
+# PAG edge notation
+for x, y in result.edges:
+    print(result.graph.edge_repr(x, y))
+
+# Inspect the evidence for one node pair
+print(result.explain_edge("exposure", "outcome").summary())
+
+# Write a complete applied-analysis bundle
+paths = result.save_artifacts(
+    "outputs",
+    stem="study_fci_plus",
+)
+print(paths["json"])
+print(paths["edges_csv"])
+print(paths["report_html"])
+print(result.assumption_notes())
+```
+
+The JSON file is the machine-readable audit record, the CSV is convenient for
+downstream analysis, and the standalone HTML report supports interactive edge
+inspection. Use `include_traces=True` in `save_artifacts` when the JSON export
+must contain every CI and orientation event.
+
+Do not interpret every retained adjacency as a direct causal effect. FCI+
+returns a PAG representing an equivalence class under its assumptions.
+Arrowheads, tails, and circles describe identifiable endpoint information.
+
+### 6. Choose the important parameters
+
+| Parameter | Practical meaning |
+| --- | --- |
+| `profile="practical"` | Bounded conservative convenience profile for finite-sample exploration. |
+| `profile="paper"` | Literal Algorithm 2 search settings for research validation. |
+| `alpha` | CI-test threshold; default is `0.05`. `"auto"` is an opt-in sample-size heuristic recorded in `result.alpha_was_auto`. |
+| `max_cond_set_size` | Maximum ordinary conditioning depth; larger values cost more CI tests. |
+| `sparsity_bound` | FCI+ hierarchical D-SEP degree bound; defaults to `max_cond_set_size` in the practical profile. |
+| `orientation_strategy` | `"robust"` is cautious for applied work; `"standard"` follows the full implemented rule schedule. |
+| `sepset_selection` | `"max_pvalue"` favors stronger finite-sample evidence; `"first"` matches traditional early stopping. |
+| `ci_test` | Replace Fisher-Z for missing, discrete, nonlinear, or domain-specific data. |
+
+### 7. Missing values and alternative data types
+
+Missing continuous data requires an explicit missing-value CI test:
+
+```python
+from fci_engine import MissingValueFisherZTest, fci_plus
+
+result = fci_plus(
+    data_with_missing_values,
+    profile="practical",
+    ci_test=MissingValueFisherZTest(alpha=0.01),
+    max_cond_set_size=3,
+)
+```
+
+For discrete data use `ChiSquareTest` or `GSquareTest`. For nonlinear
+continuous relationships use `KernelCITest`. A custom test can implement the
+public `CITest` interface and be passed through the same `ci_test` argument.
+
+### 8. Add bootstrap stability analysis when needed
+
+Bootstrap filtering is a sensitivity analysis around FCI+, not part of the
+paper's oracle algorithm:
+
+```python
+from fci_engine import stable_fci_plus
+
 stable = stable_fci_plus(
     data,
+    profile="practical",
     n_bootstraps=50,
+    n_jobs=4,
     edge_threshold=0.6,
-    alpha="auto",
     max_cond_set_size=3,
-    orientation_strategy="robust",
 )
-
-stable.save_json("fci_result.json")
-stable.save_interactive_report("fci_report.html")
 ```
 
 ## Accuracy And Reliability Strategy
@@ -157,9 +304,15 @@ finite-sample recovery on arbitrary data.
 ```bash
 python -m pytest -q
 python -m ruff check src tests examples
+python -m mypy
 ```
 
-Current validation snapshot: **238 tests passed** and Ruff reported no errors.
+Current validation is checked by Pytest, Ruff, strict MyPy, a wheel build, and
+an installed-wheel smoke test. GitHub Actions runs Pytest independently on
+Python 3.9, 3.10, 3.11, 3.12, and 3.13.
+Local validation for this revision: **256 passed** on Python 3.14; **243 passed,
+4 optional-reference skips** on Python 3.9.6; strict MyPy passed under both
+interpreters.
 The full graphs, diagnostics, same-data FCI baseline, configuration, and
 limitations are collected in the
 [advisor showcase](examples/advisor_showcase.html). Its metrics are computed by
@@ -195,7 +348,7 @@ above.
 
 Supported Python versions: **3.9, 3.10, 3.11, 3.12, and 3.13**.
 Source builds require a PEP 621 capable build backend; standard modern `pip`
-build isolation handles this automatically, or use `setuptools>=61`.
+build isolation handles this automatically, or use `setuptools>=77`.
 
 To use `fci-engine` locally in your projects, clone the repository and install it using pip:
 
@@ -210,7 +363,9 @@ For development (includes testing and linting tools):
 pip install -e ".[dev]"
 ```
 
-The CI matrix runs the test suite on every supported Python minor version.
+CI runs Pytest on every supported Python minor version. Separate jobs run Ruff,
+strict MyPy, build the wheel, install it into a clean virtual environment, and
+execute an import/FCI+ smoke test.
 
 ## Quick Start
 
@@ -230,8 +385,8 @@ Y = 0.8 * X + np.random.normal(size=2000)
 Z = 0.8 * Y + np.random.normal(size=2000)
 df = pd.DataFrame({"X": X, "Y": Y, "Z": Z})
 
-# 2. Run the FCI Engine
-result = fci(df, alpha="auto")
+# 2. Run FCI with an explicit statistical threshold
+result = fci(df, alpha=0.01)
 
 # 3. View the Resulting PAG (Partial Ancestral Graph)
 print(result.summary())
@@ -263,23 +418,23 @@ B = 0.8 * I2 + 0.9 * U + np.random.normal(0, 0.5, 2000)
 # We only observe I1, I2, A, B. We don't observe U!
 df = pd.DataFrame({"I1": I1, "I2": I2, "A": A, "B": B})
 
-result = fci(df, alpha="auto")
+result = fci(df, alpha=0.01)
 for x, y in result.graph.edges():
     if "<->" in result.graph.edge_repr(x, y):
         print(f"Bidirected PAG edge: {result.graph.edge_repr(x, y)}")
         # Possible example output: A <-> B (finite samples can differ)
 ```
 
-### 3. Object-Oriented Estimator 
+### 3. Object-Oriented Estimator
 
 If you prefer `scikit-learn`-style usage:
 
 ```python
 from fci_engine import FCI, FCIConfig
 
-# Configure the solver (Try alpha="auto" for dynamic thresholding!)
+# Configure a stable finite-sample run.
 config = FCIConfig(
-    alpha="auto",
+    alpha=0.01,
     max_cond_set_size=3,
     do_pdsep=True,
     skeleton_stable=True,
@@ -301,13 +456,27 @@ FCI+ keeps the same user-facing result type but replaces standard FCI's broad
 Possible-D-Sep search with a sparse hierarchical D-SEP refinement:
 
 ```python
-from fci_engine import FCIPlus, fci_plus
+from fci_engine import FCIPlus, FCIPlusConfig, fci_plus
 
-result = fci_plus(df, alpha="auto", max_cond_set_size=3)
+# Bounded conservative convenience profile
+result = fci_plus(df, profile="practical", max_cond_set_size=3)
 
-estimator = FCIPlus(alpha=0.01, max_cond_set_size=3)
+# Equivalent reusable estimator
+estimator = FCIPlus.practical(max_cond_set_size=3)
 result = estimator.fit(df)
+
+# Explicit configuration object for application settings
+config = FCIPlusConfig.practical(
+    max_cond_set_size=3,
+    sparsity_bound=3,
+    alpha="auto",
+)
+result = FCIPlus(config).fit(df)
 ```
+
+See the full [FCI+ Usage Guide](#fci-usage-guide) above for paper-aligned
+settings, result interpretation, exports, missing values, and bootstrap
+stability analysis.
 
 ### 5. Missing Values
 
@@ -352,16 +521,44 @@ marks have the following meanings:
 *   `X o-o Y` (Circle to Circle): No information is known about the direction. (Could be $\rightarrow, \leftarrow, \text{or} \leftrightarrow$).
 *   `X --- Y` (Tail to Tail): compatible with selection effects in the represented ancestral graph, but does not prove one specific selection mechanism.
 
-### FCI Stages
+### Standard FCI stages
 
-The structural learning happens in four phases directly implemented in `fci-engine/discovery`:
-1.  **FAS (Fast Adjacency Search)**: Iteratively searches for Conditional Independence (CI) up to constraint length $N$ from both endpoints' current adjacency sets to remove structurally non-essential edges. Yields the un-oriented Skeleton and `Sepsets`. When multiple separating sets succeed at the same depth, the default `sepset_selection="max_pvalue"` keeps the strongest independence evidence for later orientation rules.
-2.  **Unshielded Colliders Discovery**: Orients V-structures ($X \circ\!\!\to Z \gets\!\!\circ Y$).
-3.  **Possible-D-SEP**: Generates larger conditioning candidates that earlier
-    rounds may miss. The implementation uses finite edge-state BFS instead of
-    enumerating every simple path, avoiding path explosion on dense PAGs.
-4.  **Zhang's Orientation Rules (R1 - R10)**: closes R1-R4, applies R5,
-    closes R6-R7, then closes R8-R10, matching the complete-rule schedule.
+The `profile="paper"` search follows the FCI construction in Chapter 6 of
+Spirtes, Glymour, and Scheines:
+
+1. **PC-style adjacency search** over ordered endpoint adjacency sets, recording
+   the first separating set found at increasing conditioning depth.
+2. **Initial unshielded-collider orientation** from the recorded separating
+   sets.
+3. **Possible-D-SEP refinement**. `Possible-D-SEP(A,B)` and
+   `Possible-D-SEP(B,A)` are searched as two separate candidate pools; the
+   implementation never creates a conditioning set by mixing the pools.
+   Candidate reachability is computed from the initially oriented graph for
+   this stage, as in the book's `F`/`F'` construction.
+4. **Reset and final orientation** after all remaining false adjacencies are
+   removed.
+
+The 2000 book proves that this returns a partially oriented inducing-path graph
+and explicitly notes that completeness was then unknown. To return the complete
+PAG expected by the 2013 FCI+ paper, this package uses the later complete
+R1-R10 orientation schedule: close R1-R4, apply R5, close R6-R7, then close
+R8-R10.
+
+### FCI+ Algorithm 2 mapping
+
+`fci_plus(..., profile="paper", k=...)` maps directly to Claassen, Mooij, and
+Heskes (2013), Algorithm 2:
+
+- line 1: PC adjacency search with bound `k`;
+- lines 2-3: augmented skeleton and Lemma 4 candidate D-SEP links;
+- lines 4-22: separate `BaseX` / `BaseY` subset loops, recursive `HIE`,
+  minimal D-SEP reduction, augmented-graph rebuild, and candidate revisiting;
+- line 23: complete FCI PAG orientation.
+
+The augmented skeleton uses only invariant arrowheads produced when adding one
+node to a known minimal separating set destroys independence. Hierarchy caches
+are keyed by both seed nodes and the excluded candidate edge, so one candidate
+cannot reuse another candidate's `HIE` result.
 
 ### Paper-aligned oracle validation
 
@@ -381,9 +578,10 @@ an underlying acyclic causal DAG (latent and selection variables are allowed),
 sound/complete CI answers, and—for FCI+'s polynomial bound—a sparse observed
 MAG with maximum degree `k`. Finite samples do not inherit the oracle guarantee.
 
-Primary specifications: [FCI+ UAI 2013 Algorithm 2](https://auai.org/uai2013/prints/papers/121.pdf),
-[Zhang's complete PAG rules](https://doi.org/10.1016/j.artint.2008.08.001),
-and [pcalg's reference FCI tests](https://github.com/cran/pcalg/blob/master/tests/test_fci.R).
+Primary specifications:
+[Spirtes, Glymour, and Scheines (2000), *Causation, Prediction, and Search*](https://www.cs.cmu.edu/afs/cs.cmu.edu/project/learn-43/lib/photoz/.g/web/.g/group/group2/g/opera/g/scottd/fullbook.pdf),
+[Claassen, Mooij, and Heskes (2013), Algorithm 2](https://www.auai.org/uai2013/prints/papers/121.pdf),
+and [Zhang's complete PAG rules](https://doi.org/10.1016/j.artint.2008.08.001).
 
 ---
 
@@ -392,7 +590,7 @@ and [pcalg's reference FCI tests](https://github.com/cran/pcalg/blob/master/test
 Unlike black-box implementations of FCI, `fci-engine` makes debugging causal topologies explicit. You can view exactly why a graph resolved the way it did:
 
 ```python
-result = fci(df, alpha="auto")
+result = fci(df, alpha=0.01)
 
 # Review the history of how endpoints were changed
 for event in result.orientation_trace:
@@ -422,7 +620,13 @@ For finite-sample robustness checks, use the stability-selection wrapper:
 ```python
 from fci_engine import stable_fci
 
-stable_result = stable_fci(df, n_bootstraps=50, edge_threshold=0.6, alpha="auto")
+stable_result = stable_fci(
+    df,
+    n_bootstraps=50,
+    n_jobs=4,
+    edge_threshold=0.6,
+    alpha=0.01,
+)
 ```
 
 Background knowledge can force or forbid directions on edges that remain in the
@@ -484,7 +688,7 @@ differences and per-edge orientation-rule traces:
 PYTHONPATH=src python examples/08_visual_benchmark_report.py
 ```
 
-## Current Scope And Limitations
+## Assumptions, interpretation, and non-goals
 
 - **Continuous Data**: Uses Fisher-Z as default CI test via Numpy arrays and
   supports covariance/correlation sufficient-statistics input at the CI-test
@@ -497,14 +701,29 @@ PYTHONPATH=src python examples/08_visual_benchmark_report.py
 - **Orientation Rules**: Applies the standard Zhang R1-R10 schedule. Oracle
   guarantees require Markov, faithfulness, acyclicity, and exact-CI assumptions;
   finite-sample errors remain possible.
-- **Stability Selection**: `stable_fci` can filter edges with weak bootstrap support.
+- **Stability Selection**: `stable_fci` and `stable_fci_plus` can parallelize
+  bootstrap replicates with `n_jobs`. Stability does not correct systematic CI
+  bias.
 - **Background Knowledge**: Required and forbidden edge directions are supported.
 - **FCI+**: Available as `fci_plus(...)` / `FCIPlus`, with hierarchical D-SEP
   refinement and the standard FCI orientation rules. The API can separate the
   sparse degree bound from the conditioning-set cap as an engineering extension;
-  the paper-aligned profile sets both to the same `k`.
+  `profile="practical"` is a bounded convenience profile, while
+  `profile="paper"` enforces the Algorithm 2 search schedule and uses one `k`
+  for both stages.
 - **Reference Benchmarks**: Preset oracle cases can compare `fci_engine`,
   causal-learn, and R `pcalg::fciPlus` when those optional tools are installed.
+- **Interpretation**: The result is a PAG, not a unique DAG, causal-effect
+  estimator, adjustment-set finder, or intervention model. Use
+  `result.assumption_notes()` and the audit exports before downstream
+  interpretation.
+- **Statistical guarantees**: Markov, faithfulness, valid CI decisions, and the
+  FCI+ degree bound are theorem assumptions. No implementation can turn
+  finite-sample CI errors into an oracle guarantee.
+- **Typing boundary**: strict MyPy checks all package code. pandas and NetworkX
+  use installed stubs, SciPy uses a narrow repository stub for the APIs called
+  here, and the optional untyped causal-learn import is isolated behind a typed
+  protocol rather than covered by a global `ignore_missing_imports`.
 
 ---
 

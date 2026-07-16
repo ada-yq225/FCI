@@ -3,19 +3,15 @@
 from __future__ import annotations
 
 from collections import deque
-from collections.abc import Hashable
 from itertools import combinations
 from typing import Optional
 
 from fci_engine.ci import CITest
 from fci_engine.diagnostics import DSEPDiagnostics
 from fci_engine.discovery.orientation import _safe_orient_arrowhead
-from fci_engine.discovery.skeleton import (
-    SepsetMap,
-    SepsetSourceMap,
-    _prepare_data_for_graph,
-)
+from fci_engine.discovery.skeleton import _prepare_data_for_graph
 from fci_engine.graph import PAG
+from fci_engine.types import SepsetMap, SepsetSourceMap
 
 
 def build_augmented_skeleton(
@@ -47,7 +43,7 @@ def build_augmented_skeleton(
     return augmented
 
 
-def possible_dsep_links(augmented_graph: PAG) -> list[tuple[Hashable, Hashable]]:
+def possible_dsep_links(augmented_graph: PAG) -> list[tuple[str, str]]:
     """Return candidate D-SEP links following the FCI+ bidirected pattern.
 
     A D-SEP link in the augmented skeleton has the characteristic local form
@@ -59,7 +55,7 @@ def possible_dsep_links(augmented_graph: PAG) -> list[tuple[Hashable, Hashable]]
     circle endpoints are not substitutes for invariant arrowheads.
     """
 
-    candidates: list[tuple[Hashable, Hashable]] = []
+    candidates: list[tuple[str, str]] = []
     for x, y in augmented_graph.edges():
         if not augmented_graph.is_bidirected_edge(x, y):
             continue
@@ -69,10 +65,10 @@ def possible_dsep_links(augmented_graph: PAG) -> list[tuple[Hashable, Hashable]]
 
 
 def hierarchy(
-    seed_nodes: set[Hashable],
+    seed_nodes: set[str],
     sepsets: SepsetMap,
-    exclude_pair: Optional[tuple[Hashable, Hashable]] = None,
-) -> set[Hashable]:
+    exclude_pair: Optional[tuple[str, str]] = None,
+) -> set[str]:
     """Return ``HIE(seed_nodes, I)`` from the FCI+ paper."""
 
     expanded = set(seed_nodes)
@@ -100,12 +96,12 @@ def hierarchy(
 def minimal_dsep(
     data: object,
     graph: PAG,
-    x: Hashable,
-    y: Hashable,
-    cond_set: set[Hashable],
+    x: str,
+    y: str,
+    cond_set: set[str],
     ci_test: CITest,
     allow_nan: bool = False,
-) -> set[Hashable]:
+) -> set[str]:
     """Remove redundant nodes from a D-separating set."""
 
     normalized_data, node_to_index = _prepare_data_for_graph(
@@ -126,9 +122,7 @@ def minimal_dsep(
                 normalized_data,
                 node_to_index[x],
                 node_to_index[y],
-                tuple(
-                    node_to_index[item] for item in graph.nodes if item in candidate
-                ),
+                tuple(node_to_index[item] for item in graph.nodes if item in candidate),
             )
             if result.independent:
                 minimized = candidate
@@ -171,9 +165,12 @@ def refine_skeleton_with_fci_plus_dsep(
         graph,
         allow_nan=allow_nan,
     )
-    tried_without_update: set[frozenset[Hashable]] = set()
-    attempted_edges: set[frozenset[Hashable]] = set()
-    hierarchy_cache: dict[frozenset[Hashable], set[Hashable]] = {}
+    tried_without_update: set[frozenset[str]] = set()
+    attempted_edges: set[frozenset[str]] = set()
+    hierarchy_cache: dict[
+        tuple[frozenset[str], frozenset[str]],
+        set[str],
+    ] = {}
     augmented = build_augmented_skeleton(
         graph,
         sepsets,
@@ -197,13 +194,13 @@ def refine_skeleton_with_fci_plus_dsep(
         base_x = [node for node in augmented.neighbors(x) if node != y]
         base_y = [node for node in augmented.neighbors(y) if node != x]
         removed = False
-        tested_conditioning_sets: set[frozenset[Hashable]] = set()
+        tested_conditioning_sets: set[frozenset[str]] = set()
         for size_x, size_y in _algorithm2_base_sizes(
             base_x,
             base_y,
             max_degree=max_degree,
         ):
-            best_at_sizes: Optional[tuple[float, set[Hashable]]] = None
+            best_at_sizes: Optional[tuple[float, set[str]]] = None
             for zx_candidate, zy_candidate in _base_combinations_for_sizes(
                 graph,
                 base_x,
@@ -212,7 +209,10 @@ def refine_skeleton_with_fci_plus_dsep(
                 size_y,
             ):
                 seed = {x, y, *zx_candidate, *zy_candidate}
-                hierarchy_key = frozenset(seed)
+                hierarchy_key = _hierarchy_cache_key(
+                    seed,
+                    exclude_pair=(x, y),
+                )
                 if diagnostics is not None:
                     diagnostics.hierarchy_queries += 1
                 if hierarchy_key in hierarchy_cache:
@@ -244,11 +244,7 @@ def refine_skeleton_with_fci_plus_dsep(
                 )
                 if verbose:
                     status = "independent" if result.independent else "dependent"
-                    print(
-                        "FCI+-DSEP("
-                        f"{x}, {y} | {set(cond_ordered)}"
-                        f") -> {status}"
-                    )
+                    print(f"FCI+-DSEP({x}, {y} | {set(cond_ordered)}) -> {status}")
 
                 if not result.independent:
                     continue
@@ -302,8 +298,8 @@ def refine_skeleton_with_fci_plus_dsep(
 
 
 def _algorithm2_base_sizes(
-    base_x: list[Hashable],
-    base_y: list[Hashable],
+    base_x: list[str],
+    base_y: list[str],
     max_degree: Optional[int],
 ) -> list[tuple[int, int]]:
     max_x = len(base_x)
@@ -320,17 +316,26 @@ def _algorithm2_base_sizes(
     ]
 
 
+def _hierarchy_cache_key(
+    seed_nodes: set[str],
+    exclude_pair: tuple[str, str],
+) -> tuple[frozenset[str], frozenset[str]]:
+    """Key HIE results by both seed nodes and the omitted candidate sepset."""
+
+    return frozenset(seed_nodes), frozenset(exclude_pair)
+
+
 def _base_combinations_for_sizes(
     graph: PAG,
-    base_x: list[Hashable],
-    base_y: list[Hashable],
+    base_x: list[str],
+    base_y: list[str],
     size_x: int,
     size_y: int,
-) -> list[tuple[tuple[Hashable, ...], tuple[Hashable, ...]]]:
+) -> list[tuple[tuple[str, ...], tuple[str, ...]]]:
     """Return all Algorithm 2 subset pairs for one literal ``(n, m)`` loop."""
 
-    pairs: list[tuple[tuple[Hashable, ...], tuple[Hashable, ...]]] = []
-    seen: set[tuple[frozenset[Hashable], frozenset[Hashable]]] = set()
+    pairs: list[tuple[tuple[str, ...], tuple[str, ...]]] = []
+    seen: set[tuple[frozenset[str], frozenset[str]]] = set()
     for zx in combinations(base_x, size_x):
         for zy in combinations(base_y, size_y):
             key = (frozenset(zx), frozenset(zy))
@@ -346,7 +351,7 @@ def _base_combinations_for_sizes(
     return pairs
 
 
-def _has_dsep_link_witness(graph: PAG, x: Hashable, y: Hashable) -> bool:
+def _has_dsep_link_witness(graph: PAG, x: str, y: str) -> bool:
     left_witnesses = [
         node
         for node in graph.neighbors(x)
@@ -370,7 +375,7 @@ def _has_dsep_link_witness(graph: PAG, x: Hashable, y: Hashable) -> bool:
     return False
 
 
-def _not_against_arrowhead_reachable(graph: PAG, target: Hashable) -> set[Hashable]:
+def _not_against_arrowhead_reachable(graph: PAG, target: str) -> set[str]:
     return {
         node
         for node in graph.nodes
@@ -381,8 +386,8 @@ def _not_against_arrowhead_reachable(graph: PAG, target: Hashable) -> set[Hashab
 
 def _has_not_against_arrowhead_path_to_target(
     graph: PAG,
-    source: Hashable,
-    target: Hashable,
+    source: str,
+    target: str,
 ) -> bool:
     """Return whether ``source ... -> target`` satisfies Lemma 4.
 
@@ -421,7 +426,7 @@ def _augment_with_single_node_dependencies(
         graph,
         allow_nan=allow_nan,
     )
-    seen_pairs: set[frozenset[Hashable]] = set()
+    seen_pairs: set[frozenset[str]] = set()
 
     for (x, y), sepset in list(sepsets.items()):
         pair_key = frozenset((x, y))

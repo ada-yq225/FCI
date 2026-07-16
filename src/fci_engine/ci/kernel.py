@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Optional
+from typing import Optional, cast
 
 import numpy as np
 from scipy import stats
 
 from fci_engine.ci.base import CITest, CITestResult
+from fci_engine.types import Array
 
 
 class KernelCITest(CITest):
@@ -47,7 +48,7 @@ class KernelCITest(CITest):
 
     def test(
         self,
-        data: np.ndarray,
+        data: Array,
         x: int,
         y: int,
         cond_set: Sequence[int] = (),
@@ -77,7 +78,7 @@ class KernelCITest(CITest):
         )
 
     @staticmethod
-    def _validate_data(data: np.ndarray) -> np.ndarray:
+    def _validate_data(data: Array) -> Array:
         if not isinstance(data, np.ndarray):
             raise TypeError("KernelCITest expects data to be a numpy.ndarray.")
         if data.ndim != 2:
@@ -87,7 +88,7 @@ class KernelCITest(CITest):
         array = np.asarray(data, dtype=float)
         if not np.all(np.isfinite(array)):
             raise ValueError("KernelCITest requires finite numeric data.")
-        return array
+        return cast(Array, array)
 
     @staticmethod
     def _validate_indices(
@@ -107,8 +108,8 @@ class KernelCITest(CITest):
 
     def _hsic_permutation_test(
         self,
-        x_values: np.ndarray,
-        y_values: np.ndarray,
+        x_values: Array,
+        y_values: Array,
     ) -> tuple[float, float]:
         rng = np.random.default_rng(self.random_state)
         k = _center_kernel(_rbf_kernel(x_values, self.gamma))
@@ -127,9 +128,9 @@ class KernelCITest(CITest):
 
     def _conditional_kci_test(
         self,
-        x_values: np.ndarray,
-        y_values: np.ndarray,
-        z_values: np.ndarray,
+        x_values: Array,
+        y_values: Array,
+        z_values: Array,
     ) -> tuple[float, float]:
         """Compute a kernel conditional independence statistic.
 
@@ -164,20 +165,20 @@ class KernelCITest(CITest):
         return statistic, p_value
 
 
-def _rbf_kernel(values: np.ndarray, gamma: Optional[float]) -> np.ndarray:
+def _rbf_kernel(values: Array, gamma: Optional[float]) -> Array:
     distances = _squared_distances(values)
     if gamma is None:
         gamma = _median_gamma(distances)
-    return np.exp(-gamma * distances)
+    return cast(Array, np.exp(-gamma * distances))
 
 
-def _squared_distances(values: np.ndarray) -> np.ndarray:
+def _squared_distances(values: Array) -> Array:
     norms = np.sum(values * values, axis=1, keepdims=True)
     distances = norms + norms.T - 2.0 * _safe_matmul(values, values.T)
-    return np.maximum(distances, 0.0)
+    return cast(Array, np.maximum(distances, 0.0))
 
 
-def _median_gamma(distances: np.ndarray) -> float:
+def _median_gamma(distances: Array) -> float:
     upper = distances[np.triu_indices_from(distances, k=1)]
     positive = upper[upper > 0.0]
     if positive.size == 0:
@@ -188,26 +189,26 @@ def _median_gamma(distances: np.ndarray) -> float:
     return 1.0 / median_distance
 
 
-def _center_kernel(kernel: np.ndarray) -> np.ndarray:
+def _center_kernel(kernel: Array) -> Array:
     row_mean = kernel.mean(axis=1, keepdims=True)
     col_mean = kernel.mean(axis=0, keepdims=True)
     grand_mean = kernel.mean()
-    return kernel - row_mean - col_mean + grand_mean
+    return cast(Array, kernel - row_mean - col_mean + grand_mean)
 
 
-def _hsic_statistic(k: np.ndarray, y_kernel: np.ndarray) -> float:
+def _hsic_statistic(k: Array, y_kernel: Array) -> float:
     n_samples = k.shape[0]
     return float(np.sum(k * y_kernel) / ((n_samples - 1) ** 2))
 
 
-def _standardize(values: np.ndarray) -> np.ndarray:
+def _standardize(values: Array) -> Array:
     centered = values - values.mean(axis=0, keepdims=True)
     scale = values.std(axis=0, ddof=1, keepdims=True)
     scale[scale == 0.0] = 1.0
-    return centered / scale
+    return cast(Array, centered / scale)
 
 
-def _kernel_residual_maker(kernel: np.ndarray, regularization: float) -> np.ndarray:
+def _kernel_residual_maker(kernel: Array, regularization: float) -> Array:
     n_samples = kernel.shape[0]
     system = kernel + regularization * np.eye(n_samples)
     try:
@@ -219,8 +220,8 @@ def _kernel_residual_maker(kernel: np.ndarray, regularization: float) -> np.ndar
 
 def _gamma_p_value(
     statistic: float,
-    x_kernel: np.ndarray,
-    y_kernel: np.ndarray,
+    x_kernel: Array,
+    y_kernel: Array,
     eigenvalue_threshold: float,
 ) -> float:
     uu_product = _eigen_component_product(
@@ -244,10 +245,10 @@ def _gamma_p_value(
 
 
 def _eigen_component_product(
-    x_kernel: np.ndarray,
-    y_kernel: np.ndarray,
+    x_kernel: Array,
+    y_kernel: Array,
     eigenvalue_threshold: float,
-) -> np.ndarray:
+) -> Array:
     x_values, x_vectors = np.linalg.eigh(_symmetrize(x_kernel))
     y_values, y_vectors = np.linalg.eigh(_symmetrize(y_kernel))
     x_values, x_vectors = _leading_positive_eigensystem(
@@ -261,7 +262,7 @@ def _eigen_component_product(
         eigenvalue_threshold,
     )
     if x_values.size == 0 or y_values.size == 0:
-        return np.empty((0, 0))
+        return cast(Array, np.empty((0, 0)))
 
     x_features = x_vectors * np.sqrt(x_values)
     y_features = y_vectors * np.sqrt(y_values)
@@ -280,10 +281,10 @@ def _eigen_component_product(
 
 
 def _leading_positive_eigensystem(
-    values: np.ndarray,
-    vectors: np.ndarray,
+    values: Array,
+    vectors: Array,
     threshold: float,
-) -> tuple[np.ndarray, np.ndarray]:
+) -> tuple[Array, Array]:
     order = np.argsort(values)[::-1]
     values = values[order]
     vectors = vectors[:, order]
@@ -293,15 +294,15 @@ def _leading_positive_eigensystem(
     return values[keep], vectors[:, keep]
 
 
-def _symmetrize(matrix: np.ndarray) -> np.ndarray:
-    return 0.5 * (matrix + matrix.T)
+def _symmetrize(matrix: Array) -> Array:
+    return cast(Array, 0.5 * (matrix + matrix.T))
 
 
-def _safe_matmul(left: np.ndarray, right: np.ndarray) -> np.ndarray:
+def _safe_matmul(left: Array, right: Array) -> Array:
     with np.errstate(divide="ignore", over="ignore", invalid="ignore"):
         product = left @ right
     if not np.all(np.isfinite(product)):
         raise FloatingPointError(
             "Kernel matrix multiplication produced non-finite values."
         )
-    return product
+    return cast(Array, product)

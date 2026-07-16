@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any, Optional, Union
 
@@ -11,7 +11,8 @@ from fci_engine.graph import Endpoint, PAG
 
 
 EndpointLike = Union[Endpoint, str]
-Shape = dict[tuple[str, str], tuple[EndpointLike, EndpointLike]]
+Shape = Mapping[tuple[str, str], tuple[EndpointLike, EndpointLike]]
+MutableShape = dict[tuple[str, str], tuple[EndpointLike, EndpointLike]]
 NormalizedShape = dict[tuple[str, str], tuple[str, str]]
 
 
@@ -193,7 +194,9 @@ def compare_pag_to_shape(graph: PAG, expected: Shape) -> PAGComparison:
     return compare_pag_shapes(expected, shape_from_pag(graph))
 
 
-def compare_pag_shapes_semantic(expected: Shape, actual: Shape) -> PAGESemanticComparison:
+def compare_pag_shapes_semantic(
+    expected: Shape, actual: Shape
+) -> PAGESemanticComparison:
     """Compare PAGs while distinguishing over/under orientation from conflicts."""
 
     expected_shape = _normalize_shape(expected)
@@ -217,12 +220,15 @@ def compare_pag_shapes_semantic(expected: Shape, actual: Shape) -> PAGESemanticC
     for edge in common_edges:
         expected_endpoints = expected_shape[edge]
         actual_endpoints = actual_shape[edge]
-        statuses = tuple(
-            _endpoint_semantic_status(expected_endpoint, actual_endpoint)
-            for expected_endpoint, actual_endpoint in zip(
-                expected_endpoints,
-                actual_endpoints,
-            )
+        statuses = (
+            _endpoint_semantic_status(
+                expected_endpoints[0],
+                actual_endpoints[0],
+            ),
+            _endpoint_semantic_status(
+                expected_endpoints[1],
+                actual_endpoints[1],
+            ),
         )
         endpoint_exact += sum(status == "exact" for status in statuses)
         endpoint_compatible += sum(status != "contradicted" for status in statuses)
@@ -268,7 +274,9 @@ def compare_pag_shapes_semantic(expected: Shape, actual: Shape) -> PAGESemanticC
     )
 
 
-def compare_pag_to_shape_semantic(graph: PAG, expected: Shape) -> PAGESemanticComparison:
+def compare_pag_to_shape_semantic(
+    graph: PAG, expected: Shape
+) -> PAGESemanticComparison:
     """Compare a learned PAG with semantic endpoint compatibility classes."""
 
     return compare_pag_shapes_semantic(expected, shape_from_pag(graph))
@@ -309,12 +317,15 @@ def explain_pag_differences(
                 )
             )
             continue
-        statuses = tuple(
-            _endpoint_semantic_status(expected_endpoint, actual_endpoint)
-            for expected_endpoint, actual_endpoint in zip(
-                expected_endpoints,
-                actual_endpoints,
-            )
+        statuses = (
+            _endpoint_semantic_status(
+                expected_endpoints[0],
+                actual_endpoints[0],
+            ),
+            _endpoint_semantic_status(
+                expected_endpoints[1],
+                actual_endpoints[1],
+            ),
         )
         if statuses == ("exact", "exact"):
             continue

@@ -66,6 +66,12 @@ an optional `max_path_length` limit. Candidate reachability is computed with a
 finite ordered-edge-state BFS rather than full simple-path enumeration, which
 keeps dense or cyclic PAGs from triggering avoidable path explosion.
 
+The book's two directional sets are kept separate:
+`Possible-D-SEP(A,B)` and `Possible-D-SEP(B,A)` are each searched for a
+separator, but they are never unioned and mixed into one conditioning set.
+Paths may traverse the other endpoint, which is removed only from the final
+candidate set, and triangle steps reject definite noncollider tails.
+
 ## Orientation Rules
 
 After skeleton discovery, FCI orients unshielded colliders using separating
@@ -100,21 +106,27 @@ candidates only through the literal bidirected witness pattern
 enumerates separate endpoint-base subsets in the paper's nested `n=1..k`,
 `m=1..k` order.
 
-The implementation deliberately separates two limits:
+The general configuration deliberately separates two limits:
 
 - `max_cond_set_size` limits ordinary PC/FCI conditioning-set depth.
 - `sparsity_bound` is the FCI+ sparse degree bound used for the D-SEP base
   subsets.
 
 Finite-sample engineering choices are explicit rather than hidden.
+`profile="paper"` enforces immediate PC updates,
 `sepset_selection="first"`, equal PC/D-SEP bounds, unlimited orientation paths,
-and `orientation_strategy="standard"` are the paper-aligned settings.
+and `orientation_strategy="standard"`.
 `sepset_selection="max_pvalue"`, `alpha="auto"`, conservative/leaf orientation,
 and path limits are optional engineering profiles, not claims from the paper.
 The result includes
 `dsep_diagnostics` counters for candidate edges, revisits, hierarchy-cache
 hits, duplicate conditioning-set skips, D-SEP CI tests, removed edges, and the
 maximum D-SEP conditioning size.
+
+The recursive hierarchy cache includes both the seed set and the excluded
+candidate edge. This is required because Definition 5 omits the current
+candidate pair's own separating set; identical seeds for different candidate
+edges are not interchangeable.
 
 ## Finite-Sample Sepset Selection
 
@@ -145,6 +157,7 @@ polynomial oracle complexity does not imply better finite-sample accuracy.
 
 Primary sources:
 
+- [Spirtes, Glymour, and Scheines (2000), FCI in Chapter 6](https://www.cs.cmu.edu/afs/cs.cmu.edu/project/learn-43/lib/photoz/.g/web/.g/group/group2/g/opera/g/scottd/fullbook.pdf)
 - [FCI+ paper and Algorithm 2](https://auai.org/uai2013/prints/papers/121.pdf)
 - [FCI+ proof supplement](https://staff.fnwi.uva.nl/j.m.mooij/articles/UAI2013_121_sup.pdf)
 - [Zhang (2008), complete orientation rules](https://doi.org/10.1016/j.artint.2008.08.001)
@@ -190,6 +203,8 @@ not force edges to exist when CI tests remove them from the skeleton.
   skeleton. At moderate sample sizes these may be missed, so standard FCI can
   be more reliable even when FCI+ uses fewer oracle CI tests.
 - Output is a PAG, not a DAG.
+- The package does not estimate causal effects, adjustment sets, or
+  interventions from the PAG.
 - FCI+ is available as a sparse hierarchical D-SEP implementation with explicit
   finite-sample diagnostics. It shares the same PAG orientation stage as
   standard FCI and is primarily intended to reduce the broad Possible-D-Sep

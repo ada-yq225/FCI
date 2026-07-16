@@ -12,7 +12,8 @@ import numpy as np
 import pandas as pd
 
 from fci_engine.ci import CITest, CITestResult
-from fci_engine.metrics.accuracy import Shape
+from fci_engine.metrics.accuracy import MutableShape, Shape
+from fci_engine.types import Array
 
 Edge = tuple[str, str]
 
@@ -77,7 +78,7 @@ class MAGSpec:
         """Return the endpoint shape implied by explicit MAG adjacencies."""
 
         order = {node: index for index, node in enumerate(self.nodes)}
-        shape: Shape = {}
+        shape: MutableShape = {}
         for source, target in self.directed_edges:
             edge, endpoints = _ordered_endpoint_pair(
                 source,
@@ -104,7 +105,7 @@ class MAGSpec:
 
         order = {node: index for index, node in enumerate(self.nodes)}
         explicit = self.implied_pag_shape()
-        shape: Shape = {}
+        shape: MutableShape = {}
         for i, x in enumerate(self.nodes):
             for y in self.nodes[i + 1 :]:
                 if self.minimal_separating_sets(x, y):
@@ -245,7 +246,7 @@ class MAGOracleCITest(CITest):
 
     def test(
         self,
-        data: np.ndarray,
+        data: Array,
         x: int,
         y: int,
         cond_set: Sequence[int],

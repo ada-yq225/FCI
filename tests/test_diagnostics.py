@@ -38,8 +38,7 @@ def test_fci_result_records_ci_trace_orientation_trace_and_sepset_sources() -> N
     assert result.sepsets[("X0", "X2")] == set()
     assert result.sepset_sources[("X0", "X2")] == "initial"
     assert any(
-        event.rule == "orient_unshielded_colliders"
-        and event.oriented_endpoint == "X1"
+        event.rule == "orient_unshielded_colliders" and event.oriented_endpoint == "X1"
         for event in result.orientation_trace
     )
     assert "orientation events:" in result.summary()

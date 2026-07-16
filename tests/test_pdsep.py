@@ -85,6 +85,25 @@ def test_possible_dsep_handles_cyclic_shielded_paths() -> None:
     }
 
 
+def test_possible_dsep_can_reach_candidates_through_other_endpoint() -> None:
+    graph = PAG(["X", "Y", "A"])
+    graph.add_edge("X", "Y", Endpoint.ARROW, Endpoint.ARROW)
+    graph.add_edge("Y", "A", Endpoint.ARROW, Endpoint.ARROW)
+
+    assert possible_dsep(graph, "X", "Y") == {"A"}
+
+
+def test_possible_dsep_rejects_triangle_with_definite_noncollider_tail() -> None:
+    graph = PAG(["X", "Y", "A", "B", "C"])
+    graph.add_circle_edge("X", "Y")
+    graph.add_edge("X", "A", Endpoint.CIRCLE, Endpoint.TAIL)
+    graph.add_circle_edge("A", "B")
+    graph.add_circle_edge("X", "B")
+    graph.add_edge("B", "C", Endpoint.ARROW, Endpoint.ARROW)
+
+    assert possible_dsep(graph, "X", "Y") == {"A", "B"}
+
+
 def test_pdsep_refinement_removes_edge_with_pds_conditioning_set() -> None:
     data = np.ones((20, 5))
     graph = make_reachable_pds_graph()
@@ -125,6 +144,34 @@ def test_pdsep_refinement_uses_candidates_from_both_edge_directions() -> None:
     assert not refined.is_adjacent("X", "Y")
     assert updated_sepsets[("X", "Y")] == {"A"}
     assert updated_sepsets[("Y", "X")] == {"A"}
+
+
+def test_pdsep_does_not_mix_the_two_directional_candidate_pools() -> None:
+    data = np.ones((20, 4))
+    graph = PAG(["X", "Y", "A", "B"])
+    graph.add_circle_edge("X", "Y")
+    graph.add_circle_edge("X", "A")
+    graph.add_circle_edge("Y", "B")
+    oracle = OracleCITest(
+        {
+            (
+                frozenset((0, 1)),
+                frozenset((2, 3)),
+            )
+        }
+    )
+
+    refined, updated_sepsets = refine_skeleton_with_pdsep(
+        data,
+        graph,
+        {},
+        oracle,
+        max_cond_set_size=2,
+        sepset_selection="first",
+    )
+
+    assert refined.is_adjacent("X", "Y")
+    assert ("X", "Y") not in updated_sepsets
 
 
 def test_pdsep_selects_strongest_sepset_at_same_depth() -> None:

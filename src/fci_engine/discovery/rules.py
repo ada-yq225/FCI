@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from collections.abc import Hashable, Iterable, Mapping
+from collections.abc import Callable, Iterable
 from collections import deque
 from itertools import combinations
-from typing import Optional
+from typing import Any, Optional
 
 from fci_engine.discovery.orientation import (
     find_unshielded_triples,
@@ -13,11 +13,12 @@ from fci_engine.discovery.orientation import (
 )
 from fci_engine.diagnostics import OrientationEvent
 from fci_engine.graph import Endpoint, PAG
+from fci_engine.types import Node, SepsetMapping, Triple
 
 
-SepsetMap = Mapping[tuple[Hashable, Hashable], set[Hashable]]
-Triple = tuple[Hashable, Hashable, Hashable]
-AmbiguousTripleKey = tuple[frozenset[Hashable], Hashable]
+SepsetMap = SepsetMapping
+AmbiguousTripleKey = tuple[frozenset[Node], Node]
+OrientationRule = Callable[..., bool]
 
 ORIENTATION_RULE_REFERENCE: dict[str, str] = {
     "R1": "Avoid introducing new unshielded colliders.",
@@ -213,7 +214,7 @@ def _close_r1_to_r4(
 def _close_simple_rule_phase(
     graph: PAG,
     sepsets: SepsetMap,
-    rules: tuple[object, ...],
+    rules: tuple[OrientationRule, ...],
     max_iter: int,
     start_iteration: int,
     verbose: bool,
@@ -243,7 +244,7 @@ def _close_simple_rule_phase(
 def _close_path_rule_phase(
     graph: PAG,
     sepsets: SepsetMap,
-    rules: tuple[object, ...],
+    rules: tuple[OrientationRule, ...],
     max_iter: int,
     max_path_length: Optional[int],
     start_iteration: int,
@@ -273,7 +274,7 @@ def _close_path_rule_phase(
 
 
 def _run_rule(
-    rule: object,
+    rule: OrientationRule,
     graph: PAG,
     sepsets: SepsetMap,
     iteration: int,
@@ -281,7 +282,7 @@ def _run_rule(
     trace: Optional[list[OrientationEvent]],
     max_path_length: Optional[int] = None,
 ) -> bool:
-    kwargs: dict[str, object] = {
+    kwargs: dict[str, Any] = {
         "trace": trace,
         "iteration": iteration,
     }
@@ -291,7 +292,7 @@ def _run_rule(
         rule_orient_tail_with_two_directed_parents,
     }:
         kwargs["max_path_length"] = max_path_length
-    changed = rule(graph, sepsets, **kwargs)  # type: ignore[operator]
+    changed = rule(graph, sepsets, **kwargs)
     if verbose and changed:
         print(f"{rule.__name__} changed graph at iteration {iteration}.")
     return bool(changed)
@@ -314,15 +315,18 @@ def rule_avoid_new_unshielded_colliders(
             continue
         if graph.has_arrowhead(x, z):
             if not leaf_only or len(graph.neighbors(y)) == 1:
-                changed = _orient_directed_if_possible(
-                    graph,
-                    z,
-                    y,
-                    trace=trace,
-                    rule="R1",
-                    iteration=iteration,
-                    reason=f"avoid new unshielded collider {x!r}-{z!r}-{y!r}",
-                ) or changed
+                changed = (
+                    _orient_directed_if_possible(
+                        graph,
+                        z,
+                        y,
+                        trace=trace,
+                        rule="R1",
+                        iteration=iteration,
+                        reason=f"avoid new unshielded collider {x!r}-{z!r}-{y!r}",
+                    )
+                    or changed
+                )
         if graph.has_arrowhead(y, z):
             if not leaf_only or len(graph.neighbors(x)) == 1:
                 changed = (
@@ -353,9 +357,9 @@ def _normalize_ambiguous_triples(
 
 
 def _is_ambiguous_unshielded_triple(
-    x: Hashable,
-    z: Hashable,
-    y: Hashable,
+    x: str,
+    z: str,
+    y: str,
     ambiguous: set[AmbiguousTripleKey],
 ) -> bool:
     return (frozenset((x, y)), z) in ambiguous
@@ -424,8 +428,7 @@ def rule_double_triangle_arrowheads(
                     rule="R3",
                     iteration=iteration,
                     reason=(
-                        "double-triangle pattern "
-                        f"{a!r}->{b!r}<-{c!r} through {d!r}"
+                        f"double-triangle pattern {a!r}->{b!r}<-{c!r} through {d!r}"
                     ),
                 )
                 or changed
@@ -625,25 +628,31 @@ def rule_uncovered_circle_path_selection_bias(
         if path is None:
             continue
         reason = f"uncovered circle path {path!r}"
-        changed = _orient_undirected_if_circles(
-            graph,
-            a,
-            b,
-            trace=trace,
-            rule="R5",
-            iteration=iteration,
-            reason=reason,
-        ) or changed
-        for x, y in zip(path, path[1:]):
-            changed = _orient_undirected_if_circles(
+        changed = (
+            _orient_undirected_if_circles(
                 graph,
-                x,
-                y,
+                a,
+                b,
                 trace=trace,
                 rule="R5",
                 iteration=iteration,
                 reason=reason,
-            ) or changed
+            )
+            or changed
+        )
+        for x, y in zip(path, path[1:]):
+            changed = (
+                _orient_undirected_if_circles(
+                    graph,
+                    x,
+                    y,
+                    trace=trace,
+                    rule="R5",
+                    iteration=iteration,
+                    reason=reason,
+                )
+                or changed
+            )
     return changed
 
 
@@ -823,7 +832,7 @@ def rule_orient_tail_with_two_directed_parents(
 def find_discriminating_paths(
     graph: PAG,
     max_path_length: Optional[int] = None,
-) -> list[tuple[Hashable, ...]]:
+) -> list[tuple[str, ...]]:
     """Return definite discriminating paths ``(d, ..., a, b, c)``.
 
     A returned path discriminates the final triple ``a-b-c`` for ``b``. Every
@@ -834,8 +843,8 @@ def find_discriminating_paths(
     if max_path_length is not None and max_path_length < 3:
         return []
 
-    paths: list[tuple[Hashable, ...]] = []
-    seen: set[tuple[Hashable, ...]] = set()
+    paths: list[tuple[str, ...]] = []
+    seen: set[tuple[str, ...]] = set()
 
     for b in graph.nodes:
         for c in graph.neighbors(b):
@@ -860,8 +869,8 @@ def find_discriminating_paths(
     return paths
 
 
-def _collider_triples(graph: PAG) -> list[tuple[Hashable, Hashable, Hashable]]:
-    triples: list[tuple[Hashable, Hashable, Hashable]] = []
+def _collider_triples(graph: PAG) -> list[tuple[str, str, str]]:
+    triples: list[tuple[str, str, str]] = []
     for b in graph.nodes:
         neighbors = graph.neighbors(b)
         for i, a in enumerate(neighbors):
@@ -875,8 +884,8 @@ def _collider_triples(graph: PAG) -> list[tuple[Hashable, Hashable, Hashable]]:
 
 def _apply_r8_for_order(
     graph: PAG,
-    a: Hashable,
-    c: Hashable,
+    a: str,
+    c: str,
     trace: Optional[list[OrientationEvent]] = None,
     iteration: Optional[int] = None,
 ) -> bool:
@@ -907,8 +916,8 @@ def _apply_r8_for_order(
 
 def _apply_r9_for_order(
     graph: PAG,
-    a: Hashable,
-    c: Hashable,
+    a: str,
+    c: str,
     max_path_length: Optional[int] = None,
     trace: Optional[list[OrientationEvent]] = None,
     iteration: Optional[int] = None,
@@ -943,8 +952,8 @@ def _apply_r9_for_order(
 
 def _apply_r10_for_order(
     graph: PAG,
-    a: Hashable,
-    c: Hashable,
+    a: str,
+    c: str,
     max_path_length: Optional[int] = None,
     trace: Optional[list[OrientationEvent]] = None,
     iteration: Optional[int] = None,
@@ -997,16 +1006,16 @@ def _apply_r10_for_order(
 
 def _find_uncovered_circle_paths(
     graph: PAG,
-    source: Hashable,
-    target: Hashable,
+    source: str,
+    target: str,
     max_path_length: Optional[int] = None,
-) -> list[tuple[Hashable, ...]]:
+) -> list[tuple[str, ...]]:
     if max_path_length is not None and max_path_length < 2:
         return []
 
-    paths: list[tuple[Hashable, ...]] = []
-    queue: deque[tuple[Hashable, ...]] = deque([(source,)])
-    seen: set[tuple[Hashable, ...]] = {(source,)}
+    paths: list[tuple[str, ...]] = []
+    queue: deque[tuple[str, ...]] = deque([(source,)])
+    seen: set[tuple[str, ...]] = {(source,)}
 
     while queue:
         path = queue.popleft()
@@ -1040,18 +1049,18 @@ def _find_uncovered_circle_paths(
 
 def _find_uncovered_possibly_directed_paths(
     graph: PAG,
-    source: Hashable,
-    target: Hashable,
+    source: str,
+    target: str,
     max_path_length: Optional[int] = None,
-    excluded_edge: Optional[tuple[Hashable, Hashable]] = None,
-) -> list[tuple[Hashable, ...]]:
+    excluded_edge: Optional[tuple[str, str]] = None,
+) -> list[tuple[str, ...]]:
     if max_path_length is not None and max_path_length < 1:
         return []
 
     excluded = frozenset(excluded_edge) if excluded_edge is not None else None
-    paths: list[tuple[Hashable, ...]] = []
-    queue: deque[tuple[Hashable, ...]] = deque([(source,)])
-    seen: set[tuple[Hashable, ...]] = {(source,)}
+    paths: list[tuple[str, ...]] = []
+    queue: deque[tuple[str, ...]] = deque([(source,)])
+    seen: set[tuple[str, ...]] = {(source,)}
 
     while queue:
         path = queue.popleft()
@@ -1083,22 +1092,22 @@ def _find_uncovered_possibly_directed_paths(
     return paths
 
 
-def _is_circle_arrow_edge(graph: PAG, a: Hashable, c: Hashable) -> bool:
+def _is_circle_arrow_edge(graph: PAG, a: str, c: str) -> bool:
     return graph.has_circle(c, a) and graph.has_arrowhead(a, c)
 
 
 def _is_possibly_directed_step(
     graph: PAG,
-    current: Hashable,
-    next_node: Hashable,
+    current: str,
+    next_node: str,
 ) -> bool:
     return not graph.has_arrowhead(next_node, current)
 
 
 def _orient_undirected_if_circles(
     graph: PAG,
-    x: Hashable,
-    y: Hashable,
+    x: str,
+    y: str,
     trace: Optional[list[OrientationEvent]] = None,
     rule: str = "",
     iteration: Optional[int] = None,
@@ -1134,8 +1143,8 @@ def _orient_undirected_if_circles(
 
 def _orient_directed_if_possible(
     graph: PAG,
-    source: Hashable,
-    target: Hashable,
+    source: str,
+    target: str,
     trace: Optional[list[OrientationEvent]] = None,
     rule: str = "",
     iteration: Optional[int] = None,
@@ -1183,8 +1192,8 @@ def _orient_directed_if_possible(
 
 def _orient_endpoint_for_rule(
     graph: PAG,
-    x: Hashable,
-    y: Hashable,
+    x: str,
+    y: str,
     endpoint: Endpoint,
     trace: Optional[list[OrientationEvent]] = None,
     rule: str = "",
@@ -1217,8 +1226,8 @@ def _orient_endpoint_for_rule(
 
 def _apply_local_arrowhead_propagation(
     graph: PAG,
-    x: Hashable,
-    y: Hashable,
+    x: str,
+    y: str,
     trace: Optional[list[OrientationEvent]] = None,
     iteration: Optional[int] = None,
 ) -> bool:
@@ -1255,12 +1264,12 @@ def _apply_local_arrowhead_propagation(
 
 def _search_discriminating_paths_from_suffix(
     graph: PAG,
-    suffix: tuple[Hashable, Hashable, Hashable],
+    suffix: tuple[str, str, str],
     max_path_length: Optional[int] = None,
-) -> list[tuple[Hashable, ...]]:
+) -> list[tuple[str, ...]]:
     a, b, c = suffix
-    paths: list[tuple[Hashable, ...]] = []
-    queue: deque[tuple[Hashable, ...]] = deque([(a, b, c)])
+    paths: list[tuple[str, ...]] = []
+    queue: deque[tuple[str, ...]] = deque([(a, b, c)])
 
     while queue:
         suffix_path = queue.popleft()
@@ -1291,16 +1300,16 @@ def _search_discriminating_paths_from_suffix(
 
 def _get_sepset(
     sepsets: SepsetMap,
-    x: Hashable,
-    y: Hashable,
-) -> Optional[set[Hashable]]:
+    x: str,
+    y: str,
+) -> Optional[set[str]]:
     return sepsets.get((x, y), sepsets.get((y, x)))
 
 
 def _orient_arrowhead_if_circle(
     graph: PAG,
-    x: Hashable,
-    y: Hashable,
+    x: str,
+    y: str,
     trace: Optional[list[OrientationEvent]] = None,
     rule: str = "",
     iteration: Optional[int] = None,
@@ -1334,8 +1343,8 @@ def _orient_arrowhead_if_circle(
 
 def _orient_tail_if_circle(
     graph: PAG,
-    x: Hashable,
-    y: Hashable,
+    x: str,
+    y: str,
     trace: Optional[list[OrientationEvent]] = None,
     rule: str = "",
     iteration: Optional[int] = None,

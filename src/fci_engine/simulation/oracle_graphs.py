@@ -7,7 +7,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import Optional
 
-from fci_engine.metrics.accuracy import Shape
+from fci_engine.metrics.accuracy import NormalizedShape, Shape
 
 DirectedEdge = tuple[str, str]
 
@@ -54,7 +54,7 @@ class CausalGraphSpec:
     def to_pag_shape(self) -> Shape:
         """Return a conservative reference PAG shape over observed nodes."""
 
-        shape: Shape = {}
+        shape: NormalizedShape = {}
         observed = set(self.observed_nodes)
         order = {node: index for index, node in enumerate(self.observed_nodes)}
 

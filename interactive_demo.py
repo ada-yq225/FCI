@@ -68,8 +68,7 @@ def validate_result(result):
         ),
         (
             "The A endpoint on A-D is a tail",
-            result.graph.is_adjacent("A", "D")
-            and result.graph.has_tail("D", "A"),
+            result.graph.is_adjacent("A", "D") and result.graph.has_tail("D", "A"),
         ),
     ]
 
@@ -89,9 +88,9 @@ def validate_result(result):
 
 
 def run_experiment(n: int, description: str):
-    print(f"\n{'='*55}")
+    print(f"\n{'=' * 55}")
     print(f"Experiment: {description} (sample size N={n})")
-    print(f"{'='*55}")
+    print(f"{'=' * 55}")
 
     df = generate_medical_data(n)
 

@@ -8,12 +8,14 @@ import numpy as np
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
 
+from fci_engine.types import Array
+
 
 def validate_numeric_data(
     data: Any,
     *,
     allow_nan: bool = False,
-) -> tuple[np.ndarray, list[str]]:
+) -> tuple[Array, list[str]]:
     """Return numeric data as ``ndarray`` plus variable names.
 
     DataFrame columns are preserved as variable names. NumPy array columns are
@@ -31,7 +33,7 @@ def _validate_dataframe(
     data: pd.DataFrame,
     *,
     allow_nan: bool,
-) -> tuple[np.ndarray, list[str]]:
+) -> tuple[Array, list[str]]:
     if data.ndim != 2:
         raise ValueError("DataFrame input must be two-dimensional.")
     if data.shape[1] == 0:
@@ -53,10 +55,10 @@ def _validate_dataframe(
 
 
 def _validate_array(
-    data: np.ndarray,
+    data: Array,
     *,
     allow_nan: bool,
-) -> tuple[np.ndarray, list[str]]:
+) -> tuple[Array, list[str]]:
     if data.ndim != 2:
         raise ValueError("ndarray input must be two-dimensional.")
     if data.shape[1] == 0:
@@ -72,7 +74,7 @@ def _validate_array(
     return array, names
 
 
-def _validate_numeric_array_values(data: np.ndarray, *, allow_nan: bool) -> None:
+def _validate_numeric_array_values(data: Array, *, allow_nan: bool) -> None:
     if allow_nan:
         if np.any(np.isinf(data)):
             raise ValueError("data must not contain infinite values.")

@@ -1,8 +1,18 @@
 .DS_Store
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .venv/
 __pycache__/
 *.py[cod]
+.coverage
+htmlcov/
 build/
 dist/
 *.egg-info/
+tmp/
+
+# Local reports and TeX build products that are not package sources.
+/IRP_Project_Plan.*
+/custom_data_report.html
+/missfont.log

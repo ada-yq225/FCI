@@ -74,7 +74,9 @@ def test_fci_applies_required_background_knowledge() -> None:
     )
 
     assert result.graph.edge_repr("X0", "X1") == "X0 --> X1"
-    assert any(event.rule == "background_knowledge" for event in result.orientation_trace)
+    assert any(
+        event.rule == "background_knowledge" for event in result.orientation_trace
+    )
 
 
 def test_fci_preserves_background_knowledge_through_orientation_rules() -> None:

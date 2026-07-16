@@ -2,22 +2,17 @@
 
 from __future__ import annotations
 
-from collections.abc import Hashable, Sequence
+from collections.abc import Sequence
 from itertools import combinations
 from typing import Optional
 
-import numpy as np
-
 from fci_engine.ci import CITest
 from fci_engine.graph import PAG
+from fci_engine.types import Array, Node, SepsetMap, SepsetSourceMap
 from fci_engine.utils.validation import validate_numeric_data
 
 
-SepsetMap = dict[tuple[Hashable, Hashable], set[Hashable]]
-SepsetSourceMap = dict[tuple[Hashable, Hashable], str]
-
-
-def create_complete_pag(nodes: Sequence[Hashable]) -> PAG:
+def create_complete_pag(nodes: Sequence[Node]) -> PAG:
     """Create a complete PAG with circle-circle edges."""
 
     graph = PAG(nodes)
@@ -62,10 +57,10 @@ def learn_initial_skeleton(
 
     while max_cond_set_size is None or cond_size <= max_cond_set_size:
         found_candidate = False
-        pending_removals: list[tuple[Hashable, Hashable, set[Hashable]]] = []
-        adjacency_snapshot = {
-            node: graph.neighbors(node) for node in graph.nodes
-        } if stable else None
+        pending_removals: list[tuple[str, str, set[str]]] = []
+        adjacency_snapshot = (
+            {node: graph.neighbors(node) for node in graph.nodes} if stable else None
+        )
 
         for x, y in list(graph.edges()):
             if not graph.is_adjacent(x, y):
@@ -87,9 +82,9 @@ def learn_initial_skeleton(
             ):
                 continue
 
-            seen_conditioning_sets: set[frozenset[Hashable]] = set()
+            seen_conditioning_sets: set[frozenset[str]] = set()
             edge_marked_for_removal = False
-            best_separation: Optional[tuple[float, set[Hashable]]] = None
+            best_separation: Optional[tuple[float, set[str]]] = None
             for candidate_neighbors in candidate_sets:
                 if len(candidate_neighbors) < cond_size:
                     continue
@@ -168,10 +163,10 @@ def learn_initial_skeleton(
 def _queue_or_apply_removal(
     graph: PAG,
     sepsets: SepsetMap,
-    pending_removals: list[tuple[Hashable, Hashable, set[Hashable]]],
-    x: Hashable,
-    y: Hashable,
-    sepset: set[Hashable],
+    pending_removals: list[tuple[str, str, set[str]]],
+    x: str,
+    y: str,
+    sepset: set[str],
     sepset_sources: Optional[SepsetSourceMap],
     stable: bool,
 ) -> None:
@@ -190,9 +185,9 @@ def _queue_or_apply_removal(
 
 def _conditioning_candidate_sets(
     graph: PAG,
-    x: Hashable,
-    y: Hashable,
-) -> list[list[Hashable]]:
+    x: str,
+    y: str,
+) -> list[list[str]]:
     """Return adjacency-based conditioning candidates from both edge endpoints."""
 
     return [
@@ -202,10 +197,10 @@ def _conditioning_candidate_sets(
 
 
 def _conditioning_candidate_sets_from_adjacency(
-    adjacency: dict[Hashable, list[Hashable]],
-    x: Hashable,
-    y: Hashable,
-) -> list[list[Hashable]]:
+    adjacency: dict[str, list[str]],
+    x: str,
+    y: str,
+) -> list[list[str]]:
     return [
         [node for node in adjacency[x] if node != y],
         [node for node in adjacency[y] if node != x],
@@ -215,9 +210,9 @@ def _conditioning_candidate_sets_from_adjacency(
 def _remove_edge_with_sepset(
     graph: PAG,
     sepsets: SepsetMap,
-    x: Hashable,
-    y: Hashable,
-    sepset: set[Hashable],
+    x: str,
+    y: str,
+    sepset: set[str],
     sepset_sources: Optional[SepsetSourceMap],
 ) -> None:
     graph.remove_edge(x, y)
@@ -233,7 +228,7 @@ def _prepare_data_for_graph(
     graph: PAG,
     *,
     allow_nan: bool = False,
-) -> tuple[np.ndarray, dict[Hashable, int]]:
+) -> tuple[Array, dict[str, int]]:
     normalized_data, variable_names = validate_numeric_data(data, allow_nan=allow_nan)
     if normalized_data.shape[1] != len(graph.nodes):
         raise ValueError(
@@ -242,9 +237,9 @@ def _prepare_data_for_graph(
         )
 
     graph_node_names = [str(node) for node in graph.nodes]
-    if set(variable_names) == set(graph_node_names) and len(set(graph_node_names)) == len(
-        graph_node_names
-    ):
+    if set(variable_names) == set(graph_node_names) and len(
+        set(graph_node_names)
+    ) == len(graph_node_names):
         column_index = {name: index for index, name in enumerate(variable_names)}
         normalized_data = normalized_data[
             :, [column_index[name] for name in graph_node_names]

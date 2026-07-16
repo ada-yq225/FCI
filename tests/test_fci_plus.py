@@ -3,11 +3,12 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from fci_engine import FCIPlus, fci, fci_plus
+from fci_engine import FCIPlus, FCIPlusConfig, fci, fci_plus
 from fci_engine.ci import CITest, CITestResult, MissingValueFisherZTest
 from fci_engine.discovery.dsep import (
     _algorithm2_base_sizes,
     _base_combinations_for_sizes,
+    _hierarchy_cache_key,
     build_augmented_skeleton,
     hierarchy,
     minimal_dsep,
@@ -226,6 +227,15 @@ def test_algorithm2_base_loop_uses_literal_nested_n_then_m_order() -> None:
     ) == [(1, 1), (1, 2), (2, 1), (2, 2)]
 
 
+def test_hierarchy_cache_key_includes_the_excluded_candidate_edge() -> None:
+    seed = {"X", "Y", "A", "B"}
+
+    assert _hierarchy_cache_key(seed, ("X", "Y")) != _hierarchy_cache_key(
+        seed,
+        ("A", "B"),
+    )
+
+
 def test_fci_plus_sparsity_bound_is_separate_from_conditioning_cap() -> None:
     nodes = ["U", "X", "Y", "V", "A", "B", "C", "D"]
     graph = _strict_dsep_candidate_graph(
@@ -279,6 +289,57 @@ def test_fci_plus_public_api_returns_result() -> None:
 
     assert result.graph.nodes == ("X", "Y", "Z")
     assert "FCIResult" in result.summary()
+
+
+def test_fci_plus_practical_profile_is_integrated_for_applied_use() -> None:
+    config = FCIPlusConfig.practical(max_cond_set_size=2)
+
+    assert config.max_cond_set_size == 2
+    assert config.sparsity_bound == 2
+    assert config.orientation_strategy == "robust"
+    assert config.conservative_colliders is True
+    assert config.sepset_selection == "max_pvalue"
+    assert config.do_pdsep is False
+
+
+def test_fci_plus_paper_profile_sets_algorithm2_limits() -> None:
+    config = FCIPlusConfig.paper(k=2, alpha=0.01)
+
+    assert config.alpha == 0.01
+    assert config.max_cond_set_size == 2
+    assert config.sparsity_bound == 2
+    assert config.max_path_length is None
+    assert config.skeleton_stable is False
+    assert config.pdsep_stable is False
+    assert config.sepset_selection == "first"
+    assert config.orientation_strategy == "standard"
+
+
+def test_fci_plus_function_accepts_named_profile() -> None:
+    data = np.random.default_rng(128).normal(size=(160, 4))
+
+    result = fci_plus(
+        data,
+        profile="practical",
+        max_cond_set_size=1,
+        alpha=0.001,
+    )
+
+    assert result.config.max_cond_set_size == 1
+    assert result.config.sparsity_bound == 1
+    assert result.config.orientation_strategy == "robust"
+    assert "FCI+ sparsity bound: 1" in result.summary()
+    assert "Possible-D-Sep" not in result.summary()
+
+
+def test_fci_plus_estimator_exposes_fitted_graph() -> None:
+    data = np.random.default_rng(129).normal(size=(160, 3))
+    estimator = FCIPlus.practical(max_cond_set_size=1, alpha=0.001)
+
+    graph = estimator.fit_predict(data)
+
+    assert graph is estimator.graph_
+    assert estimator.get_result().algorithm == "fci_plus"
 
 
 def test_fci_and_fci_plus_are_separate_entry_points() -> None:

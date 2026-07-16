@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import cast
 
 import numpy as np
 import pandas as pd
 from scipy.stats import chi2
 
 from fci_engine.ci.base import CITest, CITestResult
+from fci_engine.types import Array
 
 
 class ChiSquareTest(CITest):
@@ -18,7 +20,7 @@ class ChiSquareTest(CITest):
 
     def test(
         self,
-        data: np.ndarray,
+        data: Array,
         x: int,
         y: int,
         cond_set: Sequence[int] = (),
@@ -49,7 +51,7 @@ class GSquareTest(CITest):
 
     def test(
         self,
-        data: np.ndarray,
+        data: Array,
         x: int,
         y: int,
         cond_set: Sequence[int] = (),
@@ -73,7 +75,7 @@ class GSquareTest(CITest):
         )
 
 
-def _validate_and_encode_discrete_data(data: object) -> np.ndarray:
+def _validate_and_encode_discrete_data(data: object) -> Array:
     if isinstance(data, pd.DataFrame):
         array = data.to_numpy()
     else:
@@ -92,7 +94,10 @@ def _validate_and_encode_discrete_data(data: object) -> np.ndarray:
         encoded, _ = pd.factorize(column, sort=True)
         encoded_columns.append(encoded)
 
-    return np.column_stack(encoded_columns).astype(int, copy=False)
+    return cast(
+        Array,
+        np.column_stack(encoded_columns).astype(int, copy=False),
+    )
 
 
 def _validate_indices(
@@ -112,14 +117,16 @@ def _validate_indices(
 
 
 def _conditional_table_statistic(
-    data: np.ndarray,
+    data: Array,
     x: int,
     y: int,
     cond_set: tuple[int, ...],
     statistic_name: str,
 ) -> tuple[float, int]:
     if not cond_set:
-        return _table_statistic(_contingency_table(data[:, x], data[:, y]), statistic_name)
+        return _table_statistic(
+            _contingency_table(data[:, x], data[:, y]), statistic_name
+        )
 
     total_statistic = 0.0
     total_dof = 0
@@ -138,15 +145,15 @@ def _conditional_table_statistic(
     return total_statistic, total_dof
 
 
-def _contingency_table(x_values: np.ndarray, y_values: np.ndarray) -> np.ndarray:
+def _contingency_table(x_values: Array, y_values: Array) -> Array:
     n_x = int(x_values.max()) + 1
     n_y = int(y_values.max()) + 1
-    table = np.zeros((n_x, n_y), dtype=float)
+    table: Array = np.zeros((n_x, n_y), dtype=float)
     np.add.at(table, (x_values, y_values), 1.0)
     return table
 
 
-def _table_statistic(table: np.ndarray, statistic_name: str) -> tuple[float, int]:
+def _table_statistic(table: Array, statistic_name: str) -> tuple[float, int]:
     row_nonzero = table.sum(axis=1) > 0
     col_nonzero = table.sum(axis=0) > 0
     compact = table[np.ix_(row_nonzero, col_nonzero)]
@@ -159,12 +166,16 @@ def _table_statistic(table: np.ndarray, statistic_name: str) -> tuple[float, int
     valid = expected > 0.0
 
     if statistic_name == "chi_square":
-        statistic = np.sum(((compact[valid] - expected[valid]) ** 2) / expected[valid])
+        statistic = float(
+            np.sum(((compact[valid] - expected[valid]) ** 2) / expected[valid])
+        )
     elif statistic_name == "g_square":
         observed_positive = compact > 0.0
         valid = valid & observed_positive
-        statistic = 2.0 * np.sum(compact[valid] * np.log(compact[valid] / expected[valid]))
+        statistic = float(
+            2.0 * np.sum(compact[valid] * np.log(compact[valid] / expected[valid]))
+        )
     else:
         raise ValueError(f"Unknown discrete CI statistic: {statistic_name!r}.")
 
-    return float(statistic), int(dof)
+    return statistic, int(dof)

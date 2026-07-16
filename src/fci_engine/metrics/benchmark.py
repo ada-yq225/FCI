@@ -8,12 +8,13 @@ import shutil
 import subprocess
 import tempfile
 import warnings
+from collections.abc import Callable, Iterable, Sequence
 from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO
 from dataclasses import dataclass
 from pathlib import Path
 from time import perf_counter
-from typing import Callable, Optional, Union
+from typing import Any, Optional, Protocol, Union, cast
 
 from fci_engine.ci import CITest, KernelCITest
 from fci_engine.api import fci, fci_plus
@@ -27,6 +28,40 @@ from fci_engine.metrics.accuracy import (
     shape_from_pag,
 )
 from fci_engine.simulation.oracle_cases import OracleCase
+from fci_engine.result import FCIResult
+
+
+class _CausalLearnNode(Protocol):
+    def get_name(self) -> str: ...
+
+
+class _CausalLearnEdge(Protocol):
+    def get_node1(self) -> _CausalLearnNode: ...
+
+    def get_node2(self) -> _CausalLearnNode: ...
+
+    def get_endpoint1(self) -> object: ...
+
+    def get_endpoint2(self) -> object: ...
+
+
+class _CausalLearnGraph(Protocol):
+    def get_graph_edges(self) -> Sequence[_CausalLearnEdge]: ...
+
+
+class _CausalLearnFCI(Protocol):
+    def __call__(
+        self,
+        data: object,
+        *,
+        independence_test_method: str,
+        alpha: float,
+        depth: int,
+        max_path_length: int,
+        verbose: bool,
+        show_progress: bool,
+        node_names: list[str],
+    ) -> tuple[_CausalLearnGraph, object]: ...
 
 
 @dataclass(frozen=True)
@@ -80,7 +115,9 @@ class BenchmarkAggregate:
     def summary(self) -> str:
         """Return one formatted leaderboard line."""
 
-        elapsed = "NA" if self.mean_elapsed_time is None else f"{self.mean_elapsed_time:.4f}s"
+        elapsed = (
+            "NA" if self.mean_elapsed_time is None else f"{self.mean_elapsed_time:.4f}s"
+        )
         ci_tests = (
             "NA"
             if self.mean_ci_test_count is None
@@ -166,10 +203,10 @@ def run_oracle_benchmark(
 
 def run_fci_engine(
     case: OracleCase,
-    algorithm: Callable[..., object],
+    algorithm: Callable[..., FCIResult],
     algorithm_name: str,
     ci_test: Optional[CITest] = None,
-    **algorithm_kwargs: object,
+    **algorithm_kwargs: Any,
 ) -> BenchmarkResult:
     """Run one fci_engine algorithm on an oracle case."""
 
@@ -204,9 +241,12 @@ def run_causal_learn_fci(case: OracleCase, method: str = "fisherz") -> Benchmark
     os.environ.setdefault("MPLCONFIGDIR", tempfile.mkdtemp(prefix="mpl-"))
     try:
         with redirect_stderr(StringIO()):
-            from causallearn.search.ConstraintBased.FCI import fci as causal_learn_fci
+            from causallearn.search.ConstraintBased.FCI import (
+                fci as untyped_causal_learn_fci,
+            )
     except ImportError as exc:
         return _skipped(case, f"causal-learn.fci.{method}", f"not installed: {exc}")
+    causal_learn_fci = cast(_CausalLearnFCI, untyped_causal_learn_fci)
 
     labels = list(case.data.columns)
     label_order = {label: index for index, label in enumerate(labels)}
@@ -220,9 +260,7 @@ def run_causal_learn_fci(case: OracleCase, method: str = "fisherz") -> Benchmark
                     independence_test_method=method,
                     alpha=case.alpha,
                     depth=(
-                        -1
-                        if case.max_cond_set_size is None
-                        else case.max_cond_set_size
+                        -1 if case.max_cond_set_size is None else case.max_cond_set_size
                     ),
                     max_path_length=(
                         -1 if case.max_path_length is None else case.max_path_length
@@ -345,10 +383,14 @@ def aggregate_benchmark_results(
             if result.semantic_comparison is not None
         ]
         elapsed_times = [
-            result.elapsed_time for result in completed if result.elapsed_time is not None
+            result.elapsed_time
+            for result in completed
+            if result.elapsed_time is not None
         ]
         ci_counts = [
-            result.ci_test_count for result in completed if result.ci_test_count is not None
+            result.ci_test_count
+            for result in completed
+            if result.ci_test_count is not None
         ]
         aggregates.append(
             BenchmarkAggregate(
@@ -359,8 +401,7 @@ def aggregate_benchmark_results(
                     comparison.exact_edge_f1 for comparison in comparisons
                 ),
                 mean_semantic_edge_f1=_mean(
-                    comparison.semantic_edge_f1
-                    for comparison in semantic_comparisons
+                    comparison.semantic_edge_f1 for comparison in semantic_comparisons
                 ),
                 mean_skeleton_f1=_mean(
                     comparison.skeleton_f1 for comparison in comparisons
@@ -395,7 +436,7 @@ def format_benchmark_leaderboard(results: list[BenchmarkResult]) -> str:
 
 
 def _shape_from_causal_learn_graph(
-    graph: object,
+    graph: _CausalLearnGraph,
     label_order: dict[str, int],
 ) -> NormalizedShape:
     shape: NormalizedShape = {}
@@ -481,14 +522,14 @@ def _skipped(case: OracleCase, algorithm: str, reason: str) -> BenchmarkResult:
     )
 
 
-def _mean(values: object) -> float:
+def _mean(values: Iterable[float]) -> float:
     values_list = list(values)
     if not values_list:
         return 0.0
     return sum(values_list) / len(values_list)
 
 
-def _optional_mean(values: list[Union[float, int]]) -> Optional[float]:
+def _optional_mean(values: Sequence[Union[float, int]]) -> Optional[float]:
     if not values:
         return None
     return sum(float(value) for value in values) / len(values)

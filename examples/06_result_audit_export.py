@@ -28,7 +28,9 @@ def main() -> None:
     print(result.explain_edge("X", "Z").summary())
 
     graph = result.to_networkx()
-    print(f"\nNetworkX graph: {graph.number_of_nodes()} nodes, {graph.number_of_edges()} edges")
+    print(
+        f"\nNetworkX graph: {graph.number_of_nodes()} nodes, {graph.number_of_edges()} edges"
+    )
 
     output_path = Path(tempfile.gettempdir()) / "fci_engine_result.json"
     result.save_json(output_path, include_traces=True)

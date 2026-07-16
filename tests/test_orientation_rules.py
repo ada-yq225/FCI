@@ -308,7 +308,9 @@ def test_r4_noncollider_wildcard_target_is_replaced_by_arrowhead() -> None:
     assert graph.edge_repr("B", "C") == "B --> C"
 
 
-def test_discriminating_path_rule_r4_orients_collider_when_center_not_in_sepset() -> None:
+def test_discriminating_path_rule_r4_orients_collider_when_center_not_in_sepset() -> (
+    None
+):
     graph = PAG(["D", "A", "B", "C"])
     graph.add_edge("D", "A", Endpoint.CIRCLE, Endpoint.ARROW)
     graph.add_edge("A", "B", Endpoint.ARROW, Endpoint.CIRCLE)

@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-from collections.abc import Hashable, Sequence
-
-import numpy as np
+from collections.abc import Sequence
 
 from fci_engine.ci.base import CITest, CITestResult
 from fci_engine.diagnostics import CITraceEvent
+from fci_engine.types import Array
 
 
-CacheKey = tuple[frozenset[Hashable], frozenset[Hashable]]
+CacheKey = tuple[frozenset[int], frozenset[int]]
 
 
 class CITestCache(CITest):
@@ -27,10 +26,10 @@ class CITestCache(CITest):
 
     def test(
         self,
-        data: np.ndarray,
-        x: Hashable,
-        y: Hashable,
-        cond_set: Sequence[Hashable] = (),
+        data: Array,
+        x: int,
+        y: int,
+        cond_set: Sequence[int] = (),
     ) -> CITestResult:
         """Run or retrieve the cached result for a CI query."""
 
@@ -57,9 +56,9 @@ class CITestCache(CITest):
 
     @staticmethod
     def _make_key(
-        x: Hashable,
-        y: Hashable,
-        cond_set: Sequence[Hashable],
+        x: int,
+        y: int,
+        cond_set: Sequence[int],
     ) -> CacheKey:
         try:
             pair = frozenset((x, y))
@@ -70,9 +69,9 @@ class CITestCache(CITest):
 
     def _record_trace(
         self,
-        x: Hashable,
-        y: Hashable,
-        cond_set: Sequence[Hashable],
+        x: int,
+        y: int,
+        cond_set: Sequence[int],
         result: CITestResult,
         cache_hit: bool,
     ) -> None:

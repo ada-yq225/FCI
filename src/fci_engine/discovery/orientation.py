@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections import deque
-from collections.abc import Hashable, Mapping
 from itertools import combinations
 from typing import Optional
 
@@ -11,10 +10,7 @@ from fci_engine.ci import CITest
 from fci_engine.diagnostics import OrientationEvent
 from fci_engine.discovery.skeleton import _prepare_data_for_graph
 from fci_engine.graph import Endpoint, PAG
-
-
-Triple = tuple[Hashable, Hashable, Hashable]
-SepsetMap = Mapping[tuple[Hashable, Hashable], set[Hashable]]
+from fci_engine.types import Array, SepsetMapping, Triple
 
 
 def find_unshielded_triples(graph: PAG) -> list[Triple]:
@@ -32,9 +28,9 @@ def find_unshielded_triples(graph: PAG) -> list[Triple]:
 
 def is_unshielded_triple(
     graph: PAG,
-    x: Hashable,
-    z: Hashable,
-    y: Hashable,
+    x: str,
+    z: str,
+    y: str,
 ) -> bool:
     """Return whether ``x-z-y`` is an unshielded triple."""
 
@@ -50,9 +46,9 @@ def is_unshielded_triple(
 
 def has_directed_path(
     graph: PAG,
-    source: Hashable,
-    target: Hashable,
-    excluded_edge: Optional[tuple[Hashable, Hashable]] = None,
+    source: str,
+    target: str,
+    excluded_edge: Optional[tuple[str, str]] = None,
 ) -> bool:
     """Return whether a non-empty directed path exists from source to target."""
 
@@ -61,7 +57,7 @@ def has_directed_path(
 
     excluded = frozenset(excluded_edge) if excluded_edge is not None else None
     visited = {source}
-    queue: deque[Hashable] = deque([source])
+    queue: deque[str] = deque([source])
 
     while queue:
         current = queue.popleft()
@@ -79,7 +75,7 @@ def has_directed_path(
     return False
 
 
-def possible_ancestor(graph: PAG, x: Hashable, y: Hashable) -> bool:
+def possible_ancestor(graph: PAG, x: str, y: str) -> bool:
     """Return whether ``x`` is still a possible ancestor of ``y``."""
 
     return graph.is_possible_ancestor(x, y)
@@ -87,10 +83,10 @@ def possible_ancestor(graph: PAG, x: Hashable, y: Hashable) -> bool:
 
 def definite_noncollider(
     graph: PAG,
-    x: Hashable,
-    z: Hashable,
-    y: Hashable,
-    sepsets: Optional[SepsetMap] = None,
+    x: str,
+    z: str,
+    y: str,
+    sepsets: Optional[SepsetMapping] = None,
 ) -> bool:
     """Return whether ``z`` is a definite noncollider on ``x-z-y``."""
 
@@ -107,7 +103,7 @@ def definite_noncollider(
 
 def orient_unshielded_colliders(
     graph: PAG,
-    sepsets: SepsetMap,
+    sepsets: SepsetMapping,
     trace: Optional[list[OrientationEvent]] = None,
 ) -> PAG:
     """Orient unshielded colliders as ``x *-> z <-* y``."""
@@ -140,7 +136,7 @@ def orient_unshielded_colliders(
 def orient_unshielded_colliders_conservative(
     data: object,
     graph: PAG,
-    sepsets: SepsetMap,
+    sepsets: SepsetMapping,
     ci_test: CITest,
     max_cond_set_size: Optional[int] = None,
     trace: Optional[list[OrientationEvent]] = None,
@@ -220,18 +216,18 @@ def reset_endpoint_marks(graph: PAG) -> PAG:
 
 
 def _get_sepset(
-    sepsets: SepsetMap,
-    x: Hashable,
-    y: Hashable,
-) -> set[Hashable]:
+    sepsets: SepsetMapping,
+    x: str,
+    y: str,
+) -> set[str]:
     return sepsets.get((x, y), sepsets.get((y, x), set()))
 
 
 def _lookup_known_sepset(
-    sepsets: SepsetMap,
-    x: Hashable,
-    y: Hashable,
-) -> Optional[set[Hashable]]:
+    sepsets: SepsetMapping,
+    x: str,
+    y: str,
+) -> Optional[set[str]]:
     sepset = sepsets.get((x, y), sepsets.get((y, x)))
     if sepset is None:
         return None
@@ -239,17 +235,17 @@ def _lookup_known_sepset(
 
 
 def _find_separating_sets_for_pair(
-    data: object,
+    data: Array,
     graph: PAG,
-    x: Hashable,
-    y: Hashable,
+    x: str,
+    y: str,
     ci_test: CITest,
-    node_to_index: dict[Hashable, int],
+    node_to_index: dict[str, int],
     max_cond_set_size: Optional[int],
-    known_sepset: Optional[set[Hashable]],
-) -> list[set[Hashable]]:
-    separating_sets: list[set[Hashable]] = []
-    seen: set[frozenset[Hashable]] = set()
+    known_sepset: Optional[set[str]],
+) -> list[set[str]]:
+    separating_sets: list[set[str]] = []
+    seen: set[frozenset[str]] = set()
     if known_sepset is not None:
         separating_sets.append(set(known_sepset))
         seen.add(frozenset(known_sepset))
@@ -284,8 +280,8 @@ def _find_separating_sets_for_pair(
 
 def _safe_orient_arrowhead(
     graph: PAG,
-    x: Hashable,
-    y: Hashable,
+    x: str,
+    y: str,
     trace: Optional[list[OrientationEvent]] = None,
     rule: str = "orient_unshielded_colliders",
     reason: str = "",

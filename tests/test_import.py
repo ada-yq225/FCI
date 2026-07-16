@@ -5,8 +5,14 @@ def test_import_fci_engine() -> None:
 
 
 def test_common_ci_tests_are_public_exports() -> None:
-    from fci_engine import FisherZTest, KernelCITest, MissingValueFisherZTest
+    from fci_engine import (
+        FCIPlusConfig,
+        FisherZTest,
+        KernelCITest,
+        MissingValueFisherZTest,
+    )
 
+    assert FCIPlusConfig.__name__ == "FCIPlusConfig"
     assert FisherZTest.__name__ == "FisherZTest"
     assert KernelCITest.__name__ == "KernelCITest"
     assert MissingValueFisherZTest.allow_nan is True

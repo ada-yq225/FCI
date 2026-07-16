@@ -68,9 +68,7 @@ class BackgroundKnowledge:
                 "Background knowledge cannot both require and forbid the same "
                 f"directed edge: {sorted(conflicts)!r}."
             )
-        reverse_required = {
-            (target, source) for source, target in self.required_edges
-        }
+        reverse_required = {(target, source) for source, target in self.required_edges}
         opposite_required = self.required_edges & reverse_required
         if opposite_required:
             raise ValueError(

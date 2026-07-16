@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,7 +8,8 @@ version = "0.1.0"
 description = "Engineering-grade Fast Causal Inference implementation for PAG learning under latent confounding."
 readme = "README.md"
 requires-python = ">=3.9"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
   { name = "fci_engine contributors" }
 ]
@@ -36,15 +37,19 @@ dependencies = [
   "scipy>=1.9",
   "pandas>=1.5",
   "networkx>=2.8",
+  "typing_extensions>=4.5",
 ]
 
 [project.optional-dependencies]
 dev = [
+  "build>=1",
   "pytest>=7",
   "pytest-cov>=4",
   "ruff>=0.4",
   "black>=23",
-  "mypy>=1.5",
+  "mypy>=1.5,<2",
+  "pandas-stubs>=1.5",
+  "types-networkx>=3.1",
 ]
 reference = [
   "causal-learn",
@@ -52,6 +57,9 @@ reference = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+fci_engine = ["py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -67,3 +75,13 @@ target-version = "py39"
 [tool.mypy]
 python_version = "3.9"
 packages = ["fci_engine"]
+mypy_path = ["typings"]
+strict = true
+warn_unreachable = true
+# NumPy stub releases differ on whether a normalization cast is redundant.
+warn_redundant_casts = false
+disable_error_code = ["redundant-cast"]
+
+[[tool.mypy.overrides]]
+module = ["causallearn.*"]
+ignore_missing_imports = true

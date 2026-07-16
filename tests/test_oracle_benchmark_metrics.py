@@ -56,7 +56,7 @@ def test_pag_comparison_scores_false_positive_edges() -> None:
     assert comparison.exact_edge_f1 == 0.0
 
 
-def test_fci_engine_default_beats_causal_learn_default_on_noise_oracle() -> None:
+def test_fci_engine_auto_alpha_beats_causal_learn_default_on_noise_oracle() -> None:
     rng = np.random.default_rng(0)
     data = pd.DataFrame(
         rng.normal(size=(8000, 6)),
@@ -64,7 +64,12 @@ def test_fci_engine_default_beats_causal_learn_default_on_noise_oracle() -> None
     )
     oracle_shape = {}
 
-    engine_result = fci(data, max_cond_set_size=2, max_path_length=3)
+    engine_result = fci(
+        data,
+        alpha="auto",
+        max_cond_set_size=2,
+        max_path_length=3,
+    )
     engine_shape = shape_from_pag(engine_result.graph)
     causal_shape = causal_learn_shape(data, alpha=0.05)
 

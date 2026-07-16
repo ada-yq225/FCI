@@ -136,10 +136,7 @@ def test_focused_pcalg_comparison_suite_runs_or_skips_systematically() -> None:
     results = run_pcalg_comparison_benchmark(cases)
 
     assert len(results) == 3 * len(cases)
-    assert {
-        result.algorithm
-        for result in results
-    } == {
+    assert {result.algorithm for result in results} == {
         "fci_engine.fci_plus",
         "fci_engine.fci_plus.robust",
         "pcalg.fciPlus",
@@ -152,12 +149,16 @@ def test_focused_pcalg_comparison_suite_runs_or_skips_systematically() -> None:
     pcalg_results = [
         result for result in results if result.algorithm == "pcalg.fciPlus"
     ]
-    assert all(result.skipped or result.comparison is not None for result in pcalg_results)
+    assert all(
+        result.skipped or result.comparison is not None for result in pcalg_results
+    )
 
 
 def test_pcalg_comparison_report_renderer_smoke(tmp_path) -> None:
-    module_path = Path(__file__).resolve().parents[1] / "examples" / (
-        "09_pcalg_fci_plus_comparison.py"
+    module_path = (
+        Path(__file__).resolve().parents[1]
+        / "examples"
+        / ("09_pcalg_fci_plus_comparison.py")
     )
     spec = importlib.util.spec_from_file_location("pcalg_report", module_path)
     assert spec is not None and spec.loader is not None

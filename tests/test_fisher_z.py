@@ -91,7 +91,9 @@ def test_fisher_z_accepts_correlation_sufficient_statistics() -> None:
     test = FisherZTest(alpha=0.01)
 
     raw_result = test.test(data, 0, 1, [])
-    stats_result = test.test({"correlation": corr, "n_samples": data.shape[0]}, 0, 1, [])
+    stats_result = test.test(
+        {"correlation": corr, "n_samples": data.shape[0]}, 0, 1, []
+    )
 
     assert raw_result.independent == stats_result.independent
     assert np.isclose(raw_result.p_value, stats_result.p_value)

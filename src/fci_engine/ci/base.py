@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Optional, Sequence
 
-import numpy as np
+from fci_engine.types import Array
 
 
 @dataclass(frozen=True)
@@ -33,7 +33,7 @@ class CITest(ABC):
     @abstractmethod
     def test(
         self,
-        data: np.ndarray,
+        data: Array,
         x: int,
         y: int,
         cond_set: Sequence[int],

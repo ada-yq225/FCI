@@ -712,10 +712,7 @@ def render_evidence_guide() -> str:
         ),
     ]
     card_html = "".join(
-        "<div class='guide-card'>"
-        f"<h3>{_esc(title)}</h3>"
-        f"<p>{_esc(body)}</p>"
-        "</div>"
+        f"<div class='guide-card'><h3>{_esc(title)}</h3><p>{_esc(body)}</p></div>"
         for title, body in cards
     )
     return (
@@ -1887,8 +1884,7 @@ def _node_svg(node: str, x: float, y: float) -> str:
     text_lines = []
     for index, line in enumerate(lines):
         text_lines.append(
-            f'<tspan x="{x:.1f}" y="{text_start + index * 14:.1f}">'
-            f"{_esc(line)}</tspan>"
+            f'<tspan x="{x:.1f}" y="{text_start + index * 14:.1f}">{_esc(line)}</tspan>'
         )
     return (
         f"<g><title>{_esc(node)}</title>"

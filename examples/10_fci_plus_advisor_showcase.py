@@ -246,7 +246,7 @@ def render_showcase(
   <section id="figure4" aria-labelledby="figure-heading">
     <div class="section-heading">
       <div><p class="eyebrow">FLAGSHIP ORACLE TEST</p><h2 id="figure-heading">Figure 4(b): true target vs learned PAG</h2></div>
-      <span class="status {'pass' if context.exact_pass else 'fail'}">{'✓' if context.exact_pass else '✕'} {status}</span>
+      <span class="status {"pass" if context.exact_pass else "fail"}">{"✓" if context.exact_pass else "✕"} {status}</span>
     </div>
     <p class="section-copy">The oracle target is programmatically reconstructed from the paper's Figure 4(b) MAG; it is not a screenshot. The learned graph below comes from the public <code>fci_plus</code> pipeline using exact MAG m-separation CI.</p>
     <div class="graph-grid">
@@ -342,8 +342,8 @@ def render_sample_card(
         for label, value in metrics
     )
     standard_xy = "retained X–Y" if run.standard_fci_xy_present else "removed X–Y"
-    return f"""<article class="sample-card {'success' if passed else 'warning'}">
-      <div class="sample-head"><div><p class="eyebrow">N = {run.n_samples:,}</p><h3>{'Exact recovery' if passed else 'Illustrative finite-sample miss'}</h3></div><span class="status {'pass' if passed else 'warn'}">{'✓ PASS' if passed else '⚠ LIMITATION'}</span></div>
+    return f"""<article class="sample-card {"success" if passed else "warning"}">
+      <div class="sample-head"><div><p class="eyebrow">N = {run.n_samples:,}</p><h3>{"Exact recovery" if passed else "Illustrative finite-sample miss"}</h3></div><span class="status {"pass" if passed else "warn"}">{"✓ PASS" if passed else "⚠ LIMITATION"}</span></div>
       {render_pag_svg(run.shape, f"Learned PAG at N={run.n_samples:,}", extra_edges)}
       <p class="xy-result">{_esc(xy_text)}</p>
       <div class="metric-grid">{metric_html}</div>
@@ -406,7 +406,7 @@ def render_pag_svg(
     return f"""<svg class="pag" viewBox="0 0 600 330" role="img" aria-labelledby="{_slug(title)}-title {_slug(title)}-desc">
       <title id="{_slug(title)}-title">{_esc(title)}</title>
       <desc id="{_slug(title)}-desc">Five-node PAG with endpoint notation printed on every edge. Red dashed edges are extra relative to the oracle target.</desc>
-      {''.join(edge_parts)}{node_parts}
+      {"".join(edge_parts)}{node_parts}
     </svg>"""
 
 
@@ -434,9 +434,9 @@ def render_leaderboard(
     )
     if not external_enabled:
         excluded_html += "<li>External comparators disabled for this artifact.</li>"
-    return f"""<div class="cohort-line"><strong>Cohort:</strong> {len(case_ids)} shared cases · {_esc(', '.join(case_ids))}</div>
-    <div class="table-wrap"><table><thead><tr><th>Algorithm</th><th>Coverage</th><th>Exact F1</th><th>Semantic F1</th><th>Skeleton F1</th><th>Endpoint acc.</th><th>Mean CI tests</th></tr></thead><tbody>{''.join(rows)}</tbody></table></div>
-    <details><summary>Excluded algorithms / unavailable runs</summary><ul>{excluded_html or '<li>None</li>'}</ul></details>"""
+    return f"""<div class="cohort-line"><strong>Cohort:</strong> {len(case_ids)} shared cases · {_esc(", ".join(case_ids))}</div>
+    <div class="table-wrap"><table><thead><tr><th>Algorithm</th><th>Coverage</th><th>Exact F1</th><th>Semantic F1</th><th>Skeleton F1</th><th>Endpoint acc.</th><th>Mean CI tests</th></tr></thead><tbody>{"".join(rows)}</tbody></table></div>
+    <details><summary>Excluded algorithms / unavailable runs</summary><ul>{excluded_html or "<li>None</li>"}</ul></details>"""
 
 
 def same_cohort_aggregates(
@@ -472,17 +472,39 @@ def same_cohort_aggregates(
 
 def render_limitations() -> str:
     items = (
-        ("PAG, not a unique DAG", "Circles mark non-identifiability; a bidirected edge does not prove one named latent variable."),
-        ("Oracle assumptions", "Soundness/completeness relies on Markov, faithfulness, acyclicity and correct CI answers."),
-        ("Finite-sample sensitivity", "Alpha, test power and invariant-arrowhead errors can prevent FCI+ candidate recognition."),
-        ("One seeded SEM", "The 5k/50k comparison is a reproducible stress case, not a universal sample-size threshold."),
-        ("No universal winner", "pcalg and causal-learn are versioned references; pcalg 2.7-12 also has an index-1 PosDsepLinks omission, so external output is not truth."),
-        ("Complexity is an oracle bound", "FCI+ proves O(N^(2(k+2))) CI tests for bounded MAG degree k; statistical power can still fall with larger conditioning sets."),
+        (
+            "PAG, not a unique DAG",
+            "Circles mark non-identifiability; a bidirected edge does not prove one named latent variable.",
+        ),
+        (
+            "Oracle assumptions",
+            "Soundness/completeness relies on Markov, faithfulness, acyclicity and correct CI answers.",
+        ),
+        (
+            "Finite-sample sensitivity",
+            "Alpha, test power and invariant-arrowhead errors can prevent FCI+ candidate recognition.",
+        ),
+        (
+            "One seeded SEM",
+            "The 5k/50k comparison is a reproducible stress case, not a universal sample-size threshold.",
+        ),
+        (
+            "No universal winner",
+            "pcalg and causal-learn are versioned references; pcalg 2.7-12 also has an index-1 PosDsepLinks omission, so external output is not truth.",
+        ),
+        (
+            "Complexity is an oracle bound",
+            "FCI+ proves O(N^(2(k+2))) CI tests for bounded MAG degree k; statistical power can still fall with larger conditioning sets.",
+        ),
     )
-    return "<div class='limit-grid'>" + "".join(
-        f"<article><h3>{_esc(title)}</h3><p>{_esc(text)}</p></article>"
-        for title, text in items
-    ) + "</div>"
+    return (
+        "<div class='limit-grid'>"
+        + "".join(
+            f"<article><h3>{_esc(title)}</h3><p>{_esc(text)}</p></article>"
+            for title, text in items
+        )
+        + "</div>"
+    )
 
 
 def render_citations() -> str:
@@ -572,7 +594,9 @@ def _fmt(value: object) -> str:
 
 
 def _slug(value: str) -> str:
-    return "".join(character.lower() if character.isalnum() else "-" for character in value).strip("-")
+    return "".join(
+        character.lower() if character.isalnum() else "-" for character in value
+    ).strip("-")
 
 
 def _esc(value: object) -> str:

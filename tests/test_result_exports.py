@@ -99,8 +99,36 @@ def test_result_json_round_trip_and_save(tmp_path) -> None:
     assert len(payload["sepsets"]) == 1
     assert "ci_test_trace" in payload
     assert payload["config"]["orientation_strategy"] == "standard"
+    assert payload["alpha_was_auto"] is False
+    assert payload["assumption_notes"] == result.assumption_notes()
     assert payload["dsep_diagnostics"] is None
     assert loaded["algorithm"] == payload["algorithm"]
+
+
+def test_assumption_notes_explain_pag_and_default_fisher_z() -> None:
+    data = np.random.default_rng(19).normal(size=(80, 3))
+
+    result = fci(data, max_cond_set_size=0, do_pdsep=False)
+    notes = result.assumption_notes()
+
+    assert any("PAG equivalence class" in note for note in notes)
+    assert any("Fisher-Z" in note for note in notes)
+
+
+def test_result_saves_integrated_artifact_bundle(tmp_path) -> None:
+    result = _chain_result()
+
+    paths = result.save_artifacts(
+        tmp_path / "analysis",
+        stem="causal_model",
+    )
+
+    assert set(paths) == {"json", "edges_csv", "report_html"}
+    assert all(path.is_absolute() and path.exists() for path in paths.values())
+    assert json.loads(paths["json"].read_text())["n_samples"] == 30
+    edge_table = pd.read_csv(paths["edges_csv"])
+    assert {"x", "y", "endpoint_x", "endpoint_y", "edge"} <= set(edge_table.columns)
+    assert "<html" in paths["report_html"].read_text(encoding="utf-8").lower()
 
 
 def test_fci_config_is_exported_from_top_level_package() -> None:

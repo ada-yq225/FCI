@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import Optional
+from typing import Optional, cast
+
 import numpy as np
 from scipy.stats import norm
 
 from fci_engine.ci.base import CITest, CITestResult
+from fci_engine.types import Array
 
 
 class FisherZTest(CITest):
@@ -22,7 +24,7 @@ class FisherZTest(CITest):
     def __init__(self, alpha: float = 0.05) -> None:
         super().__init__(alpha=alpha)
         self._cached_input: Optional[object] = None
-        self._cached_correlation: Optional[tuple[np.ndarray, int, int]] = None
+        self._cached_correlation: Optional[tuple[Array, int, int]] = None
 
     def test(
         self,
@@ -56,24 +58,24 @@ class FisherZTest(CITest):
             n_samples=n_samples,
         )
 
-    def _correlation_matrix(self, data: object) -> tuple[np.ndarray, int, int]:
+    def _correlation_matrix(self, data: object) -> tuple[Array, int, int]:
         if isinstance(data, Mapping):
             return self._correlation_from_sufficient_stats(data)
         if self._cached_input is data and self._cached_correlation is not None:
             return self._cached_correlation
 
         input_object = data
-        data = self._validate_data(data)
-        corr = np.corrcoef(data, rowvar=False)
+        array = self._validate_data(data)
+        corr = np.corrcoef(array, rowvar=False)
         if not np.all(np.isfinite(corr)):
             raise ValueError("Cannot compute correlations for non-finite data.")
-        result = np.asarray(corr, dtype=float), data.shape[0], data.shape[1]
+        result = np.asarray(corr, dtype=float), array.shape[0], array.shape[1]
         self._cached_input = input_object
         self._cached_correlation = result
         return result
 
     @staticmethod
-    def _validate_data(data: object) -> np.ndarray:
+    def _validate_data(data: object) -> Array:
         if not isinstance(data, np.ndarray):
             raise TypeError(
                 "FisherZTest expects data to be a numpy.ndarray or "
@@ -83,13 +85,13 @@ class FisherZTest(CITest):
             raise ValueError("FisherZTest expects a two-dimensional data array.")
         if data.shape[0] < 4:
             raise ValueError("FisherZTest requires at least four samples.")
-        return np.asarray(data, dtype=float)
+        return cast(Array, np.asarray(data, dtype=float))
 
     @classmethod
     def _correlation_from_sufficient_stats(
         cls,
         stats: Mapping[str, object],
-    ) -> tuple[np.ndarray, int, int]:
+    ) -> tuple[Array, int, int]:
         n_samples = cls._extract_n_samples(stats)
         if "correlation" in stats:
             corr = np.asarray(stats["correlation"], dtype=float)
@@ -125,16 +127,16 @@ class FisherZTest(CITest):
         return int(n_samples)
 
     @classmethod
-    def _covariance_to_correlation(cls, covariance: np.ndarray) -> np.ndarray:
+    def _covariance_to_correlation(cls, covariance: Array) -> Array:
         cls._validate_square_matrix(covariance, "covariance")
         diagonal = np.diag(covariance)
         if np.any(diagonal <= 0.0):
             raise ValueError("Covariance diagonal entries must be positive.")
         scale = np.sqrt(diagonal)
-        return covariance / np.outer(scale, scale)
+        return cast(Array, covariance / np.outer(scale, scale))
 
     @classmethod
-    def _validate_correlation_matrix(cls, corr: np.ndarray) -> None:
+    def _validate_correlation_matrix(cls, corr: Array) -> None:
         cls._validate_square_matrix(corr, "correlation")
         if not np.allclose(corr, corr.T, atol=1e-8):
             raise ValueError("Correlation matrix must be symmetric.")
@@ -142,7 +144,7 @@ class FisherZTest(CITest):
             raise ValueError("Correlation matrix diagonal must be all ones.")
 
     @staticmethod
-    def _validate_square_matrix(matrix: np.ndarray, name: str) -> None:
+    def _validate_square_matrix(matrix: Array, name: str) -> None:
         if matrix.ndim != 2 or matrix.shape[0] != matrix.shape[1]:
             raise ValueError(f"{name} matrix must be square.")
         if matrix.shape[0] < 2:
@@ -169,7 +171,7 @@ class FisherZTest(CITest):
     @classmethod
     def _partial_correlation(
         cls,
-        data: np.ndarray,
+        data: Array,
         x: int,
         y: int,
         cond_set: tuple[int, ...],
@@ -193,7 +195,7 @@ class FisherZTest(CITest):
     @classmethod
     def _partial_correlation_from_corr(
         cls,
-        corr: np.ndarray,
+        corr: Array,
         x: int,
         y: int,
         cond_set: tuple[int, ...],
@@ -210,15 +212,15 @@ class FisherZTest(CITest):
         return float(-precision[0, 1] / np.sqrt(denom))
 
     @staticmethod
-    def _safe_inverse(matrix: np.ndarray) -> np.ndarray:
+    def _safe_inverse(matrix: Array) -> Array:
         matrix = 0.5 * (matrix + matrix.T)
         condition_number = np.linalg.cond(matrix)
         if not np.isfinite(condition_number) or condition_number > 1e12:
-            return np.linalg.pinv(matrix, rcond=1e-12)
+            return cast(Array, np.linalg.pinv(matrix, rcond=1e-12))
         try:
-            return np.linalg.inv(matrix)
+            return cast(Array, np.linalg.inv(matrix))
         except np.linalg.LinAlgError:
-            return np.linalg.pinv(matrix, rcond=1e-12)
+            return cast(Array, np.linalg.pinv(matrix, rcond=1e-12))
 
     @staticmethod
     def _clip_correlation(correlation: float) -> float:

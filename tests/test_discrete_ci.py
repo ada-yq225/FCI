@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from fci_engine import fci_plus
 from fci_engine.ci import ChiSquareTest, GSquareTest
 
 
@@ -50,3 +51,25 @@ def test_discrete_tests_reject_missing_values() -> None:
 
     with pytest.raises(ValueError, match="missing"):
         ChiSquareTest().test(data, 0, 1, ())
+
+
+def test_g_square_runs_end_to_end_on_discrete_common_cause() -> None:
+    rng = np.random.default_rng(31)
+    n_samples = 5000
+    z = rng.integers(0, 2, size=n_samples)
+    x = np.bitwise_xor(z, rng.random(n_samples) < 0.1).astype(int)
+    y = np.bitwise_xor(z, rng.random(n_samples) < 0.1).astype(int)
+    data = pd.DataFrame({"Z": z, "X": x, "Y": y})
+
+    result = fci_plus(
+        data,
+        profile="paper",
+        k=1,
+        ci_test=GSquareTest(alpha=0.001),
+        alpha=0.001,
+    )
+
+    assert result.graph.is_adjacent("Z", "X")
+    assert result.graph.is_adjacent("Z", "Y")
+    assert not result.graph.is_adjacent("X", "Y")
+    assert any("expected cell counts" in note for note in result.assumption_notes())

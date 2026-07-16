@@ -8,7 +8,7 @@ from fci_engine.ci import (
     KernelCITest,
     MissingValueFisherZTest,
 )
-from fci_engine.config import FCIConfig
+from fci_engine.config import FCIConfig, FCIPlusConfig
 from fci_engine.discovery.fci import FCI
 from fci_engine.discovery.fci_plus import FCIPlus
 from fci_engine.graph import Endpoint, PAG
@@ -58,6 +58,7 @@ __all__ = [
     "FCI",
     "FCIConfig",
     "FCIPlus",
+    "FCIPlusConfig",
     "FCIResult",
     "BackgroundKnowledge",
     "BenchmarkAggregate",

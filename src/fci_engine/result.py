@@ -5,11 +5,15 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 from fci_engine.config import FCIConfig
 from fci_engine.diagnostics import CITraceEvent, OrientationEvent
 from fci_engine.graph import PAG
+
+if TYPE_CHECKING:
+    import networkx as nx
+    import pandas as pd
 
 
 @dataclass(frozen=True)
@@ -60,33 +64,110 @@ class FCIResult:
     bootstrap_edge_frequencies: Optional[dict[str, float]] = None
     dsep_diagnostics: Optional[dict[str, int]] = None
     algorithm: str = "fci"
+    n_samples: Optional[int] = None
+    alpha_was_auto: bool = False
+
+    @property
+    def nodes(self) -> tuple[str, ...]:
+        """Return learned variable names in input-column order."""
+
+        return self.graph.nodes
+
+    @property
+    def edges(self) -> list[tuple[str, str]]:
+        """Return learned PAG adjacencies."""
+
+        return self.graph.edges()
 
     def summary(self) -> str:
         """Return a compact human-readable summary."""
 
-        return "\n".join(
+        lines = [
+            "FCIResult",
+            f"- algorithm: {self.algorithm}",
+            f"- samples: {self.n_samples if self.n_samples is not None else 'unknown'}",
+            f"- nodes: {len(self.graph.nodes)}",
+            f"- edges: {len(self.graph.edges())}",
+            f"- separating sets: {len(self.sepsets)}",
+            f"- CI tests: {self.ci_test_count}",
+            f"- cache hits: {self.cache_hits}",
+            f"- orientation events: {len(self.orientation_trace)}",
+            f"- ambiguous triples: {len(self.ambiguous_triples)}",
+        ]
+        if self.algorithm == "fci_plus":
+            lines.extend(
+                [
+                    f"- FCI+ sparsity bound: {self.config.sparsity_bound}",
+                    f"- D-SEP diagnostics: {_format_dsep_summary(self.dsep_diagnostics)}",
+                ]
+            )
+        else:
+            lines.extend(
+                [
+                    f"- Possible-D-Sep: {self.config.do_pdsep}",
+                    f"- stable Possible-D-Sep: {self.config.pdsep_stable}",
+                ]
+            )
+        lines.extend(
             [
-                "FCIResult",
-                f"- algorithm: {self.algorithm}",
-                f"- nodes: {len(self.graph.nodes)}",
-                f"- edges: {len(self.graph.edges())}",
-                f"- separating sets: {len(self.sepsets)}",
-                f"- CI tests: {self.ci_test_count}",
-                f"- cache hits: {self.cache_hits}",
-                f"- orientation events: {len(self.orientation_trace)}",
-                f"- ambiguous triples: {len(self.ambiguous_triples)}",
-                f"- D-SEP diagnostics: {_format_dsep_summary(self.dsep_diagnostics)}",
                 f"- CI trace events: {len(self.ci_test_trace)}",
                 f"- elapsed time: {self.elapsed_time:.4f}s",
                 f"- alpha: {self.config.alpha}",
-                f"- Possible-D-Sep: {self.config.do_pdsep}",
+                f"- alpha selected by heuristic: {self.alpha_was_auto}",
                 f"- stable skeleton: {self.config.skeleton_stable}",
-                f"- stable Possible-D-Sep: {self.config.pdsep_stable}",
                 f"- sepset selection: {self.config.sepset_selection}",
                 f"- conservative orientation: {self.config.conservative_orientation}",
                 f"- orientation strategy: {self.config.orientation_strategy}",
             ]
         )
+        return "\n".join(lines)
+
+    def assumption_notes(self) -> list[str]:
+        """Return interpretation and CI-test assumptions for this run."""
+
+        notes = [
+            (
+                "The output is a PAG equivalence class, not a unique DAG; "
+                "retained adjacencies are not automatically direct causal effects."
+            )
+        ]
+        methods = {event.method for event in self.ci_test_trace}
+        if "fisher_z" in methods:
+            notes.append(
+                "Fisher-Z relies on continuous approximately linear-Gaussian "
+                "relationships and valid partial-correlation tests."
+            )
+        if "mv_fisher_z" in methods:
+            notes.append(
+                "Missing-value Fisher-Z uses query-wise complete cases, so "
+                "effective sample size can differ between CI tests."
+            )
+        if methods & {"chi_square", "g_square"}:
+            notes.append(
+                "Discrete chi-square/G-square tests require adequate expected "
+                "cell counts for every tested contingency table."
+            )
+        if "kernel_ci" in methods:
+            notes.append(
+                "Kernel CI uses finite permutation or Gamma approximations and "
+                "can be sensitive to kernel and regularization settings."
+            )
+        if self.algorithm == "fci_plus" and self.config.sparsity_bound is not None:
+            notes.append(
+                "FCI+ paper guarantees require faithfulness and a true MAG "
+                f"maximum degree no larger than k={self.config.sparsity_bound}."
+            )
+        if self.alpha_was_auto:
+            notes.append(
+                "alpha='auto' used a sample-size heuristic; it is not a "
+                "dataset-specific error-rate guarantee."
+            )
+        if self.bootstrap_edge_frequencies is not None:
+            notes.append(
+                "Bootstrap frequencies measure resampling stability and do not "
+                "remove systematic conditional-independence-test bias."
+            )
+        return notes
 
     def to_edge_records(self) -> list[dict[str, Any]]:
         """Return final PAG edges as JSON/pandas-friendly records."""
@@ -109,19 +190,19 @@ class FCIResult:
             )
         return records
 
-    def to_pandas_edges(self):
+    def to_pandas_edges(self) -> "pd.DataFrame":
         """Return final PAG edges as a ``pandas.DataFrame``."""
 
         import pandas as pd
 
         return pd.DataFrame(self.to_edge_records())
 
-    def to_networkx(self):
+    def to_networkx(self) -> "nx.Graph[str]":
         """Return a ``networkx.Graph`` with PAG endpoint marks as edge attributes."""
 
         import networkx as nx
 
-        graph = nx.Graph()
+        graph: nx.Graph[str] = nx.Graph()
         graph.add_nodes_from(self.graph.nodes)
         for record in self.to_edge_records():
             graph.add_edge(
@@ -187,6 +268,7 @@ class FCIResult:
 
         payload: dict[str, Any] = {
             "algorithm": self.algorithm,
+            "n_samples": self.n_samples,
             "nodes": list(self.graph.nodes),
             "edges": self.to_edge_records(),
             "sepsets": _sepset_records(self.sepsets, self.sepset_sources),
@@ -197,6 +279,8 @@ class FCIResult:
             "cache_hits": self.cache_hits,
             "elapsed_time": self.elapsed_time,
             "config": _config_to_dict(self.config),
+            "alpha_was_auto": self.alpha_was_auto,
+            "assumption_notes": self.assumption_notes(),
             "bootstrap_edge_frequencies": self.bootstrap_edge_frequencies,
             "dsep_diagnostics": self.dsep_diagnostics,
         }
@@ -252,6 +336,35 @@ class FCIResult:
             self.to_interactive_report(title=title),
             encoding="utf-8",
         )
+
+    def save_artifacts(
+        self,
+        directory: Union[str, Path],
+        *,
+        stem: str = "fci_result",
+        include_traces: bool = False,
+        report_title: str = "FCI Interactive PAG Report",
+    ) -> dict[str, Path]:
+        """Save the common result artifacts for an applied analysis.
+
+        The output bundle contains a JSON audit record, a CSV edge table, and
+        a standalone interactive HTML report. Returned paths are absolute.
+        """
+
+        output_directory = Path(directory).expanduser().resolve()
+        output_directory.mkdir(parents=True, exist_ok=True)
+        paths = {
+            "json": output_directory / f"{stem}.json",
+            "edges_csv": output_directory / f"{stem}_edges.csv",
+            "report_html": output_directory / f"{stem}_report.html",
+        }
+        self.save_json(paths["json"], include_traces=include_traces)
+        self.to_pandas_edges().to_csv(paths["edges_csv"], index=False)
+        self.save_interactive_report(
+            paths["report_html"],
+            title=report_title,
+        )
+        return paths
 
 
 def _lookup_sepset(

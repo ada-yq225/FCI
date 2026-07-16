@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Optional
 
@@ -170,15 +171,9 @@ def make_hospital_triage_case(
     )
     oxygen = 0.75 * latent_severity + rng.normal(scale=0.35, size=n_samples)
     treatment = (
-        0.75 * protocol
-        + 0.55 * inflammation
-        + rng.normal(scale=0.40, size=n_samples)
+        0.75 * protocol + 0.55 * inflammation + rng.normal(scale=0.40, size=n_samples)
     )
-    recovery = (
-        0.70 * treatment
-        - 0.55 * oxygen
-        + rng.normal(scale=0.40, size=n_samples)
-    )
+    recovery = 0.70 * treatment - 0.55 * oxygen + rng.normal(scale=0.40, size=n_samples)
 
     data = pd.DataFrame(
         {
@@ -228,14 +223,10 @@ def make_microservice_incident_case(
 
     queue = 0.80 * traffic + rng.normal(scale=0.35, size=n_samples)
     auth_latency = (
-        0.75 * queue
-        + 0.65 * hidden_network
-        + rng.normal(scale=0.35, size=n_samples)
+        0.75 * queue + 0.65 * hidden_network + rng.normal(scale=0.35, size=n_samples)
     )
     payment_latency = (
-        0.70 * cache
-        + 0.65 * hidden_network
-        + rng.normal(scale=0.35, size=n_samples)
+        0.70 * cache + 0.65 * hidden_network + rng.normal(scale=0.35, size=n_samples)
     )
     error_rate = (
         0.65 * auth_latency
@@ -296,18 +287,18 @@ def make_finance_risk_case(
         + rng.normal(scale=0.35, size=n_samples)
     )
     equity_vol = (
-        0.70 * liquidity
-        + 0.65 * market_factor
-        + rng.normal(scale=0.35, size=n_samples)
+        0.70 * liquidity + 0.65 * market_factor + rng.normal(scale=0.35, size=n_samples)
     )
     default_prob = (
-        0.70 * credit_spread
-        + 0.55 * leverage
-        + rng.normal(scale=0.40, size=n_samples)
+        0.70 * credit_spread + 0.55 * leverage + rng.normal(scale=0.40, size=n_samples)
     )
-    loss = 0.75 * default_prob + 0.45 * equity_vol + rng.normal(
-        scale=0.40,
-        size=n_samples,
+    loss = (
+        0.75 * default_prob
+        + 0.45 * equity_vol
+        + rng.normal(
+            scale=0.40,
+            size=n_samples,
+        )
     )
 
     data = pd.DataFrame(
@@ -354,14 +345,10 @@ def make_manufacturing_quality_case(
     operator = rng.normal(size=n_samples)
 
     chamber_temp = (
-        0.75 * setpoint
-        + 0.65 * ambient
-        + rng.normal(scale=0.35, size=n_samples)
+        0.75 * setpoint + 0.65 * ambient + rng.normal(scale=0.35, size=n_samples)
     )
     vibration = (
-        0.70 * maintenance
-        + 0.65 * ambient
-        + rng.normal(scale=0.35, size=n_samples)
+        0.70 * maintenance + 0.65 * ambient + rng.normal(scale=0.35, size=n_samples)
     )
     pressure = 0.70 * operator + rng.normal(scale=0.35, size=n_samples)
     defect_rate = (
@@ -417,14 +404,10 @@ def make_enterprise_monitoring_case(
     cache_policy = rng.normal(size=n_samples)
 
     api_cpu = (
-        0.75 * deploy_a
-        + 0.65 * platform_load
-        + rng.normal(scale=0.35, size=n_samples)
+        0.75 * deploy_a + 0.65 * platform_load + rng.normal(scale=0.35, size=n_samples)
     )
     db_cpu = (
-        0.70 * deploy_b
-        + 0.65 * platform_load
-        + rng.normal(scale=0.35, size=n_samples)
+        0.70 * deploy_b + 0.65 * platform_load + rng.normal(scale=0.35, size=n_samples)
     )
     search_qps = 0.75 * marketing + rng.normal(scale=0.35, size=n_samples)
     cache_miss = 0.75 * cache_policy + rng.normal(scale=0.35, size=n_samples)
@@ -441,9 +424,7 @@ def make_enterprise_monitoring_case(
         + rng.normal(scale=0.40, size=n_samples)
     )
     checkout_latency = (
-        0.60 * api_latency
-        + 0.60 * db_latency
-        + rng.normal(scale=0.40, size=n_samples)
+        0.60 * api_latency + 0.60 * db_latency + rng.normal(scale=0.40, size=n_samples)
     )
     error_budget = 0.75 * checkout_latency + rng.normal(
         scale=0.40,
@@ -501,7 +482,7 @@ def realistic_oracle_cases(
 ) -> list[OracleCase]:
     """Return realistic synthetic benchmark cases with hand-written PAG shapes."""
 
-    factories = [
+    factories: list[Callable[..., OracleCase]] = [
         make_hospital_triage_case,
         make_microservice_incident_case,
         make_finance_risk_case,
@@ -512,7 +493,9 @@ def realistic_oracle_cases(
     for repeat in range(n_repeats):
         seed_offset = 1000 * repeat
         for factory in factories:
-            kwargs = {"seed": seed_offset + _base_seed_for_factory(factory)}
+            kwargs: dict[str, int] = {
+                "seed": seed_offset + _base_seed_for_factory(factory)
+            }
             if n_samples is not None:
                 kwargs["n_samples"] = n_samples
             case = factory(**kwargs)
@@ -543,8 +526,8 @@ def default_oracle_cases() -> list[OracleCase]:
     ]
 
 
-def _base_seed_for_factory(factory: object) -> int:
-    seeds = {
+def _base_seed_for_factory(factory: Callable[..., OracleCase]) -> int:
+    seeds: dict[Callable[..., OracleCase], int] = {
         make_hospital_triage_case: 101,
         make_microservice_incident_case: 202,
         make_finance_risk_case: 303,

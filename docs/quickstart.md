@@ -1,6 +1,6 @@
 # Quickstart
 
-This package exposes two public entry points:
+This package exposes integrated function and estimator entry points:
 
 - `fci_engine.fci(data, **kwargs)`
 - `fci_engine.FCI(...).fit(data)`
@@ -15,7 +15,7 @@ counts, cache hits, elapsed time, and configuration.
 ## Install
 
 Supported Python versions are 3.9, 3.10, 3.11, 3.12, and 3.13. Source builds
-need `setuptools>=61`; normal modern `pip` build isolation installs that build
+need `setuptools>=77`; normal modern `pip` build isolation installs that build
 backend automatically.
 
 ```bash
@@ -26,6 +26,11 @@ For development:
 
 ```bash
 pip install -e ".[dev]"
+python -m pytest -q
+python -m ruff check src tests examples
+python -m ruff format --check src tests examples
+python -m mypy
+python -m build --wheel
 ```
 
 ## Run FCI On A DataFrame
@@ -82,7 +87,9 @@ result = estimator.fit(data)
 ```
 
 The default conditional independence test is Fisher-Z, intended for continuous
-Gaussian-style data. Stable skeleton search is enabled by default so edge
+Gaussian-style data. The default alpha is the explicit value `0.05`;
+`alpha="auto"` is an opt-in heuristic and is recorded through
+`result.alpha_was_auto`. Stable skeleton search is enabled by default so edge
 removals within one conditioning depth do not change later candidate sets at
 the same depth. Stable Possible-D-Sep refinement is also enabled by default so
 later PDS candidate paths use a start-of-stage PAG snapshot.
@@ -100,6 +107,16 @@ clear leaf effects.
 Set `orientation_strategy="robust"` to also enable conservative collider
 checks, which reduces endpoint conflicts in finite-sample settings.
 
+For the Spirtes et al. search schedule, use the paper profile:
+
+```python
+paper_result = fci(data, profile="paper", alpha=0.01)
+```
+
+It uses immediate PC adjacency updates, first-found separating sets, unbounded
+conditioning/path search, a fixed initially oriented graph for directional
+Possible-D-SEP pools, and the package's complete PAG orientation stage.
+
 ## Missing Values
 
 Default Fisher-Z rejects missing values. Use `MissingValueFisherZTest` when you
@@ -114,27 +131,31 @@ result = fci(data_with_nan, ci_test=MissingValueFisherZTest(alpha=0.01))
 ## Run FCI+
 
 ```python
-from fci_engine import FCIPlus, fci_plus
+from fci_engine import FCIPlus, FCIPlusConfig, fci_plus
 
+# Bounded conservative convenience profile
 result = fci_plus(
     data,
-    alpha=0.01,
+    profile="practical",
     max_cond_set_size=3,
-    sparsity_bound=3,
-    max_path_length=None,
-    sepset_selection="first",
-    orientation_strategy="standard",
 )
 
-estimator = FCIPlus(
-    alpha=0.01,
+# Reusable estimator with the same profile
+estimator = FCIPlus.practical(
     max_cond_set_size=3,
-    sparsity_bound=3,
-    max_path_length=None,
-    sepset_selection="first",
-    orientation_strategy="standard",
 )
 result = estimator.fit(data)
+
+# Explicit application configuration
+config = FCIPlusConfig.practical(
+    alpha="auto",
+    max_cond_set_size=3,
+    sparsity_bound=3,
+)
+result = FCIPlus(config).fit(data)
+
+# Literal Algorithm 2 search profile
+paper_result = fci_plus(data, profile="paper", k=3, alpha=0.01)
 ```
 
 FCI+ uses the same `FCIResult` and PAG representation as standard FCI. The
@@ -142,9 +163,20 @@ difference is the refinement stage: standard FCI uses Possible-D-Sep search,
 while FCI+ uses a sparse hierarchical D-SEP search driven by separating sets
 already discovered in earlier stages.
 
-The explicit settings above are the paper-aligned profile. `alpha="auto"`,
-max-p-value sepset selection, finite path caps, and robust/leaf orientation are
-optional finite-sample engineering choices.
+The `practical` profile is a bounded finite-sample convenience profile. The
+`paper` profile fixes both search stages to the same `k`, uses immediate PC
+updates and first-found minimal sepsets, and is intended for Algorithm 2
+validation. Neither profile is automatically optimal for every dataset.
+
+Export the common analysis artifacts together:
+
+```python
+paths = result.save_artifacts("outputs", stem="study_fci_plus")
+print(result.assumption_notes())
+```
+
+This writes a JSON audit record, CSV edge table, and standalone interactive
+HTML report.
 
 ## Stability-Selected FCI+
 
@@ -156,16 +188,17 @@ from fci_engine import stable_fci_plus
 
 result = stable_fci_plus(
     data,
+    profile="practical",
     n_bootstraps=50,
+    n_jobs=4,
     edge_threshold=0.6,
-    alpha="auto",
     max_cond_set_size=3,
-    orientation_strategy="robust",
 )
 ```
 
 The returned `FCIResult` contains the filtered PAG and bootstrap support for
-the final retained edges.
+the final retained edges. Parallel jobs reduce wall-clock time but do not
+remove systematic CI-test bias.
 
 ## Visual Oracle Report
 

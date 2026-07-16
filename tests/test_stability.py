@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from fci_engine import (
     bootstrap_adjacency_frequencies,
@@ -77,6 +78,32 @@ def test_bootstrap_adjacency_frequencies_reports_skeleton_rates() -> None:
     assert frequencies == {("X0", "X1"): 1.0}
 
 
+def test_bootstrap_adjacency_frequencies_supports_parallel_jobs() -> None:
+    data = np.random.default_rng(41).normal(size=(40, 2))
+
+    frequencies = bootstrap_adjacency_frequencies(
+        data,
+        n_bootstraps=4,
+        random_state=0,
+        n_jobs=2,
+        ci_test=AlwaysDependentCITest(),
+        do_pdsep=False,
+    )
+
+    assert frequencies == {("X0", "X1"): 1.0}
+
+
+def test_bootstrap_rejects_nonpositive_parallelism() -> None:
+    data = np.random.default_rng(42).normal(size=(40, 2))
+
+    with pytest.raises(ValueError, match="n_jobs"):
+        bootstrap_adjacency_frequencies(
+            data,
+            n_bootstraps=2,
+            n_jobs=0,
+        )
+
+
 def test_stable_fci_filters_low_frequency_edges() -> None:
     data = np.random.default_rng(5).normal(size=(60, 2))
 
@@ -125,3 +152,21 @@ def test_stable_fci_plus_uses_fci_plus_pipeline() -> None:
     assert result.algorithm == "fci_plus"
     assert result.graph.edge_repr("X0", "X1") == "X0 o-o X1"
     assert result.bootstrap_edge_frequencies == {"X0 o-o X1": 1.0}
+
+
+def test_stable_fci_plus_accepts_practical_profile() -> None:
+    data = np.random.default_rng(8).normal(size=(60, 2))
+
+    result = stable_fci_plus(
+        data,
+        profile="practical",
+        n_bootstraps=2,
+        edge_threshold=0.5,
+        random_state=0,
+        ci_test=AlwaysDependentCITest(),
+        max_cond_set_size=1,
+    )
+
+    assert result.algorithm == "fci_plus"
+    assert result.config.sparsity_bound == 1
+    assert result.config.orientation_strategy == "robust"
