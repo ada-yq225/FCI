@@ -52,14 +52,16 @@ def test_committed_star_report_is_reproducible_from_summary_payload() -> None:
 
     assert "separate from the algorithm package" in html
     assert "Randomized-arm reference" in html
-    assert "Learned Partial Ancestral Graphs" in html
+    assert "Learned Partial Ancestral Graphs from three implementations" in html
+    assert "R pcalg::fciPlus" in html
+    assert "Where the three algorithms agree" in html
     assert "Researcher self-assessment" in html
     assert "K_Class &lt;-&gt; Grade3_Achievement" in html
-    assert "does <strong>not</strong>" in html
+    assert "not uniformly the most credible PAG" in html
     assert "doi.org/10.7910/DVN/SIWH9F" in html
 
 
-def test_star_summary_contains_both_algorithms_for_every_panel() -> None:
+def test_star_summary_contains_three_algorithms_for_every_panel() -> None:
     payload = json.loads(
         (OUTPUT / "star_case_study_summary.json").read_text(encoding="utf-8")
     )
@@ -68,8 +70,37 @@ def test_star_summary_contains_both_algorithms_for_every_panel() -> None:
     assert combinations == {
         ("attrition", "fci"),
         ("attrition", "fci_plus"),
+        ("attrition", "pcalg_fci_plus"),
         ("longitudinal", "fci"),
         ("longitudinal", "fci_plus"),
+        ("longitudinal", "pcalg_fci_plus"),
         ("focused_treatment", "fci"),
         ("focused_treatment", "fci_plus"),
+        ("focused_treatment", "pcalg_fci_plus"),
     }
+
+
+def test_star_three_algorithm_comparison_records_replication_and_disagreement() -> None:
+    payload = json.loads(
+        (OUTPUT / "star_case_study_summary.json").read_text(encoding="utf-8")
+    )
+    comparisons = payload["three_algorithm_comparisons"]
+
+    focused = comparisons["focused_treatment"]
+    assert focused["all_three_exact_pag"] is True
+    assert focused["consensus_skeleton_edges"] == 10
+    assert focused["target_edges"] == {
+        "fci": "K_Class <-> Grade3_Achievement",
+        "fci_plus": "K_Class <-> Grade3_Achievement",
+        "pcalg_fci_plus": "K_Class <-> Grade3_Achievement",
+    }
+
+    attrition = comparisons["attrition"]
+    assert attrition["all_three_exact_pag"] is False
+    assert attrition["target_edges"]["fci"] == ("K_Achievement <-- Grade3_Observed")
+    assert attrition["target_edges"]["fci_plus"] == (
+        "K_Achievement <-o Grade3_Observed"
+    )
+    assert attrition["target_edges"]["pcalg_fci_plus"] == (
+        "K_Achievement --> Grade3_Observed"
+    )

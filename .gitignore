@@ -16,6 +16,12 @@ tmp/
 /IRP_Project_Plan.*
 /custom_data_report.html
 /missfont.log
+/output/pdf/*.aux
+/output/pdf/*.lof
+/output/pdf/*.log
+/output/pdf/*.lot
+/output/pdf/*.out
+/output/pdf/*.toc
 
 # Uncompressed/intermediate STAR downloads. The committed case study keeps the
 # deterministic gzip export and the official user guide.

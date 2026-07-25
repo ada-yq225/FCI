@@ -8,6 +8,10 @@ from typing import Any
 
 import pandas as pd
 
+from case_studies.tennessee_star.pcalg_reference import (
+    load_pcalg_reference,
+    refresh_pcalg_reference,
+)
 from case_studies.tennessee_star.report import payload_json, render_report
 from case_studies.tennessee_star.study import (
     OUTPUT_DIR,
@@ -30,6 +34,9 @@ def run(
     bootstraps: int = 12,
     descriptive_bootstraps: int = 1000,
     n_jobs: int = 4,
+    refresh_pcalg: bool = False,
+    rscript: Path | None = None,
+    pcalg_order_audit: bool = True,
 ) -> dict[str, Path]:
     """Execute the application and return generated artifact paths."""
 
@@ -52,6 +59,22 @@ def run(
         frame,
         sparsity_bound=sparsity_bound,
     )
+    external_records: list[dict[str, Any]] = []
+    external_metadata: dict[str, Any] | None = None
+    if refresh_pcalg:
+        refresh_pcalg_reference(
+            output_directory=output_directory,
+            rscript=rscript,
+            alpha=alpha,
+            benchmark_repeats=benchmark_repeats,
+            order_audit=pcalg_order_audit,
+        )
+    external_records, external_metadata = load_pcalg_reference(
+        study,
+        output_directory=output_directory,
+        expected_alpha=alpha,
+    )
+
     payload = build_summary_payload(
         study,
         records,
@@ -60,6 +83,8 @@ def run(
         alpha=alpha,
         sparsity_bound=sparsity_bound,
         bootstraps=bootstraps,
+        external_records=external_records,
+        external_metadata=external_metadata,
     )
 
     output_directory.mkdir(parents=True, exist_ok=True)
@@ -143,6 +168,9 @@ def main() -> None:
     parser.add_argument("--bootstraps", type=int, default=12)
     parser.add_argument("--descriptive-bootstraps", type=int, default=1000)
     parser.add_argument("--n-jobs", type=int, default=4)
+    parser.add_argument("--refresh-pcalg", action="store_true")
+    parser.add_argument("--rscript", type=Path)
+    parser.add_argument("--skip-pcalg-order-audit", action="store_true")
     args = parser.parse_args()
 
     paths = run(
@@ -153,6 +181,9 @@ def main() -> None:
         bootstraps=args.bootstraps,
         descriptive_bootstraps=args.descriptive_bootstraps,
         n_jobs=args.n_jobs,
+        refresh_pcalg=args.refresh_pcalg,
+        rscript=args.rscript,
+        pcalg_order_audit=not args.skip_pcalg_order_audit,
     )
     for name, path in paths.items():
         print(f"{name}: {path.resolve()}")

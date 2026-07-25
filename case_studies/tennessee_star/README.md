@@ -55,15 +55,36 @@ analysis therefore:
 4. applies the discrete likelihood-ratio G-square CI test;
 5. uses the paper profile for standard FCI;
 6. uses the Claassen et al. paper profile for FCI+ with `k=3`;
-7. resamples whole kindergarten schools for adjacency stability.
+7. runs CRAN `pcalg::fciPlus` as an independent R reference;
+8. resamples whole kindergarten schools for adjacency stability.
+
+The R runner supplies a compact-table G-square function matching
+`src/fci_engine/ci/discrete.py`. It intentionally does not use the default
+`pcalg::disCItest` minimum-sample shortcut, because that shortcut can classify
+high-dimensional contingency tables as independent without calculating the
+same statistic used by the Python implementations. The `pcalg` API also does
+not expose the local paper profile's explicit `k=3` bound, so its result is an
+independent implementation comparison rather than an identical internal
+search schedule.
 
 The main threshold is `alpha=0.05`. A sensitivity table repeats the focused
 treatment analysis at `alpha=0.01` and with three versus four quantile bins.
 
 ## Reproduce the report
 
+Install R and CRAN `pcalg`, then run:
+
 ```bash
+Rscript case_studies/tennessee_star/pcalg_reference.R
 PYTHONPATH=src python -m case_studies.tennessee_star.run_case_study
+```
+
+To refresh the R results and the Python report in one command:
+
+```bash
+PYTHONPATH=src python -m case_studies.tennessee_star.run_case_study \
+  --refresh-pcalg \
+  --rscript /path/to/Rscript
 ```
 
 The command writes:
@@ -75,16 +96,29 @@ The command writes:
 - `output/star_bootstrap_adjacencies.csv`: school-bootstrap frequencies;
 - `output/star_sensitivity.csv`: alpha/binning sensitivity;
 - `output/star_descriptive_contrasts.csv`: randomized-arm summaries.
+- `output/star_pcalg_runs.csv`: R and `pcalg` versions, timings, and CI calls;
+- `output/star_pcalg_edges.csv`: every R `pcalg::fciPlus` PAG edge;
+- `output/star_pcalg_order_audit.csv`: cyclic variable-order audit.
 
 The exact numeric FCI inputs are written under `data/processed/`.
 
 ## Interpretation boundary
 
-The report deliberately presents two different forms of evidence:
+The report deliberately presents three different forms of evidence:
 
 - randomized-arm score contrasts, used as the external experimental reference;
-- FCI/FCI+ PAGs, used to demonstrate structure discovery under possible latent
-  confounding and selection.
+- self-implemented FCI/FCI+ PAGs;
+- an independently executed R `pcalg::fciPlus` PAG.
+
+The three algorithms return an identical focused-treatment PAG, but do not
+fully agree on the attrition and longitudinal endpoint orientations. The R
+implementation gives the temporally sensible
+`K_Achievement --> Grade3_Observed` relation in the attrition panel, while both
+FCI+ implementations reverse the kindergarten/grade-3 achievement chronology
+in the longitudinal panel. Consequently, the project does not label one
+empirical PAG as universally best: randomized design evidence is strongest for
+the treatment effect, and cross-implementation skeleton agreement is more
+credible than implementation-specific arrowheads.
 
 The PAG does not estimate a class-size treatment effect. A bidirected edge is
 not automatically proof of latent confounding, particularly after restricting

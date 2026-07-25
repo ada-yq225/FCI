@@ -24,17 +24,17 @@
   "comparisons": {
     "attrition": {
       "fci_plus_ci_test_ratio": 0.46510263929618767,
-      "fci_plus_runtime_ratio": 0.7201856298645115,
+      "fci_plus_runtime_ratio": 0.9015202032836314,
       "skeleton_jaccard": 0.8235294117647058
     },
     "focused_treatment": {
       "fci_plus_ci_test_ratio": 0.6357388316151202,
-      "fci_plus_runtime_ratio": 0.9117043966002528,
+      "fci_plus_runtime_ratio": 0.43794869130800407,
       "skeleton_jaccard": 1.0
     },
     "longitudinal": {
       "fci_plus_ci_test_ratio": 0.3489583333333333,
-      "fci_plus_runtime_ratio": 0.19588425595976913,
+      "fci_plus_runtime_ratio": 0.22512649829750828,
       "skeleton_jaccard": 0.7692307692307693
     }
   },
@@ -42,6 +42,17 @@
     "alpha": 0.05,
     "ci_test": "G-square on discretized variables",
     "cluster_bootstraps": 12,
+    "external_reference": {
+      "algorithm": "pcalg_fci_plus",
+      "alpha": 0.05,
+      "ci_test": "Python-equivalent G-square",
+      "edges_csv": "case_studies/tennessee_star/output/star_pcalg_edges.csv",
+      "order_audit_csv": "case_studies/tennessee_star/output/star_pcalg_order_audit.csv",
+      "pcalg_version": "2.7.12",
+      "r_script": "case_studies/tennessee_star/pcalg_reference.R",
+      "r_version": "4.5.3",
+      "runs_csv": "case_studies/tennessee_star/output/star_pcalg_runs.csv"
+    },
     "fci_plus_k": 3,
     "fci_plus_profile": "paper",
     "fci_profile": "paper"
@@ -328,11 +339,11 @@
       "ci_tests": 1705,
       "edges": 14,
       "elapsed_runs_seconds": [
-        4.554520374999811,
-        4.565437749999546,
-        4.5531002500001705
+        4.567738916999588,
+        4.583603375000166,
+        4.560859625000376
       ],
-      "median_elapsed_seconds": 4.554520374999811,
+      "median_elapsed_seconds": 4.567738916999588,
       "node_names": [
         "K_Class",
         "Gender",
@@ -647,11 +658,11 @@
       "ci_tests": 793,
       "edges": 17,
       "elapsed_runs_seconds": [
-        3.28010012499999,
-        3.7081755830004113,
-        2.8743705830002
+        4.403694957998596,
+        3.4873413749992324,
+        4.1179089170000225
       ],
-      "median_elapsed_seconds": 3.28010012499999,
+      "median_elapsed_seconds": 4.1179089170000225,
       "node_names": [
         "K_Class",
         "Gender",
@@ -962,11 +973,11 @@
       "ci_tests": 960,
       "edges": 10,
       "elapsed_runs_seconds": [
-        2.250466417000098,
-        2.27313679100007,
-        2.31492179199995
+        3.591827624999496,
+        3.401665542000046,
+        3.5765797500007466
       ],
-      "median_elapsed_seconds": 2.27313679100007,
+      "median_elapsed_seconds": 3.5765797500007466,
       "node_names": [
         "K_Class",
         "Gender",
@@ -1222,11 +1233,11 @@
       "ci_tests": 335,
       "edges": 13,
       "elapsed_runs_seconds": [
-        0.4687710419993891,
-        0.44527170899982593,
-        0.41767608300051506
+        0.8669274170006247,
+        0.8051828749994456,
+        0.7974497079994762
       ],
-      "median_elapsed_seconds": 0.44527170899982593,
+      "median_elapsed_seconds": 0.8051828749994456,
       "node_names": [
         "K_Class",
         "Gender",
@@ -1482,11 +1493,11 @@
       "ci_tests": 291,
       "edges": 10,
       "elapsed_runs_seconds": [
-        0.2928090000004886,
-        0.2795028749997073,
-        0.2745746249993317
+        0.7803254580012435,
+        0.7542699580008048,
+        0.6797919999989972
       ],
-      "median_elapsed_seconds": 0.2795028749997073,
+      "median_elapsed_seconds": 0.7542699580008048,
       "node_names": [
         "K_Class",
         "Gender",
@@ -1721,11 +1732,11 @@
       "ci_tests": 185,
       "edges": 10,
       "elapsed_runs_seconds": [
-        0.2271382500002801,
-        0.26033708399972966,
-        0.254823999999644
+        0.3310836250002467,
+        0.3161142919998383,
+        0.33033154099939566
       ],
-      "median_elapsed_seconds": 0.254823999999644,
+      "median_elapsed_seconds": 0.33033154099939566,
       "node_names": [
         "K_Class",
         "Gender",
@@ -1737,6 +1748,674 @@
         "Grade3_Achievement"
       ],
       "nodes": 8,
+      "pag_edges": [
+        {
+          "bootstrap_frequency": null,
+          "edge": "K_Class <-> Teacher_Experience",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "K_Class",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "K_Class <-> Grade3_Achievement",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "K_Class",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity o-> Free_Lunch",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "Free_Lunch"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity --> School_Context",
+          "endpoint_x": "TAIL",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "School_Context"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity o-> Teacher_Experience",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity o-> Grade3_Achievement",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch --> School_Context",
+          "endpoint_x": "TAIL",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "School_Context"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch <-> Teacher_Experience",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch <-> Grade3_Achievement",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "School_Context <-> Teacher_Experience",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "School_Context",
+          "y": "Teacher_Experience"
+        }
+      ],
+      "panel": "focused_treatment",
+      "samples": 2976,
+      "temporal_flags": []
+    },
+    {
+      "algorithm": "pcalg_fci_plus",
+      "assumption_notes": [
+        "Independent reference implementation from CRAN pcalg; external package output is not treated as ground truth.",
+        "The R runner supplies the same compact-table G-square decision rule as the Python implementation.",
+        "pcalg::fciPlus does not expose the local implementation's explicit k sparsity-bound parameter."
+      ],
+      "bootstrap_adjacencies": [],
+      "ci_tests": 1191,
+      "edges": 13,
+      "elapsed_runs_seconds": [
+        10.394,
+        10.45,
+        10.217
+      ],
+      "implementation": {
+        "ci_test": "Python-equivalent G-square",
+        "language": "R",
+        "package": "pcalg",
+        "package_version": "2.7.12",
+        "r_version": "4.5.3",
+        "selection_bias": true,
+        "warning_count": 0,
+        "warnings": ""
+      },
+      "median_elapsed_seconds": 10.394,
+      "node_names": [
+        "K_Class",
+        "Gender",
+        "Ethnicity",
+        "Free_Lunch",
+        "School_Context",
+        "Entry_Age",
+        "Teacher_Experience",
+        "K_Achievement",
+        "Grade3_Observed"
+      ],
+      "nodes": 9,
+      "order_audit": {
+        "exact_pag_match_rate": 0.777777777777778,
+        "mean_skeleton_jaccard": 1.0,
+        "orderings_checked": 9,
+        "rows": [
+          {
+            "ci_tests": 1191,
+            "edges": 13,
+            "elapsed_seconds": 10.394,
+            "exact_pag_match": true,
+            "first_variable": "K_Class",
+            "ordering": "cyclic_shift_0",
+            "skeleton_jaccard": 1.0
+          },
+          {
+            "ci_tests": 1158,
+            "edges": 13,
+            "elapsed_seconds": 10.09,
+            "exact_pag_match": true,
+            "first_variable": "Gender",
+            "ordering": "cyclic_shift_1",
+            "skeleton_jaccard": 1.0
+          },
+          {
+            "ci_tests": 1182,
+            "edges": 13,
+            "elapsed_seconds": 10.172,
+            "exact_pag_match": true,
+            "first_variable": "Ethnicity",
+            "ordering": "cyclic_shift_2",
+            "skeleton_jaccard": 1.0
+          },
+          {
+            "ci_tests": 1223,
+            "edges": 13,
+            "elapsed_seconds": 11.143,
+            "exact_pag_match": false,
+            "first_variable": "Free_Lunch",
+            "ordering": "cyclic_shift_3",
+            "skeleton_jaccard": 1.0
+          },
+          {
+            "ci_tests": 1232,
+            "edges": 13,
+            "elapsed_seconds": 10.782,
+            "exact_pag_match": true,
+            "first_variable": "School_Context",
+            "ordering": "cyclic_shift_4",
+            "skeleton_jaccard": 1.0
+          },
+          {
+            "ci_tests": 1171,
+            "edges": 13,
+            "elapsed_seconds": 10.096,
+            "exact_pag_match": true,
+            "first_variable": "Entry_Age",
+            "ordering": "cyclic_shift_5",
+            "skeleton_jaccard": 1.0
+          },
+          {
+            "ci_tests": 1204,
+            "edges": 13,
+            "elapsed_seconds": 10.41,
+            "exact_pag_match": true,
+            "first_variable": "Teacher_Experience",
+            "ordering": "cyclic_shift_6",
+            "skeleton_jaccard": 1.0
+          },
+          {
+            "ci_tests": 1179,
+            "edges": 13,
+            "elapsed_seconds": 10.115,
+            "exact_pag_match": false,
+            "first_variable": "K_Achievement",
+            "ordering": "cyclic_shift_7",
+            "skeleton_jaccard": 1.0
+          },
+          {
+            "ci_tests": 1188,
+            "edges": 13,
+            "elapsed_seconds": 10.223,
+            "exact_pag_match": true,
+            "first_variable": "Grade3_Observed",
+            "ordering": "cyclic_shift_8",
+            "skeleton_jaccard": 1.0
+          }
+        ]
+      },
+      "pag_edges": [
+        {
+          "bootstrap_frequency": null,
+          "edge": "K_Class o-> Teacher_Experience",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "K_Class",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity o-> Free_Lunch",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "Free_Lunch"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity o-> School_Context",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "School_Context"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity o-> Teacher_Experience",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch o-o School_Context",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "CIRCLE",
+          "x": "Free_Lunch",
+          "y": "School_Context"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch <-> Teacher_Experience",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch <-> K_Achievement",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "K_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch <-> Grade3_Observed",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "Grade3_Observed"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "School_Context <-> Teacher_Experience",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "School_Context",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "School_Context <-> K_Achievement",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "School_Context",
+          "y": "K_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "School_Context <-> Grade3_Observed",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "School_Context",
+          "y": "Grade3_Observed"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Entry_Age o-> K_Achievement",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Entry_Age",
+          "y": "K_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "K_Achievement --> Grade3_Observed",
+          "endpoint_x": "TAIL",
+          "endpoint_y": "ARROW",
+          "x": "K_Achievement",
+          "y": "Grade3_Observed"
+        }
+      ],
+      "panel": "attrition",
+      "samples": 5744,
+      "temporal_flags": []
+    },
+    {
+      "algorithm": "pcalg_fci_plus",
+      "assumption_notes": [
+        "Independent reference implementation from CRAN pcalg; external package output is not treated as ground truth.",
+        "The R runner supplies the same compact-table G-square decision rule as the Python implementation.",
+        "pcalg::fciPlus does not expose the local implementation's explicit k sparsity-bound parameter."
+      ],
+      "bootstrap_adjacencies": [],
+      "ci_tests": 475,
+      "edges": 12,
+      "elapsed_runs_seconds": [
+        1.69800000000001,
+        1.64100000000001,
+        1.64999999999999
+      ],
+      "implementation": {
+        "ci_test": "Python-equivalent G-square",
+        "language": "R",
+        "package": "pcalg",
+        "package_version": "2.7.12",
+        "r_version": "4.5.3",
+        "selection_bias": true,
+        "warning_count": 0,
+        "warnings": ""
+      },
+      "median_elapsed_seconds": 1.64999999999999,
+      "node_names": [
+        "K_Class",
+        "Gender",
+        "Ethnicity",
+        "Free_Lunch",
+        "School_Context",
+        "Entry_Age",
+        "Teacher_Experience",
+        "K_Achievement",
+        "Grade3_Achievement"
+      ],
+      "nodes": 9,
+      "order_audit": {
+        "exact_pag_match_rate": 0.666666666666667,
+        "mean_skeleton_jaccard": 1.0,
+        "orderings_checked": 9,
+        "rows": [
+          {
+            "ci_tests": 475,
+            "edges": 12,
+            "elapsed_seconds": 1.69800000000001,
+            "exact_pag_match": true,
+            "first_variable": "K_Class",
+            "ordering": "cyclic_shift_0",
+            "skeleton_jaccard": 1.0
+          },
+          {
+            "ci_tests": 475,
+            "edges": 12,
+            "elapsed_seconds": 1.685,
+            "exact_pag_match": true,
+            "first_variable": "Gender",
+            "ordering": "cyclic_shift_1",
+            "skeleton_jaccard": 1.0
+          },
+          {
+            "ci_tests": 475,
+            "edges": 12,
+            "elapsed_seconds": 1.632,
+            "exact_pag_match": true,
+            "first_variable": "Ethnicity",
+            "ordering": "cyclic_shift_2",
+            "skeleton_jaccard": 1.0
+          },
+          {
+            "ci_tests": 475,
+            "edges": 12,
+            "elapsed_seconds": 1.69600000000001,
+            "exact_pag_match": false,
+            "first_variable": "Free_Lunch",
+            "ordering": "cyclic_shift_3",
+            "skeleton_jaccard": 1.0
+          },
+          {
+            "ci_tests": 468,
+            "edges": 12,
+            "elapsed_seconds": 1.61399999999999,
+            "exact_pag_match": false,
+            "first_variable": "School_Context",
+            "ordering": "cyclic_shift_4",
+            "skeleton_jaccard": 1.0
+          },
+          {
+            "ci_tests": 463,
+            "edges": 12,
+            "elapsed_seconds": 1.629,
+            "exact_pag_match": false,
+            "first_variable": "Entry_Age",
+            "ordering": "cyclic_shift_5",
+            "skeleton_jaccard": 1.0
+          },
+          {
+            "ci_tests": 476,
+            "edges": 12,
+            "elapsed_seconds": 1.636,
+            "exact_pag_match": true,
+            "first_variable": "Teacher_Experience",
+            "ordering": "cyclic_shift_6",
+            "skeleton_jaccard": 1.0
+          },
+          {
+            "ci_tests": 459,
+            "edges": 12,
+            "elapsed_seconds": 1.66299999999998,
+            "exact_pag_match": true,
+            "first_variable": "K_Achievement",
+            "ordering": "cyclic_shift_7",
+            "skeleton_jaccard": 1.0
+          },
+          {
+            "ci_tests": 470,
+            "edges": 12,
+            "elapsed_seconds": 1.661,
+            "exact_pag_match": true,
+            "first_variable": "Grade3_Achievement",
+            "ordering": "cyclic_shift_8",
+            "skeleton_jaccard": 1.0
+          }
+        ]
+      },
+      "pag_edges": [
+        {
+          "bootstrap_frequency": null,
+          "edge": "K_Class o-> Teacher_Experience",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "K_Class",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity <-> Free_Lunch",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "Free_Lunch"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity <-- School_Context",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "TAIL",
+          "x": "Ethnicity",
+          "y": "School_Context"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity <-> Teacher_Experience",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Ethnicity --> Grade3_Achievement",
+          "endpoint_x": "TAIL",
+          "endpoint_y": "ARROW",
+          "x": "Ethnicity",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch <-> School_Context",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "School_Context"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch <-> Teacher_Experience",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Free_Lunch <-> Grade3_Achievement",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "Free_Lunch",
+          "y": "Grade3_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "School_Context <-> Teacher_Experience",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "School_Context",
+          "y": "Teacher_Experience"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "School_Context <-> K_Achievement",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "ARROW",
+          "x": "School_Context",
+          "y": "K_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "Entry_Age o-> K_Achievement",
+          "endpoint_x": "CIRCLE",
+          "endpoint_y": "ARROW",
+          "x": "Entry_Age",
+          "y": "K_Achievement"
+        },
+        {
+          "bootstrap_frequency": null,
+          "edge": "K_Achievement <-- Grade3_Achievement",
+          "endpoint_x": "ARROW",
+          "endpoint_y": "TAIL",
+          "x": "K_Achievement",
+          "y": "Grade3_Achievement"
+        }
+      ],
+      "panel": "longitudinal",
+      "samples": 2787,
+      "temporal_flags": [
+        "Grade3_Achievement --> K_Achievement"
+      ]
+    },
+    {
+      "algorithm": "pcalg_fci_plus",
+      "assumption_notes": [
+        "Independent reference implementation from CRAN pcalg; external package output is not treated as ground truth.",
+        "The R runner supplies the same compact-table G-square decision rule as the Python implementation.",
+        "pcalg::fciPlus does not expose the local implementation's explicit k sparsity-bound parameter."
+      ],
+      "bootstrap_adjacencies": [],
+      "ci_tests": 256,
+      "edges": 10,
+      "elapsed_runs_seconds": [
+        0.884000000000015,
+        0.87700000000001,
+        0.917000000000002
+      ],
+      "implementation": {
+        "ci_test": "Python-equivalent G-square",
+        "language": "R",
+        "package": "pcalg",
+        "package_version": "2.7.12",
+        "r_version": "4.5.3",
+        "selection_bias": true,
+        "warning_count": 0,
+        "warnings": ""
+      },
+      "median_elapsed_seconds": 0.884000000000015,
+      "node_names": [
+        "K_Class",
+        "Gender",
+        "Ethnicity",
+        "Free_Lunch",
+        "School_Context",
+        "Entry_Age",
+        "Teacher_Experience",
+        "Grade3_Achievement"
+      ],
+      "nodes": 8,
+      "order_audit": {
+        "exact_pag_match_rate": 0.75,
+        "mean_skeleton_jaccard": 1.0,
+        "orderings_checked": 8,
+        "rows": [
+          {
+            "ci_tests": 256,
+            "edges": 10,
+            "elapsed_seconds": 0.884000000000015,
+            "exact_pag_match": true,
+            "first_variable": "K_Class",
+            "ordering": "cyclic_shift_0",
+            "skeleton_jaccard": 1.0
+          },
+          {
+            "ci_tests": 253,
+            "edges": 10,
+            "elapsed_seconds": 0.86099999999999,
+            "exact_pag_match": true,
+            "first_variable": "Gender",
+            "ordering": "cyclic_shift_1",
+            "skeleton_jaccard": 1.0
+          },
+          {
+            "ci_tests": 253,
+            "edges": 10,
+            "elapsed_seconds": 0.850999999999999,
+            "exact_pag_match": true,
+            "first_variable": "Ethnicity",
+            "ordering": "cyclic_shift_2",
+            "skeleton_jaccard": 1.0
+          },
+          {
+            "ci_tests": 258,
+            "edges": 10,
+            "elapsed_seconds": 0.887,
+            "exact_pag_match": false,
+            "first_variable": "Free_Lunch",
+            "ordering": "cyclic_shift_3",
+            "skeleton_jaccard": 1.0
+          },
+          {
+            "ci_tests": 256,
+            "edges": 10,
+            "elapsed_seconds": 0.913999999999987,
+            "exact_pag_match": false,
+            "first_variable": "School_Context",
+            "ordering": "cyclic_shift_4",
+            "skeleton_jaccard": 1.0
+          },
+          {
+            "ci_tests": 261,
+            "edges": 10,
+            "elapsed_seconds": 0.895999999999987,
+            "exact_pag_match": true,
+            "first_variable": "Entry_Age",
+            "ordering": "cyclic_shift_5",
+            "skeleton_jaccard": 1.0
+          },
+          {
+            "ci_tests": 261,
+            "edges": 10,
+            "elapsed_seconds": 0.881,
+            "exact_pag_match": true,
+            "first_variable": "Teacher_Experience",
+            "ordering": "cyclic_shift_6",
+            "skeleton_jaccard": 1.0
+          },
+          {
+            "ci_tests": 260,
+            "edges": 10,
+            "elapsed_seconds": 0.878999999999991,
+            "exact_pag_match": true,
+            "first_variable": "Grade3_Achievement",
+            "ordering": "cyclic_shift_7",
+            "skeleton_jaccard": 1.0
+          }
+        ]
+      },
       "pag_edges": [
         {
           "bootstrap_frequency": null,
@@ -1904,5 +2583,118 @@
     "student_file": "/Users/yq225/FCI/case_studies/tennessee_star/data/raw/STAR_Students.tab.gz",
     "title": "Tennessee Student/Teacher Achievement Ratio (STAR)",
     "user_guide": "/Users/yq225/FCI/case_studies/tennessee_star/data/raw/starUsersGuide.pdf"
+  },
+  "three_algorithm_comparisons": {
+    "attrition": {
+      "all_three_exact_pag": false,
+      "consensus_skeleton_edges": 13,
+      "pairs": [
+        {
+          "common_edges": 14,
+          "endpoint_match_rate": 0.5,
+          "exact_endpoint_matches": 7,
+          "left": "fci",
+          "right": "fci_plus",
+          "skeleton_jaccard": 0.8235294117647058
+        },
+        {
+          "common_edges": 13,
+          "endpoint_match_rate": 0.6153846153846154,
+          "exact_endpoint_matches": 8,
+          "left": "fci",
+          "right": "pcalg_fci_plus",
+          "skeleton_jaccard": 0.9285714285714286
+        },
+        {
+          "common_edges": 13,
+          "endpoint_match_rate": 0.38461538461538464,
+          "exact_endpoint_matches": 5,
+          "left": "fci_plus",
+          "right": "pcalg_fci_plus",
+          "skeleton_jaccard": 0.7647058823529411
+        }
+      ],
+      "target_edges": {
+        "fci": "K_Achievement <-- Grade3_Observed",
+        "fci_plus": "K_Achievement <-o Grade3_Observed",
+        "pcalg_fci_plus": "K_Achievement --> Grade3_Observed"
+      },
+      "unanimous_endpoint_edges": 5,
+      "union_skeleton_edges": 17
+    },
+    "focused_treatment": {
+      "all_three_exact_pag": true,
+      "consensus_skeleton_edges": 10,
+      "pairs": [
+        {
+          "common_edges": 10,
+          "endpoint_match_rate": 1.0,
+          "exact_endpoint_matches": 10,
+          "left": "fci",
+          "right": "fci_plus",
+          "skeleton_jaccard": 1.0
+        },
+        {
+          "common_edges": 10,
+          "endpoint_match_rate": 1.0,
+          "exact_endpoint_matches": 10,
+          "left": "fci",
+          "right": "pcalg_fci_plus",
+          "skeleton_jaccard": 1.0
+        },
+        {
+          "common_edges": 10,
+          "endpoint_match_rate": 1.0,
+          "exact_endpoint_matches": 10,
+          "left": "fci_plus",
+          "right": "pcalg_fci_plus",
+          "skeleton_jaccard": 1.0
+        }
+      ],
+      "target_edges": {
+        "fci": "K_Class <-> Grade3_Achievement",
+        "fci_plus": "K_Class <-> Grade3_Achievement",
+        "pcalg_fci_plus": "K_Class <-> Grade3_Achievement"
+      },
+      "unanimous_endpoint_edges": 10,
+      "union_skeleton_edges": 10
+    },
+    "longitudinal": {
+      "all_three_exact_pag": false,
+      "consensus_skeleton_edges": 10,
+      "pairs": [
+        {
+          "common_edges": 10,
+          "endpoint_match_rate": 0.5,
+          "exact_endpoint_matches": 5,
+          "left": "fci",
+          "right": "fci_plus",
+          "skeleton_jaccard": 0.7692307692307693
+        },
+        {
+          "common_edges": 10,
+          "endpoint_match_rate": 0.7,
+          "exact_endpoint_matches": 7,
+          "left": "fci",
+          "right": "pcalg_fci_plus",
+          "skeleton_jaccard": 0.8333333333333334
+        },
+        {
+          "common_edges": 12,
+          "endpoint_match_rate": 0.8333333333333334,
+          "exact_endpoint_matches": 10,
+          "left": "fci_plus",
+          "right": "pcalg_fci_plus",
+          "skeleton_jaccard": 0.9230769230769231
+        }
+      ],
+      "target_edges": {
+        "fci": "K_Achievement <-o Grade3_Achievement",
+        "fci_plus": "K_Achievement <-- Grade3_Achievement",
+        "pcalg_fci_plus": "K_Achievement <-- Grade3_Achievement"
+      },
+      "unanimous_endpoint_edges": 5,
+      "union_skeleton_edges": 13
+    }
   }
 }

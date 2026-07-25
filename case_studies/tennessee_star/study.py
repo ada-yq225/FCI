@@ -658,6 +658,8 @@ def build_summary_payload(
     alpha: float,
     sparsity_bound: int,
     bootstraps: int,
+    external_records: list[dict[str, Any]] | None = None,
+    external_metadata: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build the JSON/report data contract for the completed case study."""
 
@@ -703,6 +705,8 @@ def build_summary_payload(
                 "assumption_notes": record.result.assumption_notes(),
             }
         )
+    if external_records:
+        run_rows.extend(external_records)
 
     return {
         "source": {
@@ -719,6 +723,7 @@ def build_summary_payload(
             "fci_plus_profile": "paper",
             "fci_plus_k": sparsity_bound,
             "cluster_bootstraps": bootstraps,
+            "external_reference": external_metadata,
         },
         "cohorts": {
             "raw_rows": study.raw_rows,
@@ -736,5 +741,111 @@ def build_summary_payload(
         "descriptives": descriptives,
         "runs": run_rows,
         "comparisons": comparisons,
+        "three_algorithm_comparisons": _three_algorithm_comparisons(run_rows),
         "sensitivity": sensitivity,
+    }
+
+
+def _three_algorithm_comparisons(
+    run_rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    algorithms = ("fci", "fci_plus", "pcalg_fci_plus")
+    indexed = {(str(run["panel"]), str(run["algorithm"])): run for run in run_rows}
+    output: dict[str, Any] = {}
+    for panel in PANEL_DESCRIPTIONS:
+        if any((panel, algorithm) not in indexed for algorithm in algorithms):
+            continue
+        panel_runs = {
+            algorithm: indexed[(panel, algorithm)] for algorithm in algorithms
+        }
+        skeletons = {
+            algorithm: {
+                _edge_key(str(edge["x"]), str(edge["y"])) for edge in run["pag_edges"]
+            }
+            for algorithm, run in panel_runs.items()
+        }
+        endpoint_shapes = {
+            algorithm: {
+                _edge_key(str(edge["x"]), str(edge["y"])): _canonical_endpoints(edge)
+                for edge in run["pag_edges"]
+            }
+            for algorithm, run in panel_runs.items()
+        }
+        pairs = []
+        for left, right in (
+            ("fci", "fci_plus"),
+            ("fci", "pcalg_fci_plus"),
+            ("fci_plus", "pcalg_fci_plus"),
+        ):
+            union = skeletons[left] | skeletons[right]
+            common = skeletons[left] & skeletons[right]
+            exact_matches = sum(
+                endpoint_shapes[left][edge] == endpoint_shapes[right][edge]
+                for edge in common
+            )
+            pairs.append(
+                {
+                    "left": left,
+                    "right": right,
+                    "skeleton_jaccard": (
+                        1.0 if not union else len(common) / len(union)
+                    ),
+                    "common_edges": len(common),
+                    "exact_endpoint_matches": exact_matches,
+                    "endpoint_match_rate": (
+                        1.0 if not common else exact_matches / len(common)
+                    ),
+                }
+            )
+
+        consensus_skeleton = set.intersection(*skeletons.values())
+        unanimous_endpoint_edges = {
+            edge
+            for edge in consensus_skeleton
+            if len({endpoint_shapes[algorithm][edge] for algorithm in algorithms}) == 1
+        }
+        output[panel] = {
+            "pairs": pairs,
+            "consensus_skeleton_edges": len(consensus_skeleton),
+            "unanimous_endpoint_edges": len(unanimous_endpoint_edges),
+            "union_skeleton_edges": len(set.union(*skeletons.values())),
+            "all_three_exact_pag": all(
+                endpoint_shapes[algorithm] == endpoint_shapes[algorithms[0]]
+                for algorithm in algorithms[1:]
+            ),
+            "target_edges": _target_edge_comparison(panel_runs, panel),
+        }
+    return output
+
+
+def _canonical_endpoints(edge: dict[str, Any]) -> tuple[str, str]:
+    x = str(edge["x"])
+    y = str(edge["y"])
+    endpoint_x = str(edge["endpoint_x"])
+    endpoint_y = str(edge["endpoint_y"])
+    if x <= y:
+        return endpoint_x, endpoint_y
+    return endpoint_y, endpoint_x
+
+
+def _target_edge_comparison(
+    panel_runs: dict[str, dict[str, Any]],
+    panel: str,
+) -> dict[str, str | None]:
+    target = {
+        "attrition": ("K_Achievement", "Grade3_Observed"),
+        "longitudinal": ("K_Achievement", "Grade3_Achievement"),
+        "focused_treatment": ("K_Class", "Grade3_Achievement"),
+    }[panel]
+    target_key = _edge_key(*target)
+    return {
+        algorithm: next(
+            (
+                str(edge["edge"])
+                for edge in run["pag_edges"]
+                if _edge_key(str(edge["x"]), str(edge["y"])) == target_key
+            ),
+            None,
+        )
+        for algorithm, run in panel_runs.items()
     }

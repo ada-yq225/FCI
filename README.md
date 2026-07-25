@@ -352,16 +352,26 @@ Student/Teacher Achievement Ratio randomized class-size experiment:
 - [case-study methodology and reproduction guide](case_studies/tennessee_star/README.md)
 - [standalone visual report](case_studies/tennessee_star/output/star_case_study_report.html)
 - [machine-readable result summary](case_studies/tennessee_star/output/star_case_study_summary.json)
+- [complete FCI+ and Tennessee STAR PDF report](output/pdf/fci_plus_star_report.pdf)
+- [LaTeX report source](reports/fci_plus_star_report.tex)
 
 The application is intentionally outside `src/fci_engine`: STAR-specific data
 coding, cohort selection, school-cluster bootstrap, visualizations, and
 researcher conclusions are not mixed into the reusable algorithm package.
 
-Rebuild every STAR artifact with:
+The visual report compares standard FCI, the self-implemented FCI+, and an
+independently executed CRAN `pcalg::fciPlus` reference. Install R and `pcalg`,
+then rebuild every STAR artifact with:
 
 ```bash
+Rscript case_studies/tennessee_star/pcalg_reference.R
 PYTHONPATH=src python -m case_studies.tennessee_star.run_case_study
 ```
+
+The three implementations agree exactly on the focused treatment-outcome PAG,
+but not on every attrition or longitudinal endpoint. The report therefore
+distinguishes cross-implementation skeleton evidence from less stable causal
+orientation claims.
 
 ## Installation
 

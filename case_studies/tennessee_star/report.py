@@ -16,8 +16,10 @@ ARM_COLORS = {
 }
 ALGORITHM_LABELS = {
     "fci": "Standard FCI",
-    "fci_plus": "FCI+",
+    "fci_plus": "Self-implemented FCI+",
+    "pcalg_fci_plus": "R pcalg::fciPlus",
 }
+ALGORITHM_ORDER = ("fci", "fci_plus", "pcalg_fci_plus")
 PANEL_LABELS = {
     "attrition": "Attrition / observation",
     "longitudinal": "Longitudinal achievement",
@@ -45,12 +47,14 @@ def render_report(payload: dict[str, Any]) -> str:
         metric="kindergarten_score",
         comparison="Regular + aide - Regular",
     )
-    focused_plus = run_index[("focused_treatment", "fci_plus")]
-    focused_edge = _find_edge(
-        focused_plus,
-        "K_Class",
-        "Grade3_Achievement",
-    )
+    focused_edges = {
+        algorithm: _find_edge(
+            run_index[("focused_treatment", algorithm)],
+            "K_Class",
+            "Grade3_Achievement",
+        )
+        for algorithm in ALGORITHM_ORDER
+    }
     attrition_class_edge = _find_edge(
         run_index[("attrition", "fci_plus")],
         "K_Class",
@@ -60,13 +64,18 @@ def render_report(payload: dict[str, Any]) -> str:
         comparison["fci_plus_runtime_ratio"]
         for comparison in payload["comparisons"].values()
     )
+    pcalg_order_match = min(
+        run["order_audit"]["exact_pag_match_rate"]
+        for run in payload["runs"]
+        if run["algorithm"] == "pcalg_fci_plus"
+    )
 
     document = f"""<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tennessee STAR - FCI and FCI+ Case Study</title>
+<title>Tennessee STAR - Three-Algorithm FCI / FCI+ Case Study</title>
 <style>
   :root {{
     color-scheme: light;
@@ -267,7 +276,7 @@ def render_report(payload: dict[str, Any]) -> str:
   .pag-grid {{
     display: grid;
     gap: 18px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     margin-top: 16px;
   }}
   .pag-card {{
@@ -369,18 +378,19 @@ def render_report(payload: dict[str, Any]) -> str:
 <body>
 <header>
   <div class="eyebrow" style="color:#a7f3d0">Applied case study - separate from the algorithm package</div>
-  <h1>Tennessee STAR causal-structure discovery with self-implemented FCI and FCI+</h1>
+  <h1>Tennessee STAR causal discovery: standard FCI, self-implemented FCI+, and R pcalg FCI+</h1>
   <p>
     A reproducible application to the randomized class-size experiment. The report
-    keeps three layers separate: descriptive randomized-arm evidence, data-only PAG
-    discovery, and researcher interpretation of selection, discretization, and
-    temporal plausibility.
+    keeps four layers separate: descriptive randomized-arm evidence, data-only PAG
+    discovery, independent R-package replication, and researcher interpretation
+    of selection, discretization, and temporal plausibility.
   </p>
 </header>
 <nav>
   <a href="#design">Design</a>
   <a href="#descriptive">Descriptive evidence</a>
   <a href="#pag">PAG results</a>
+  <a href="#comparison">Three-way comparison</a>
   <a href="#stability">Stability</a>
   <a href="#performance">Performance</a>
   <a href="#assessment">Self-assessment</a>
@@ -448,7 +458,7 @@ def render_report(payload: dict[str, Any]) -> str:
 
   <section id="pag">
     <div class="eyebrow">Algorithm output</div>
-    <h2>Learned Partial Ancestral Graphs</h2>
+    <h2>Learned Partial Ancestral Graphs from three implementations</h2>
     <p class="section-copy">
       Click any edge to see its endpoint notation. The graphs are data-only:
       no temporal or randomization constraints were supplied. Therefore,
@@ -459,13 +469,34 @@ def render_report(payload: dict[str, Any]) -> str:
     {_render_panel_graphs(run_index, "longitudinal")}
     {_render_panel_graphs(run_index, "focused_treatment")}
     <div class="callout warning">
-      In the focused complete-case panel, both algorithms learned
-      <strong>{_esc(focused_edge or "no class-outcome edge")}</strong>.
+      In the focused complete-case panel, all three algorithms learned the same
+      class-outcome relation:
+      <strong>{_esc(focused_edges["fci"] or "no class-outcome edge")}</strong>.
       Because kindergarten assignment was randomized, this bidirected mark
       should not be read literally as proof of a pre-treatment latent
       confounder. Complete-case selection, school clustering, CI-test
       approximation, and omitted post-randomization variables can produce the
       same observed independence pattern.
+    </div>
+  </section>
+
+  <section id="comparison">
+    <div class="eyebrow">Independent implementation check</div>
+    <h2>Where the three algorithms agree - and where they do not</h2>
+    <p class="section-copy">
+      The R reference is CRAN <code>pcalg::fciPlus</code> 2.7-12, run on the
+      same rows with a custom G-square function matching the Python
+      compact-table statistic. The R API does not expose the explicit
+      <code>k=3</code> bound used by the local paper profile, so this is a
+      differential implementation comparison, not a claim of identical
+      internal search schedules.
+    </p>
+    {_render_three_algorithm_comparison(payload, run_index)}
+    <div class="callout warning">
+      The R FCI+ skeleton is invariant across every cyclic column ordering, but
+      the exact PAG changes on some orderings: its lowest panel-level exact
+      match rate is <strong>{pcalg_order_match:.0%}</strong>. Skeleton agreement
+      is therefore stronger than endpoint-orientation agreement.
     </div>
   </section>
 
@@ -483,20 +514,23 @@ def render_report(payload: dict[str, Any]) -> str:
   </section>
 
   <section id="performance">
-    <div class="eyebrow">Same data, same CI test</div>
-    <h2>FCI versus FCI+ computational work</h2>
+    <div class="eyebrow">Same data and statistical decision rule</div>
+    <h2>Computational work across the three algorithms</h2>
     <p class="section-copy">
-      Each full-data fit used identical panel rows, G-square tests, α, and
-      endpoint rules. Standard FCI used its paper profile; FCI+ used the
-      paper-aligned bounded-degree profile with k =
-      {payload["configuration"]["fci_plus_k"]}.
+      Each full-data fit used identical panel rows, the same compact-table
+      G-square p-values, and α. Standard FCI and the local FCI+ used the Python
+      package; the external result used R pcalg. Runtime across languages is
+      descriptive, while CI-call counts are the more direct work comparison.
     </p>
     {_render_performance(payload, run_index)}
     <div class="callout">
-      Across these small 8-9 node panels, FCI+ used fewer CI tests in every
+      Across these small 8-9 node panels, the local FCI+ used fewer CI tests
+      than standard FCI in every
       comparison and reached as little as <strong>{fastest_ratio:.0%}</strong>
-      of standard FCI's median runtime. This is an empirical application result,
-      not a proof of asymptotic complexity. The polynomial FCI+ guarantee
+      of standard FCI's median runtime. The R package required more CI calls
+      than the local FCI+ on all three primary fits. This is an empirical
+      application result, not a proof of asymptotic complexity. The polynomial
+      FCI+ guarantee
       requires faithfulness and a true maximum MAG degree no larger than the
       supplied k; neither condition can be verified from STAR alone.
     </div>
@@ -509,24 +543,26 @@ def render_report(payload: dict[str, Any]) -> str:
       <div>
         <h3>Supported conclusions</h3>
         <div class="finding"><strong>Small-class achievement advantage is visible descriptively.</strong><p>The randomized-arm summaries show higher kindergarten and grade-3 composite scores for the small-class arm, while the aide arm is close to the regular-class arm.</p></div>
-        <div class="finding"><strong>Grade-3 observation is selective.</strong><p>Both PAG methods connect observation status to socioeconomic/contextual or kindergarten-achievement nodes, while {_esc(attrition_class_edge or "no direct K_Class-Grade3_Observed adjacency")} is retained in the primary attrition fit.</p></div>
+        <div class="finding"><strong>Grade-3 observation is selective.</strong><p>All three PAGs connect observation status to socioeconomic/contextual or kindergarten-achievement nodes, while {_esc(attrition_class_edge or "no direct K_Class-Grade3_Observed adjacency")} is retained in the primary attrition fit.</p></div>
         <div class="finding"><strong>Achievement persistence is stronger than a direct treatment edge in the full longitudinal panel.</strong><p>Kindergarten and grade-3 achievement remain adjacent, whereas class assignment is separated after the early achievement node is included.</p></div>
-        <div class="finding"><strong>FCI+ reduces search work on this application.</strong><p>It achieves the largest savings on the attrition and longitudinal panels, where Possible-D-SEP style search has more work to do.</p></div>
+        <div class="finding"><strong>The focused skeleton and endpoints replicate exactly.</strong><p>Standard FCI, self-implemented FCI+, and R pcalg FCI+ return the same ten-edge PAG, including the bidirected class/grade-3 edge.</p></div>
+        <div class="finding"><strong>The local FCI+ reduces search work.</strong><p>It uses fewer CI calls than both standard FCI and R pcalg FCI+ on every primary STAR panel.</p></div>
       </div>
       <div>
         <h3>Limits and audit failures</h3>
         <div class="finding"><strong>The PAG is not an effect estimate.</strong><p>Neither FCI nor FCI+ estimates the number of score points caused by a smaller class. The arm contrasts come from the experiment's assignment, not from PAG endpoints.</p></div>
-        <div class="finding"><strong>Endpoint direction is not temporally trustworthy without prior knowledge.</strong><p>{_render_temporal_flag_summary(payload)} These flags are reported as failed plausibility checks, not rewritten after the fact.</p></div>
+        <div class="finding"><strong>No implementation wins every plausibility audit.</strong><p>R pcalg gives the temporally sensible kindergarten-achievement to grade-3-observation direction, while the local FCI reverses it and the local FCI+ leaves it partly unresolved. In the longitudinal panel, both FCI+ implementations reverse the achievement chronology. {_render_temporal_flag_summary(payload)}</p></div>
         <div class="finding"><strong>The treatment-outcome edge is specification-sensitive.</strong><p>The sensitivity table shows whether the edge survives changes in α and discretization. A conclusion that appears only at one setting is not treated as robust.</p></div>
         <div class="finding"><strong>Mixed educational data are approximated as discrete.</strong><p>Quantile bins make G-square applicable, but bin boundaries discard information and high-order contingency tables can have sparse expected counts. Students are also clustered within schools and classrooms.</p></div>
       </div>
     </div>
     <div class="callout danger">
-      Final assessment: the application demonstrates that the implementation
-      can discover and audit PAG structure on a real randomized experiment, and
-      that FCI+ materially reduces CI-test work. It does <strong>not</strong>
-      establish a unique causal DAG, prove latent confounding, or replace the
-      experiment's design-based estimate of the class-size effect.
+      Final assessment: the self-implemented FCI+ is the most auditable and
+      computationally economical of the three in this workflow, but it is
+      <strong>not uniformly the most credible PAG</strong>. The strongest
+      causal conclusion remains the randomized small-class contrast. For
+      discovery, conclusions supported by all three skeletons and by temporal
+      knowledge are more credible than any implementation-specific endpoint.
     </div>
   </section>
 
@@ -542,7 +578,8 @@ def render_report(payload: dict[str, Any]) -> str:
           <tr><th>Algorithm references</th><td><a href="https://www.cs.cmu.edu/afs/cs.cmu.edu/project/learn-43/lib/photoz/.g/web/.g/group/group2/g/opera/g/scottd/fullbook.pdf">Spirtes et al. FCI</a>; <a href="https://www.auai.org/uai2013/prints/papers/121.pdf">Claassen et al. FCI+</a></td></tr>
           <tr><th>License</th><td>{_esc(payload["source"]["license"])}</td></tr>
           <tr><th>Student records</th><td>{payload["cohorts"]["raw_rows"]:,} rows × 379 variables</td></tr>
-          <tr><th>Primary configuration</th><td>G-square, α={payload["configuration"]["alpha"]}, FCI paper profile, FCI+ paper profile k={payload["configuration"]["fci_plus_k"]}</td></tr>
+          <tr><th>Primary configuration</th><td>Compact-table G-square, α={payload["configuration"]["alpha"]}; FCI paper profile; local FCI+ paper profile k={payload["configuration"]["fci_plus_k"]}; R pcalg::fciPlus 2.7-12</td></tr>
+          <tr><th>R reference command</th><td><code>Rscript case_studies/tennessee_star/pcalg_reference.R</code></td></tr>
           <tr><th>Command</th><td><code>PYTHONPATH=src python -m case_studies.tennessee_star.run_case_study</code></td></tr>
         </tbody>
       </table>
@@ -555,8 +592,9 @@ def render_report(payload: dict[str, Any]) -> str:
   </section>
 </main>
 <footer>
-  Generated locally from the committed STAR application code and self-implemented
-  <code>fci_engine</code> package. No remote scripts or chart assets.
+  Generated locally from the committed STAR application, self-implemented
+  <code>fci_engine</code>, and CRAN <code>pcalg</code> reference outputs. No
+  remote scripts or chart assets.
 </footer>
 <script>
 document.querySelectorAll(".pag-edge").forEach((edge) => {{
@@ -698,7 +736,7 @@ def _render_panel_graphs(
     panel: str,
 ) -> str:
     cards = []
-    for algorithm in ("fci", "fci_plus"):
+    for algorithm in ALGORITHM_ORDER:
         run = run_index[(panel, algorithm)]
         graph_id = f"{panel}-{algorithm}".replace("_", "-")
         cards.append(
@@ -717,6 +755,85 @@ def _render_panel_graphs(
         '<div style="margin-top:22px">'
         f"<h3>{_esc(PANEL_LABELS[panel])}</h3>"
         '<div class="pag-grid">' + "".join(cards) + "</div></div>"
+    )
+
+
+def _render_three_algorithm_comparison(
+    payload: dict[str, Any],
+    run_index: dict[tuple[str, str], dict[str, Any]],
+) -> str:
+    result_rows = []
+    for panel in ("attrition", "longitudinal", "focused_treatment"):
+        for algorithm in ALGORITHM_ORDER:
+            run = run_index[(panel, algorithm)]
+            order_value = "-"
+            if algorithm == "pcalg_fci_plus":
+                order_value = (
+                    f"{run['order_audit']['exact_pag_match_rate']:.0%} exact; "
+                    f"{run['order_audit']['mean_skeleton_jaccard']:.0%} skeleton"
+                )
+            result_rows.append(
+                "<tr>"
+                f"<td>{_esc(PANEL_LABELS[panel])}</td>"
+                f"<td>{_esc(ALGORITHM_LABELS[algorithm])}</td>"
+                f"<td>{run['edges']}</td>"
+                f"<td>{run['ci_tests']:,}</td>"
+                f"<td>{run['median_elapsed_seconds']:.3f}s</td>"
+                f"<td>{len(run['temporal_flags'])}</td>"
+                f"<td>{_esc(order_value)}</td>"
+                "</tr>"
+            )
+
+    agreement_rows = []
+    for panel, comparison in payload["three_algorithm_comparisons"].items():
+        for pair in comparison["pairs"]:
+            agreement_rows.append(
+                "<tr>"
+                f"<td>{_esc(PANEL_LABELS[panel])}</td>"
+                f"<td>{_esc(ALGORITHM_LABELS[pair['left']])} vs "
+                f"{_esc(ALGORITHM_LABELS[pair['right']])}</td>"
+                f"<td>{pair['skeleton_jaccard']:.3f}</td>"
+                f"<td>{pair['exact_endpoint_matches']} / "
+                f"{pair['common_edges']} "
+                f"({pair['endpoint_match_rate']:.0%})</td>"
+                "</tr>"
+            )
+
+    target_rows = []
+    for panel, comparison in payload["three_algorithm_comparisons"].items():
+        target_edges = comparison["target_edges"]
+        target_rows.append(
+            "<tr>"
+            f"<td>{_esc(PANEL_LABELS[panel])}</td>"
+            f"<td>{_esc(target_edges['fci'] or 'Absent')}</td>"
+            f"<td>{_esc(target_edges['fci_plus'] or 'Absent')}</td>"
+            f"<td>{_esc(target_edges['pcalg_fci_plus'] or 'Absent')}</td>"
+            f"<td>{comparison['consensus_skeleton_edges']} / "
+            f"{comparison['union_skeleton_edges']}</td>"
+            f"<td>{comparison['unanimous_endpoint_edges']}</td>"
+            "</tr>"
+        )
+
+    return (
+        '<h3 style="margin-top:18px">Primary fit metrics</h3>'
+        '<div class="table-wrap"><table><thead><tr><th>Panel</th>'
+        "<th>Algorithm</th><th>Edges</th><th>CI calls</th><th>Median time</th>"
+        "<th>Temporal reversals</th><th>R order audit</th></tr></thead><tbody>"
+        + "".join(result_rows)
+        + "</tbody></table></div>"
+        '<h3 style="margin-top:22px">Pairwise agreement</h3>'
+        '<div class="table-wrap"><table><thead><tr><th>Panel</th>'
+        "<th>Pair</th><th>Skeleton Jaccard</th>"
+        "<th>Exact endpoints on shared edges</th></tr></thead><tbody>"
+        + "".join(agreement_rows)
+        + "</tbody></table></div>"
+        '<h3 style="margin-top:22px">Substantive target edges</h3>'
+        '<div class="table-wrap"><table><thead><tr><th>Panel</th>'
+        "<th>Standard FCI</th><th>Self FCI+</th><th>R pcalg FCI+</th>"
+        "<th>Consensus / union skeleton</th>"
+        "<th>Unanimous endpoint edges</th></tr></thead><tbody>"
+        + "".join(target_rows)
+        + "</tbody></table></div>"
     )
 
 
@@ -788,7 +905,7 @@ def _node_positions(nodes: list[str]) -> dict[str, tuple[float, float]]:
     tier_nodes: dict[int, list[str]] = {}
     for node in nodes:
         tier_nodes.setdefault(TEMPORAL_TIERS.get(node, 1), []).append(node)
-    x_positions = {0: 90.0, 1: 300.0, 2: 505.0, 3: 650.0}
+    x_positions = {0: 85.0, 1: 275.0, 2: 465.0, 3: 645.0}
     positions = {}
     for tier, values in tier_nodes.items():
         ordered = sorted(values)
@@ -910,7 +1027,8 @@ def _render_stability_table(
                 )
     return (
         f'<div class="caption">{bootstraps} school-cluster bootstrap fits per '
-        "panel and algorithm.</div>"
+        "panel for the two local algorithms. The R reference is audited across "
+        "cyclic variable orders in the comparison section.</div>"
         '<div class="table-wrap"><table><thead><tr><th>Panel</th>'
         "<th>Target pair</th><th>Algorithm</th><th>Full-data PAG</th>"
         "<th>Adjacency frequency</th></tr></thead><tbody>"
@@ -949,6 +1067,7 @@ def _render_performance(
     for panel in ("attrition", "longitudinal", "focused_treatment"):
         fci_run = run_index[(panel, "fci")]
         plus_run = run_index[(panel, "fci_plus")]
+        pcalg_run = run_index[(panel, "pcalg_fci_plus")]
         comparison = payload["comparisons"][panel]
         runtime_ratio = comparison["fci_plus_runtime_ratio"]
         test_ratio = comparison["fci_plus_ci_test_ratio"]
@@ -967,7 +1086,10 @@ def _render_performance(
             f"{plus_run['median_elapsed_seconds']:.3f}s vs "
             f"{fci_run['median_elapsed_seconds']:.3f}s; "
             f"{plus_run['ci_tests']:,} vs {fci_run['ci_tests']:,} CI tests. "
-            f"Skeleton Jaccard {comparison['skeleton_jaccard']:.2f}.</div>"
+            f"R pcalg FCI+: {pcalg_run['median_elapsed_seconds']:.3f}s and "
+            f"{pcalg_run['ci_tests']:,} CI calls. "
+            f"Local FCI/FCI+ skeleton Jaccard "
+            f"{comparison['skeleton_jaccard']:.2f}.</div>"
             "</div>"
         )
     return '<div class="performance-grid">' + "".join(cards) + "</div>"
