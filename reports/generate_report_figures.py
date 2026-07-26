@@ -510,7 +510,21 @@ def plot_software_benchmark_comparison() -> None:
         "benchmark_quality",
         ["#F4F6FA", "#B8C9EA", "#183153"],
     )
-    quality_axis.imshow(quality, cmap=cmap, vmin=0.5, vmax=1.0, aspect="auto")
+    quality_axis.set_xlim(-0.5, quality.shape[1] - 0.5)
+    quality_axis.set_ylim(quality.shape[0] - 0.5, -0.5)
+    for row_index in range(quality.shape[0]):
+        for column_index in range(quality.shape[1]):
+            value = quality[row_index, column_index]
+            normalized = float(np.clip((value - 0.5) / 0.5, 0.0, 1.0))
+            quality_axis.add_patch(
+                Rectangle(
+                    (column_index - 0.5, row_index - 0.5),
+                    1,
+                    1,
+                    facecolor=cmap(normalized),
+                    edgecolor="none",
+                )
+            )
     quality_axis.set_xticks(range(len(quality_columns)))
     quality_axis.set_xticklabels([label for _, label in quality_columns])
     quality_axis.set_yticks(range(len(labels)))
