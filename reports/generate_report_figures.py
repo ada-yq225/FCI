@@ -1308,8 +1308,12 @@ def plot_bootstrap_stability(payload: dict[str, Any]) -> None:
         padding=3,
         fontsize=8,
     )
-    axis.legend(frameon=False, loc="lower right")
-    figure.tight_layout()
+    axis.legend(
+        frameon=False,
+        loc="center left",
+        bbox_to_anchor=(1.01, 0.5),
+    )
+    figure.tight_layout(rect=(0, 0, 0.83, 1))
     _save(figure, "star_bootstrap_stability.pdf")
 
 
@@ -1508,10 +1512,14 @@ def plot_figure4_validation() -> None:
 
     figure, axes = plt.subplots(1, 2, figsize=(10.5, 4.2))
     _draw_pag(axes[0], nodes, oracle_edges, positions)
-    axes[0].set_title("Published Figure 4(b) oracle PAG", fontweight="bold")
+    axes[0].set_title(
+        "Repository-derived oracle PAG\nfor published Figure 4(b) MAG",
+        fontweight="bold",
+    )
     _draw_pag(axes[1], nodes, learned_edges, positions)
     axes[1].set_title(
-        "Recovered FCI+ PAG\n63 CI queries; exact endpoint match",
+        f"Recovered FCI+ PAG\n{result.ci_test_count} CI queries; "
+        "exact endpoint match",
         fontweight="bold",
     )
     figure.suptitle(

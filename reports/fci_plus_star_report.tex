@@ -202,15 +202,18 @@ These results describe the tested cases and policies; they do not establish
 general statistical dominance.
 
 The separate Tennessee STAR application analyses 6,325 kindergarten-cohort
-students from the official 11,601-record dataset.  Its strongest causal
-evidence is the randomized-arm contrast: small-class assignment is associated
-with 13.9 points higher observed kindergarten achievement than regular-class
-assignment (school-cluster 95\% interval 5.2 to 22.1), whereas the
-regular-with-aide contrast is near zero.  Later grade-3 contrasts are
-complete-case results and weaker evidence.  Across discovery methods,
-skeleton agreement is more defensible than several order-, threshold-, or
-chronology-sensitive endpoint marks; no PAG in this report identifies a
-unique DAG or estimates a treatment effect.
+students from the official 11,601-record dataset.  Its strongest application
+evidence is the design-supported observed-arm contrast: small-class assignment
+has 13.90 points higher observed kindergarten achievement than regular-class
+assignment (school-cluster 95\% interval 5.21 to 22.07), whereas the
+regular-with-aide contrast is near zero.  Because this outcome subset is
+post-assignment selected and the original randomization blocks and compliance
+histories were not reconstructed, the contrast is consistent with a
+beneficial early effect rather than an identified selected-subset causal
+effect.  Later grade-3 contrasts are complete-case results and weaker
+evidence.  Across discovery methods, skeleton agreement is more defensible
+than several order-, threshold-, or chronology-sensitive endpoint marks; no
+PAG in this report identifies a unique DAG or estimates a treatment effect.
 
 \chapter*{Executive Summary}
 \addcontentsline{toc}{chapter}{Executive Summary}
@@ -266,10 +269,10 @@ endpoints in only 67--78\% of orders.
 \textbf{Robust application outcome.} The paper implementations remain
 unchanged for fidelity testing. A separate practical profile is used for
 empirical interpretation. Across all 26 cyclic column shifts it reproduces
-each panel's complete PAG exactly, retains the main target adjacencies in every
-order, and replaces chronology-conflicting definite arrows with unresolved
-circle endpoints. This improves stability without claiming new causal
-identification.
+exact graph equality for every tested cyclic order within each panel, retains
+the main target adjacencies in every order, and replaces
+chronology-conflicting definite arrows with unresolved circle endpoints. This
+improves stability without claiming new causal identification.
 
 \textbf{STAR outcome.} The official data were converted into three independent
 application panels:
@@ -283,23 +286,26 @@ application panels:
         kindergarten achievement from the discovery node set.
 \end{enumerate}
 
-The strongest result does not come from a PAG endpoint. It comes from the
-randomized-arm comparison: small classes have higher observed kindergarten
-scores than regular classes, whereas adding an aide to a regular class does
-not show a comparable advantage. The later grade-3 contrast is also positive
-among observed students, but attrition prevents the same strength of causal
-interpretation.
+The strongest result does not come from a PAG endpoint. It is a
+design-supported observed-arm contrast: small classes have higher observed
+kindergarten scores than regular classes, whereas adding an aide to a regular
+class does not show a comparable advantage. The positive interval is
+consistent with a beneficial early effect, but post-assignment outcome
+selection prevents interpreting it as an identified effect for the selected
+subset. The later grade-3 contrast is also positive among observed students
+and requires still stronger missing-outcome qualifications.
 
 \textbf{Causal interpretation.}
 
 \begin{itemize}[leftmargin=2em]
   \item The randomized design, together with the positive school-cluster
-        interval, supports a beneficial causal effect of small classes on
-        early achievement for students with observed kindergarten outcomes.
+        interval, provides a design-supported observed-arm contrast consistent
+        with a beneficial early effect. It does not by itself identify a
+        causal effect within the post-assignment observed-outcome subset.
   \item There is no corresponding evidence that a regular class with an aide
         improves achievement relative to a regular class.
-  \item Kindergarten achievement is the most stable structural correlate of
-        grade-3 achievement and grade-3 observation.
+  \item Kindergarten achievement is one of the most consistently retained
+        structural correlates of grade-3 achievement and grade-3 observation.
   \item The focused bidirected treatment-outcome edge is replicated exactly by
         all three algorithms, but is threshold-sensitive and cannot override
         knowledge of randomization.
@@ -1652,7 +1658,7 @@ validation and the Tennessee STAR application.  Exact graphical oracles test
 paper-aligned logic under known independence information; finite-sample
 benchmarks test empirical behavior under known simulated truth; established
 software supplies differential evidence; and the STAR experiment supplies a
-separate design-based basis for its strongest causal conclusion.
+separate design-based basis for its strongest application inference.
 
 \chapter{Algorithm Validation}
 
@@ -1707,6 +1713,16 @@ Standard FCI & 102 & reference & Exact \\
 \end{tabular}
 \end{table}
 
+These executed values are frozen in
+\path{reports/data/oracle_validation_summary.csv}.  The artifact records the
+target PAG hash,
+\hash{fa03c98d7851a4ba6327dcd136bc2}
+     {076450451ff30cf312eeee6dbb2b71df7ea},
+the exact-oracle profile, query counts, separator provenance, endpoint
+metrics, and execution status.  It is generated programmatically from the
+repository's MAG fixture; ``completed'' records successful execution, while
+\code{exact\_target\_recovered} separately records the scientific outcome.
+
 \section{Finite-sample integration test}
 
 Exact CI answers are necessary for testing the algorithm, but real data
@@ -1731,6 +1747,12 @@ threshold. \\
 \bottomrule
 \end{tabularx}
 \end{table}
+
+The same frozen artifact records these seeded runs with Fisher--Z,
+\(\alpha=0.001\), seed 1, conditioning and sparsity bounds of 3, and an
+unbounded path length.  It includes all recovery metrics and logical CI-query
+counts: 102 and 52 at \(N=5{,}000\), and 102 and 63 at \(N=50{,}000\), for FCI
+and \FCIplus{} respectively.
 
 \subsection{Multi-seed robustness regression}
 
@@ -2431,10 +2453,10 @@ Panel & Profile & Exact PAG & Worst skeleton & Temporal reversals \\
 \end{table}
 
 \keyresult{The robust profile improves the measured reliability of the STAR
-output: every tested column order returns the same complete PAG, every target
-adjacency survives, and no fully directed edge runs backward in measurement
-time. The price is deliberate under-orientation and additional CI work.
-Reliability has improved; identifiability has not.}
+output: it returns the same full PAG object for every tested cyclic order,
+every target adjacency survives, and no fully directed edge runs backward in
+measurement time. The price is deliberate under-orientation and additional
+CI work. Reliability has improved; identifiability has not.}
 
 \section{Stability and sensitivity}
 
@@ -2458,8 +2480,10 @@ or four quantile bins are used.}
 The sensitivity result is decisive for interpretation. The focused
 treatment-outcome adjacency is robust to the tested bin count but not to the
 CI threshold. At \(\alpha=0.01\), none of the three local profiles retains it;
-at \(\alpha=0.05\), the paper profiles retain a bidirected mark while the
-robust profile retains the adjacency with two unresolved circles.
+at \(\alpha=0.05\), the paper profiles retain a bidirected mark.  The robust
+endpoint is
+\(K\_Class\leftarrow\!\circ Grade3\_Achievement\) with three bins and
+\(K\_Class\circ\!\!-\!\!\circ Grade3\_Achievement\) with four bins.
 
 The stronger threshold requires more evidence against conditional
 independence before an edge is kept. Its removal therefore indicates that the
@@ -2632,19 +2656,21 @@ different questions even when they concern the same variables.
 
 \section{What can be concluded}
 
-\subsection{Small classes improve early observed achievement}
+\subsection{Design-supported early observed-arm contrast}
 
 STAR's random assignment is the primary causal identification mechanism.
 Within the kindergarten cohort and among students with observed score
-components, the small-class arm is 13.9 points above the regular arm, with a
-school-cluster interval that excludes zero. This supports a beneficial causal
-effect of smaller classes on early achievement, subject to outcome
-missingness, assignment compliance, and the use of the observed composite
-score.
+components, the small-class arm is 13.90 points above the regular arm, with a
+school-cluster 95\% interval of 5.21 to 22.07. This design-supported
+observed-arm contrast is consistent with a beneficial early effect. It is not
+an identified causal effect in the post-assignment observed-outcome subset
+without additional assumptions about missing outcomes, compliance, and the
+original randomization blocks.
 
 The PAG is consistent with an assignment/achievement connection in the
-\FCIplus{} attrition panel, but the causal conclusion does not depend on that
-endpoint. It depends on the experiment.
+\FCIplus{} attrition panel, but this bounded interpretation does not depend on
+that endpoint. It depends on the experimental design and the stated selection
+qualification.
 
 \subsection{Adding an aide does not show the same advantage}
 
@@ -2653,7 +2679,7 @@ and both intervals include zero. In these observed data there is no evidence
 that adding an aide to a regular-size class reproduces the achievement
 advantage of reducing class size.
 
-\subsection{Early achievement strongly predicts later structure}
+\subsection{Early achievement is consistently retained at the skeleton level}
 
 Kindergarten and grade-3 achievement remain adjacent in the full longitudinal
 fits of all three algorithms and in 100\% of the self-implementation school
@@ -2668,7 +2694,7 @@ additional counterfactual assumptions. Moreover, the direction of the
 longitudinal achievement edge fails the chronological audit for both
 \FCIplus{} implementations.
 
-\subsection{Attrition is selective but not clearly caused by class arm}
+\subsection{Observation has stable structural links beyond class arm}
 
 The full-data attrition PAGs do not retain a direct class-arm/observation
 adjacency, and its bootstrap frequency is low. Observation is more stably
@@ -2706,12 +2732,15 @@ effect of class arm on grade-3 observation.
         effect.
 \end{enumerate}
 
-\keyresult{The strongest causal conclusion is design-based: smaller
-kindergarten classes improve early observed achievement relative to regular
-classes, while the aide arm shows no comparable effect. The main contribution
-of the three-algorithm comparison is to separate replicated skeleton structure
-from unstable endpoint orientation. It exposes selection, persistence, and
-specification sensitivity around the experiment; it does not replace it.}
+\keyresult{The strongest application result is a design-supported observed-arm
+contrast: smaller kindergarten classes have higher observed early achievement
+than regular classes, while the aide arm shows no comparable contrast.  The
+positive interval is consistent with a beneficial early effect, but it does
+not by itself identify a causal effect in the selected observed-outcome
+subset. The main contribution of the three-algorithm comparison is to separate
+replicated skeleton structure from unstable endpoint orientation. It exposes
+selection, persistence, and specification sensitivity around the experiment;
+it does not replace it.}
 
 \chapter{Critical Self-Assessment}
 
@@ -2955,6 +2984,12 @@ report artifacts. \\
 This complete LaTeX report. \\
 \path{reports/generate_report_figures.py} &
 Vector-figure generator reading the committed result JSON. \\
+\path{reports/generate_oracle_validation_summary.py} &
+Deterministic generator for the Figure~4(b) oracle and seeded SEM evidence. \\
+\path{reports/data/oracle_validation_summary.csv} &
+Frozen target hash, run settings, metrics, query counts, separator provenance,
+and execution outcomes for Tables~\ref{tab:figure4-results}
+and~\ref{tab:finite-sample}. \\
 \bottomrule
 \end{longtable}
 
@@ -2984,6 +3019,12 @@ PYTHONPATH=src python -m \
 
 \begin{lstlisting}[style=python,caption={Regenerate the report figures.}]
 PYTHONPATH=src python reports/generate_report_figures.py
+\end{lstlisting}
+
+\begin{lstlisting}[style=python,caption={Regenerate the frozen Figure 4(b)
+validation summary.}]
+PYTHONPATH=src python \
+  reports/generate_oracle_validation_summary.py
 \end{lstlisting}
 
 \begin{lstlisting}[style=python,caption={Run the software quality gates.}]

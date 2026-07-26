@@ -7,9 +7,11 @@ import json
 import subprocess
 from pathlib import Path
 
+import matplotlib.pyplot as plt
 import pandas as pd
 import pytest
 
+import reports.generate_report_figures as report_figures
 import reports.generate_software_comparison as software_comparison
 from fci_engine.simulation import realistic_oracle_cases
 from reports.generate_software_comparison import generate_software_comparison
@@ -17,6 +19,7 @@ from reports.generate_software_comparison import generate_software_comparison
 
 ROOT = Path(__file__).resolve().parents[1]
 RESEARCH = ROOT / "reports" / "research"
+ORACLE_SUMMARY = ROOT / "reports" / "data" / "oracle_validation_summary.csv"
 
 
 def test_latex_report_contains_rewritten_research_structure() -> None:
@@ -67,6 +70,104 @@ def test_latex_report_contains_rewritten_research_structure() -> None:
     assert len(traceability_rows) == 17
     for row in traceability_rows:
         assert row in normalized_tex
+
+
+def test_report_uses_bounded_star_claims_and_precise_graph_language() -> None:
+    tex = (ROOT / "reports" / "fci_plus_star_report.tex").read_text(encoding="utf-8")
+    normalized_tex = " ".join(tex.split())
+
+    forbidden = (
+        "supports a beneficial causal effect of small classes",
+        r"\subsection{Small classes improve early observed achievement}",
+        r"\subsection{Early achievement strongly predicts later structure}",
+        r"\subsection{Attrition is selective but not clearly caused by class arm}",
+        "the most stable structural correlate",
+        "each panel's complete PAG exactly",
+        "returns the same complete PAG",
+        "retains the adjacency with two unresolved circles",
+    )
+    for claim in forbidden:
+        assert claim not in normalized_tex
+
+    required = (
+        "design-supported observed-arm contrast",
+        "consistent with a beneficial early effect",
+        "one of the most consistently retained structural correlates",
+        "exact graph equality for every tested cyclic order",
+        r"K\_Class\leftarrow\!\circ Grade3\_Achievement",
+        r"K\_Class\circ\!\!-\!\!\circ Grade3\_Achievement",
+    )
+    for claim in required:
+        assert claim in normalized_tex
+
+
+def test_oracle_validation_summary_is_frozen_and_reproducible(
+    tmp_path: Path,
+) -> None:
+    from reports.generate_oracle_validation_summary import (
+        generate_oracle_validation_summary,
+    )
+
+    regenerated = tmp_path / ORACLE_SUMMARY.name
+    generate_oracle_validation_summary(regenerated)
+    assert regenerated.read_bytes() == ORACLE_SUMMARY.read_bytes()
+
+    with ORACLE_SUMMARY.open(encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    assert len(rows) == 6
+    assert len({row["target_sha256"] for row in rows}) == 1
+    assert len(rows[0]["target_sha256"]) == 64
+    assert {row["status"] for row in rows} == {"completed"}
+    by_key = {
+        (row["regime"], row["algorithm"], row["n_samples"]): row for row in rows
+    }
+    assert (
+        by_key[("finite_sample", "fci_plus", "5000")][
+            "exact_target_recovered"
+        ]
+        == "false"
+    )
+
+    assert by_key[("exact_oracle", "fci", "")]["ci_test_count"] == "102"
+    assert by_key[("exact_oracle", "fci_plus", "")]["ci_test_count"] == "63"
+    assert (
+        by_key[("finite_sample", "fci_plus", "5000")]["exact_edge_f1"]
+        == "0.923077"
+    )
+    assert (
+        by_key[("finite_sample", "fci_plus", "50000")]["exact_edge_f1"]
+        == "1.000000"
+    )
+
+
+def test_report_figures_keep_legend_and_source_boundary_explicit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    payload = json.loads(
+        report_figures.SUMMARY_PATH.read_text(encoding="utf-8")
+    )
+    captured: dict[str, object] = {}
+
+    def capture(figure: object, filename: str) -> None:
+        captured[filename] = figure
+
+    monkeypatch.setattr(report_figures, "_save", capture)
+    report_figures.plot_bootstrap_stability(payload)
+    bootstrap = captured["star_bootstrap_stability.pdf"]
+    axis = bootstrap.axes[0]  # type: ignore[attr-defined]
+    legend = axis.get_legend()
+    assert legend is not None
+    anchor = legend.get_bbox_to_anchor().transformed(axis.transAxes.inverted())
+    assert anchor.x0 >= 1.0
+
+    report_figures.plot_figure4_validation()
+    figure4 = captured["figure4_validation.pdf"]
+    figure4_title = figure4.axes[0].get_title()  # type: ignore[attr-defined]
+    assert "Repository-derived oracle PAG" in figure4_title
+    assert "published Figure 4(b) MAG" in figure4_title
+
+    plt.close(bootstrap)  # type: ignore[arg-type]
+    plt.close(figure4)  # type: ignore[arg-type]
 
 
 def test_required_research_figures_exist_and_are_nonempty() -> None:
@@ -167,6 +268,16 @@ def test_claim_matrix_requires_a_locator_for_every_report_claim() -> None:
     repository_symbols = "\n".join(row["repository_symbol"] for row in rows)
     assert "FCIResult.assumption_warnings" not in repository_symbols
     assert "FCIResult.assumption_notes" in repository_symbols
+    claim_rows = {row["claim_id"]: row for row in rows}
+    assert {
+        "ORACLE-FIG4-QUERIES",
+        "ORACLE-FINITE-SAMPLE",
+    } <= set(claim_rows)
+    for claim_id in ("ORACLE-FIG4-QUERIES", "ORACLE-FINITE-SAMPLE"):
+        assert (
+            claim_rows[claim_id]["validation_artifact"]
+            == "reports/data/oracle_validation_summary.csv"
+        )
 
     for row in rows:
         symbol_locator = row["repository_symbol"]
