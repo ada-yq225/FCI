@@ -19,6 +19,56 @@ ROOT = Path(__file__).resolve().parents[1]
 RESEARCH = ROOT / "reports" / "research"
 
 
+def test_latex_report_contains_rewritten_research_structure() -> None:
+    tex = (ROOT / "reports" / "fci_plus_star_report.tex").read_text(encoding="utf-8")
+    for title in (
+        r"\chapter{Standard FCI in Spirtes et al. (2000)}",
+        r"\chapter{FCI+ in Claassen et al. (2013)}",
+        r"\chapter{Independent Python Implementation}",
+        r"\chapter{Comparison with Established Software}",
+        r"\chapter{Causal Interpretation and Evidence Hierarchy}",
+    ):
+        assert title in tex
+
+    required_claims = (
+        "documentation-only comparison",
+        "does not estimate a treatment effect",
+        "This project independently implements paper-aligned FCI and FCI+",
+        "not a universal accuracy or speed superiority claim",
+        "N^{2(k+2)}",
+        "N^{2(k+1)}",
+        "Theorem~6.4",
+        "Algorithm~2",
+        "Figure~4(b)",
+    )
+    normalized_tex = " ".join(tex.split())
+    for claim in required_claims:
+        assert claim in normalized_tex
+
+    traceability_rows = (
+        "Complete start and PC-style adjacency search",
+        "Standard FCI stage ordering",
+        "Possible-D-SEP path criterion",
+        "Ordered Possible-D-SEP separator search",
+        "Reset and second collider phase",
+        "Original orientation closure",
+        "Complete modern orientation",
+        "Augmented skeleton",
+        "Candidate D-sep pattern",
+        "Recursive hierarchy",
+        "Paired endpoint bases bounded by",
+        "Separator minimization and candidate revisit",
+        "Figure~4(b) false-link removal",
+        "Exact MAG m-separation oracle",
+        "Stable deletion and max-",
+        "Conservative and robust orientation",
+        "Structured trace and exports",
+    )
+    assert len(traceability_rows) == 17
+    for row in traceability_rows:
+        assert row in normalized_tex
+
+
 def test_required_research_figures_exist_and_are_nonempty() -> None:
     for name in (
         "fci_fci_plus_workflow.pdf",
