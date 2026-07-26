@@ -2,16 +2,22 @@
 
 from __future__ import annotations
 
+import csv
 import json
 import math
+import textwrap
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
+from matplotlib.colors import LinearSegmentedColormap, ListedColormap
+from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
-from matplotlib.patches import FancyBboxPatch, Polygon
+from matplotlib.patches import Circle, FancyBboxPatch, Polygon, Rectangle, Wedge
+from numpy.typing import NDArray
 
 from fci_engine import canonical_dsep_mag, fci_plus
 
@@ -20,6 +26,11 @@ SUMMARY_PATH = (
     ROOT / "case_studies" / "tennessee_star" / "output" / "star_case_study_summary.json"
 )
 FIGURE_DIR = Path(__file__).resolve().parent / "figures"
+CLAIM_MATRIX_PATH = ROOT / "reports" / "research" / "claim_evidence_matrix.csv"
+DOSSIER_PATH = ROOT / "reports" / "research" / "fci_fci_plus_source_dossier.md"
+SOFTWARE_LANDSCAPE_PATH = ROOT / "reports" / "research" / "software_landscape.json"
+SOFTWARE_BENCHMARK_PATH = ROOT / "reports" / "data" / "software_benchmark_summary.csv"
+SOFTWARE_FEATURE_PATH = ROOT / "reports" / "data" / "software_feature_matrix.csv"
 
 BLUE = "#2563eb"
 GREEN = "#047857"
@@ -29,6 +40,14 @@ LIGHT_GREY = "#d0d5dd"
 INK = "#172033"
 RED = "#b42318"
 PURPLE = "#7c3aed"
+
+COLORS = {
+    "fci": "#2F6BFF",
+    "fci_plus": "#E58A2B",
+    "robust": "#1C9A8A",
+    "external": "#7562A8",
+    "neutral": "#687386",
+}
 
 PANEL_LABELS = {
     "attrition": "Attrition / observation",
@@ -54,6 +73,7 @@ def main() -> None:
     FIGURE_DIR.mkdir(parents=True, exist_ok=True)
     payload = json.loads(SUMMARY_PATH.read_text(encoding="utf-8"))
     _configure_style()
+    generate_research_figures()
     plot_descriptive_contrasts(payload)
     plot_performance(payload)
     plot_bootstrap_stability(payload)
@@ -64,6 +84,17 @@ def main() -> None:
         plot_pag_comparison(payload, panel)
     plot_robust_pag_application(payload)
     plot_figure4_validation()
+
+
+def generate_research_figures() -> None:
+    """Generate the source, implementation, and software-comparison figures."""
+
+    FIGURE_DIR.mkdir(parents=True, exist_ok=True)
+    _configure_style()
+    plot_fci_fci_plus_workflow()
+    plot_source_implementation_map()
+    plot_software_benchmark_comparison()
+    plot_software_feature_comparison()
 
 
 def _configure_style() -> None:
@@ -84,6 +115,816 @@ def _configure_style() -> None:
             "savefig.bbox": "tight",
         }
     )
+
+
+def plot_fci_fci_plus_workflow() -> None:
+    """Contrast the source-aligned stages of standard FCI and FCI+."""
+
+    figure, axis = plt.subplots(figsize=(10.5, 5.8))
+    axis.set_xlim(0, 1)
+    axis.set_ylim(0, 1)
+    axis.axis("off")
+
+    lanes = (
+        (
+            0.03,
+            COLORS["fci"],
+            "STANDARD FCI",
+            "Spirtes, Glymour, and Scheines (2000), pp. 144-145",
+            (
+                "Adjacency search and separating sets",
+                "Orient unshielded colliders",
+                "Refine with Possible-D-SEP",
+                "Reset retained endpoint marks",
+                "Reorient unshielded colliders",
+                "Apply the original orientation closure",
+            ),
+        ),
+        (
+            0.53,
+            COLORS["fci_plus"],
+            "FCI+",
+            "Claassen, Mooij, and Heskes (2013), Algorithm 2",
+            (
+                "Degree-bounded adjacency search",
+                "Build the augmented skeleton",
+                "Detect candidate D-SEP links",
+                "Construct and test separator hierarchies",
+                "Remove, rebuild, and revisit candidates",
+                "Apply complete final PAG orientation",
+            ),
+        ),
+    )
+    for x_value, color, heading, source, stages in lanes:
+        _draw_workflow_lane(
+            axis,
+            x_value=x_value,
+            color=color,
+            heading=heading,
+            source=source,
+            stages=stages,
+        )
+
+    axis.text(
+        0.5,
+        0.035,
+        "Shared target: an observational equivalence-class representation; "
+        "neither workflow identifies a unique DAG or a treatment effect.",
+        ha="center",
+        va="center",
+        fontsize=8.4,
+        color=INK,
+        fontweight="bold",
+    )
+    _save_research(figure, "fci_fci_plus_workflow.pdf")
+
+
+def _draw_workflow_lane(
+    axis: Axes,
+    *,
+    x_value: float,
+    color: str,
+    heading: str,
+    source: str,
+    stages: tuple[str, ...],
+) -> None:
+    width = 0.44
+    axis.add_patch(
+        FancyBboxPatch(
+            (x_value, 0.89),
+            width,
+            0.075,
+            boxstyle="round,pad=0.006,rounding_size=0.012",
+            facecolor=color,
+            edgecolor=color,
+            linewidth=0,
+        )
+    )
+    axis.text(
+        x_value + 0.018,
+        0.928,
+        heading,
+        color="white",
+        fontsize=11,
+        fontweight="bold",
+        va="center",
+    )
+    axis.text(
+        x_value + 0.018,
+        0.875,
+        source,
+        color=COLORS["neutral"],
+        fontsize=7.7,
+        va="top",
+    )
+
+    top = 0.79
+    box_height = 0.095
+    gap = 0.019
+    for index, stage in enumerate(stages, start=1):
+        y_value = top - (index - 1) * (box_height + gap)
+        axis.add_patch(
+            FancyBboxPatch(
+                (x_value, y_value - box_height),
+                width,
+                box_height,
+                boxstyle="round,pad=0.006,rounding_size=0.01",
+                facecolor="#F8FAFC",
+                edgecolor=color,
+                linewidth=1.15,
+            )
+        )
+        axis.add_patch(
+            Circle(
+                (x_value + 0.035, y_value - box_height / 2),
+                0.021,
+                facecolor=color,
+                edgecolor=color,
+                linewidth=0,
+            )
+        )
+        axis.text(
+            x_value + 0.035,
+            y_value - box_height / 2,
+            str(index),
+            ha="center",
+            va="center",
+            color="white",
+            fontsize=8.3,
+            fontweight="bold",
+        )
+        axis.text(
+            x_value + 0.07,
+            y_value - box_height / 2,
+            textwrap.fill(stage, width=39),
+            ha="left",
+            va="center",
+            fontsize=8.5,
+            color=INK,
+            fontweight="bold" if index in {3, 4} else "normal",
+        )
+        if index < len(stages):
+            axis.annotate(
+                "",
+                xy=(
+                    x_value + width / 2,
+                    y_value - box_height - gap + 0.004,
+                ),
+                xytext=(x_value + width / 2, y_value - box_height - 0.002),
+                arrowprops={
+                    "arrowstyle": "-|>",
+                    "color": color,
+                    "linewidth": 1.05,
+                },
+            )
+
+
+def plot_source_implementation_map() -> None:
+    """Render literature claims, implementation symbols, and executable guards."""
+
+    claims = _load_claim_evidence()
+    rows = (
+        (
+            "FCI-STAGES",
+            "SOURCE-ALIGNED",
+            "Standard FCI schedule\nSpirtes et al. (2000), pp. 144-145",
+            COLORS["fci"],
+        ),
+        (
+            "FCI-PDSEP",
+            "SOURCE-ALIGNED",
+            "Possible-D-SEP refinement\nSpirtes et al. (2000), p. 144",
+            COLORS["fci"],
+        ),
+        (
+            "FCIPLUS-AUGMENT",
+            "SOURCE-ALIGNED",
+            "Augmented skeleton\nClaassen et al. (2013), pp. 176, 178",
+            COLORS["fci_plus"],
+        ),
+        (
+            "FCIPLUS-HIERARCHY",
+            "SOURCE-ALIGNED",
+            "HIE fixed-point search\nClaassen et al. (2013), p. 177",
+            COLORS["fci_plus"],
+        ),
+        (
+            "FCIPLUS-ALGO2",
+            "SOURCE-ALIGNED",
+            "FCI+ Algorithm 2\nClaassen et al. (2013), pp. 178-179",
+            COLORS["fci_plus"],
+        ),
+        (
+            "PAG-COMPLETE",
+            "SOURCE-ALIGNED",
+            "Complete PAG orientation\nZhang (2008), pp. 1873-1896",
+            COLORS["external"],
+        ),
+        (
+            "IMPL-ROBUST",
+            "ENGINEERING EXTENSION",
+            "Finite-sample practical profile\nRepository design, inspected 2026-07-26",
+            COLORS["robust"],
+        ),
+    )
+
+    figure, axis = plt.subplots(figsize=(10.5, 5.45))
+    axis.set_xlim(0, 1)
+    axis.set_ylim(0, 1)
+    axis.axis("off")
+
+    columns = (
+        (0.025, 0.285, "LITERATURE CONCEPT"),
+        (0.335, 0.315, "IMPLEMENTATION SYMBOL"),
+        (0.68, 0.295, "EXECUTABLE VALIDATION"),
+    )
+    for x_value, width, heading in columns:
+        axis.add_patch(
+            Rectangle(
+                (x_value, 0.915),
+                width,
+                0.055,
+                facecolor="#E9EDF5",
+                edgecolor="none",
+            )
+        )
+        axis.text(
+            x_value + 0.012,
+            0.942,
+            heading,
+            ha="left",
+            va="center",
+            fontsize=8.7,
+            color=INK,
+            fontweight="bold",
+        )
+
+    row_height = 0.112
+    for index, (claim_id, layer, concept, color) in enumerate(rows):
+        record = claims[claim_id]
+        y_top = 0.895 - index * row_height
+        y_bottom = y_top - 0.096
+        background = "#FBFCFE" if index % 2 == 0 else "#F3F6FA"
+        axis.add_patch(
+            FancyBboxPatch(
+                (0.025, y_bottom),
+                0.95,
+                0.096,
+                boxstyle="round,pad=0.003,rounding_size=0.006",
+                facecolor=background,
+                edgecolor="#D7DDE7",
+                linewidth=0.55,
+            )
+        )
+        axis.add_patch(
+            Rectangle(
+                (0.025, y_bottom),
+                0.008,
+                0.096,
+                facecolor=color,
+                edgecolor="none",
+            )
+        )
+        axis.text(
+            0.045,
+            y_top - 0.021,
+            layer,
+            ha="left",
+            va="center",
+            fontsize=6.5,
+            color=color,
+            fontweight="bold",
+        )
+        axis.text(
+            0.045,
+            y_bottom + 0.038,
+            concept,
+            ha="left",
+            va="center",
+            fontsize=7.55,
+            color=INK,
+        )
+        implementation = _short_artifact_locator(record["repository_symbol"])
+        validation = _short_artifact_locator(record["validation_artifact"])
+        axis.text(
+            0.345,
+            y_bottom + 0.048,
+            _wrap_code_locator(implementation, width=37),
+            ha="left",
+            va="center",
+            fontsize=7.05,
+            color=INK,
+            family="DejaVu Sans Mono",
+        )
+        axis.text(
+            0.69,
+            y_bottom + 0.048,
+            _wrap_code_locator(validation, width=34),
+            ha="left",
+            va="center",
+            fontsize=6.9,
+            color=INK,
+            family="DejaVu Sans Mono",
+        )
+        for x_start, x_end in ((0.309, 0.334), (0.65, 0.679)):
+            axis.annotate(
+                "",
+                xy=(x_end, y_bottom + 0.048),
+                xytext=(x_start, y_bottom + 0.048),
+                arrowprops={
+                    "arrowstyle": "-|>",
+                    "color": "#A6AFBF",
+                    "linewidth": 0.8,
+                },
+            )
+
+    axis.text(
+        0.025,
+        0.048,
+        "Each row is backed by reports/research/claim_evidence_matrix.csv; "
+        "the robust profile is deliberately separated from paper-aligned definitions.",
+        ha="left",
+        va="center",
+        fontsize=8,
+        color=COLORS["neutral"],
+    )
+    _save_research(figure, "source_implementation_map.pdf")
+
+
+def plot_software_benchmark_comparison() -> None:
+    """Plot the committed known-truth benchmark with explicit timing caveats."""
+
+    rows = {
+        row["algorithm"]: row
+        for row in _read_csv_rows(SOFTWARE_BENCHMARK_PATH)
+        if int(row["n_completed"]) > 0
+    }
+    order = (
+        "fci_engine.fci",
+        "fci_engine.fci_plus",
+        "fci_engine.fci_plus.robust",
+        "causal-learn.fci.fisherz",
+        "pcalg.fciPlus",
+    )
+    missing = set(order) - set(rows)
+    if missing:
+        raise ValueError(f"Missing completed benchmark rows: {sorted(missing)}")
+
+    labels = (
+        "This package: FCI",
+        "This package: FCI+ paper",
+        "This package: FCI+ robust",
+        "causal-learn: FCI",
+        "pcalg: FCI+",
+    )
+    row_colors = (
+        COLORS["fci"],
+        COLORS["fci_plus"],
+        COLORS["robust"],
+        COLORS["neutral"],
+        COLORS["external"],
+    )
+    quality_columns = (
+        ("mean_skeleton_f1", "Skeleton\nF1"),
+        ("mean_exact_edge_f1", "Exact-edge\nF1"),
+        ("mean_semantic_edge_f1", "Semantic-edge\nF1"),
+        ("mean_endpoint_accuracy", "Endpoint\naccuracy"),
+    )
+    quality = np.array(
+        [
+            [float(rows[algorithm][column]) for column, _ in quality_columns]
+            for algorithm in order
+        ]
+    )
+    runtime = np.array(
+        [float(rows[algorithm]["mean_elapsed_seconds"]) for algorithm in order]
+    )
+
+    figure, (quality_axis, runtime_axis) = plt.subplots(
+        1,
+        2,
+        figsize=(10.5, 4.65),
+        gridspec_kw={"width_ratios": [2.7, 1.35]},
+    )
+    cmap = LinearSegmentedColormap.from_list(
+        "benchmark_quality",
+        ["#F4F6FA", "#B8C9EA", "#183153"],
+    )
+    quality_axis.imshow(quality, cmap=cmap, vmin=0.5, vmax=1.0, aspect="auto")
+    quality_axis.set_xticks(range(len(quality_columns)))
+    quality_axis.set_xticklabels([label for _, label in quality_columns])
+    quality_axis.set_yticks(range(len(labels)))
+    quality_axis.set_yticklabels(labels)
+    quality_axis.tick_params(length=0, labelsize=8.2)
+    for tick, color in zip(quality_axis.get_yticklabels(), row_colors):
+        tick.set_color(color)
+        tick.set_fontweight("bold")
+    for row_index in range(quality.shape[0]):
+        for column_index in range(quality.shape[1]):
+            value = quality[row_index, column_index]
+            quality_axis.text(
+                column_index,
+                row_index,
+                f"{value:.1%}",
+                ha="center",
+                va="center",
+                fontsize=8.4,
+                fontweight="bold",
+                color="white" if value >= 0.82 else INK,
+            )
+    for spine in quality_axis.spines.values():
+        spine.set_visible(False)
+    quality_axis.text(
+        0,
+        1.09,
+        "KNOWN-TRUTH RECOVERY QUALITY",
+        transform=quality_axis.transAxes,
+        fontsize=9,
+        color=INK,
+        fontweight="bold",
+        ha="left",
+    )
+
+    y_positions = np.arange(len(labels))
+    lower = float(runtime.min() * 0.65)
+    upper = float(runtime.max() * 2.7)
+    runtime_axis.set_xscale("log")
+    runtime_axis.set_xlim(lower, upper)
+    runtime_axis.set_ylim(-0.6, len(labels) - 0.4)
+    runtime_axis.invert_yaxis()
+    runtime_axis.set_yticks([])
+    for y_value, value, color in zip(y_positions, runtime, row_colors):
+        runtime_axis.hlines(
+            y_value,
+            lower,
+            value,
+            color=color,
+            linewidth=3.2,
+            alpha=0.55,
+        )
+        runtime_axis.scatter(
+            [value],
+            [y_value],
+            color=color,
+            edgecolor="white",
+            linewidth=0.8,
+            s=65,
+            zorder=3,
+        )
+        runtime_axis.text(
+            value * 1.14,
+            y_value,
+            f"{value:.3f} s",
+            va="center",
+            ha="left",
+            fontsize=8.1,
+            color=INK,
+        )
+    runtime_axis.grid(
+        axis="x",
+        which="both",
+        color=LIGHT_GREY,
+        linewidth=0.65,
+        alpha=0.75,
+    )
+    runtime_axis.spines[["top", "right", "left"]].set_visible(False)
+    runtime_axis.set_xlabel("Mean elapsed seconds (log scale)", fontsize=8.3)
+    runtime_axis.text(
+        0,
+        1.09,
+        "OBSERVED RUNTIME",
+        transform=runtime_axis.transAxes,
+        fontsize=9,
+        color=INK,
+        fontweight="bold",
+        ha="left",
+    )
+
+    figure.text(
+        0.04,
+        0.948,
+        "EXECUTED  |  15 seeded known-truth cases per method",
+        ha="left",
+        va="center",
+        fontsize=8.5,
+        color="white",
+        fontweight="bold",
+        bbox={
+            "boxstyle": "round,pad=0.35",
+            "facecolor": COLORS["robust"],
+            "edgecolor": "none",
+        },
+    )
+    figure.text(
+        0.04,
+        0.052,
+        "Descriptive, not a universal ranking: profiles and alpha policies differ by design. "
+        "The pcalg timing includes R process startup; other timings are in-process calls.",
+        ha="left",
+        va="center",
+        fontsize=7.75,
+        color=COLORS["neutral"],
+    )
+    figure.subplots_adjust(
+        left=0.205,
+        right=0.975,
+        bottom=0.19,
+        top=0.79,
+        wspace=0.42,
+    )
+    _save_research(figure, "software_benchmark_comparison.pdf")
+
+
+def plot_software_feature_comparison() -> None:
+    """Render the capability matrix with executed/documentation provenance."""
+
+    feature_rows = {row["tool"]: row for row in _read_csv_rows(SOFTWARE_FEATURE_PATH)}
+    landscape = json.loads(SOFTWARE_LANDSCAPE_PATH.read_text(encoding="utf-8"))
+    evidence_kind = {row["tool"]: row["evidence_kind"] for row in landscape["tools"]}
+    tools = ("fci_engine", "pcalg", "causal-learn", "Tetrad")
+    missing = set(tools) - set(feature_rows)
+    if missing:
+        raise ValueError(f"Missing feature rows: {sorted(missing)}")
+
+    features = (
+        ("standard_fci", "Standard\nFCI"),
+        ("fci_plus", "FCI+"),
+        ("custom_ci", "Custom\nCI"),
+        ("order_audit", "Order\naudit"),
+        ("bootstrap_workflow", "Bootstrap\nworkflow"),
+        ("orientation_trace", "Orientation\ntrace"),
+        ("sepset_provenance", "Sepset\nprovenance"),
+        ("artifact_export", "Artifact\nexport"),
+    )
+    tool_colors = {
+        "fci_engine": COLORS["robust"],
+        "pcalg": COLORS["external"],
+        "causal-learn": COLORS["neutral"],
+        "Tetrad": "#8A6A3B",
+    }
+
+    figure, axis = plt.subplots(figsize=(10.5, 4.55))
+    axis.set_xlim(-2.25, 10.8)
+    axis.set_ylim(-1.25, 4.35)
+    axis.axis("off")
+
+    x_positions = np.arange(len(features), dtype=float) * 1.08
+    y_positions = {tool: 3.15 - index for index, tool in enumerate(tools)}
+    for x_value, (_, label) in zip(x_positions, features):
+        axis.text(
+            x_value,
+            4.02,
+            label,
+            ha="center",
+            va="center",
+            fontsize=7.45,
+            color=INK,
+            fontweight="bold",
+        )
+    axis.text(
+        -2.1,
+        4.02,
+        "TOOL",
+        ha="left",
+        va="center",
+        fontsize=8.1,
+        color=INK,
+        fontweight="bold",
+    )
+    axis.text(
+        9.05,
+        4.02,
+        "EVIDENCE",
+        ha="center",
+        va="center",
+        fontsize=8.1,
+        color=INK,
+        fontweight="bold",
+    )
+
+    for index, tool in enumerate(tools):
+        row = feature_rows[tool]
+        y_value = y_positions[tool]
+        axis.add_patch(
+            FancyBboxPatch(
+                (-2.18, y_value - 0.39),
+                12.15,
+                0.78,
+                boxstyle="round,pad=0.004,rounding_size=0.035",
+                facecolor="#FBFCFE" if index % 2 == 0 else "#F2F5F9",
+                edgecolor="#D7DDE7",
+                linewidth=0.6,
+            )
+        )
+        axis.add_patch(
+            Rectangle(
+                (-2.18, y_value - 0.39),
+                0.08,
+                0.78,
+                facecolor=tool_colors[tool],
+                edgecolor="none",
+            )
+        )
+        axis.text(
+            -1.98,
+            y_value + 0.08,
+            tool,
+            ha="left",
+            va="center",
+            fontsize=9,
+            color=INK,
+            fontweight="bold",
+        )
+        axis.text(
+            -1.98,
+            y_value - 0.17,
+            row["language"],
+            ha="left",
+            va="center",
+            fontsize=7.6,
+            color=COLORS["neutral"],
+        )
+        for x_value, (key, _) in zip(x_positions, features):
+            _draw_capability_marker(
+                axis,
+                x=float(x_value),
+                y=y_value,
+                value=row[key],
+                color=tool_colors[tool],
+            )
+
+        executed = (
+            evidence_kind.get(tool) == "executed" and row["executed_here"] == "yes"
+        )
+        evidence_label = "EXECUTED" if executed else "DOC-ONLY"
+        evidence_color = COLORS["robust"] if executed else COLORS["neutral"]
+        axis.text(
+            9.05,
+            y_value,
+            evidence_label,
+            ha="center",
+            va="center",
+            fontsize=7.2,
+            color="white",
+            fontweight="bold",
+            bbox={
+                "boxstyle": "round,pad=0.35",
+                "facecolor": evidence_color,
+                "edgecolor": "none",
+            },
+        )
+
+    legend_y = -0.73
+    legend_items = (
+        (0.0, "yes", "Confirmed"),
+        (2.1, "partial", "Partial / broader workflow"),
+        (4.95, "not_established", "Not established / not exported"),
+        (7.9, "no", "No"),
+    )
+    for x_value, marker_value, label in legend_items:
+        _draw_capability_marker(
+            axis,
+            x=x_value,
+            y=legend_y,
+            value=marker_value,
+            color=COLORS["neutral"],
+        )
+        axis.text(
+            x_value + 0.28,
+            legend_y,
+            label,
+            ha="left",
+            va="center",
+            fontsize=7.5,
+            color=COLORS["neutral"],
+        )
+
+    _save_research(figure, "software_feature_comparison.pdf")
+
+
+def _draw_capability_marker(
+    axis: Axes,
+    *,
+    x: float,
+    y: float,
+    value: str,
+    color: str,
+) -> None:
+    radius = 0.145
+    if value == "yes":
+        axis.add_patch(
+            Circle(
+                (x, y),
+                radius,
+                facecolor=color,
+                edgecolor=color,
+                linewidth=1,
+            )
+        )
+        return
+    if value in {"partial", "broader_workflow", "logger_only"}:
+        axis.add_patch(
+            Circle(
+                (x, y),
+                radius,
+                facecolor="white",
+                edgecolor=color,
+                linewidth=1.2,
+            )
+        )
+        axis.add_patch(
+            Wedge(
+                (x, y),
+                radius,
+                90,
+                270,
+                facecolor=color,
+                edgecolor="none",
+            )
+        )
+        return
+    if value in {"not_established", "not_exported"}:
+        axis.add_patch(
+            Circle(
+                (x, y),
+                radius,
+                facecolor="white",
+                edgecolor=color,
+                linewidth=1.2,
+                linestyle="--",
+            )
+        )
+        axis.text(
+            x,
+            y,
+            "?",
+            ha="center",
+            va="center",
+            fontsize=7.7,
+            color=color,
+            fontweight="bold",
+        )
+        return
+    if value == "no":
+        axis.plot(
+            [x - radius * 0.72, x + radius * 0.72],
+            [y - radius * 0.72, y + radius * 0.72],
+            color=color,
+            linewidth=1.6,
+        )
+        axis.plot(
+            [x - radius * 0.72, x + radius * 0.72],
+            [y + radius * 0.72, y - radius * 0.72],
+            color=color,
+            linewidth=1.6,
+        )
+        return
+    raise ValueError(f"Unknown capability value: {value!r}")
+
+
+def _load_claim_evidence() -> dict[str, dict[str, str]]:
+    dossier = DOSSIER_PATH.read_text(encoding="utf-8")
+    for heading in (
+        "## Spirtes, Glymour, and Scheines (2000)",
+        "## Claassen, Mooij, and Heskes (2013)",
+        "## Source-to-implementation mapping",
+    ):
+        if heading not in dossier:
+            raise ValueError(f"Research dossier is missing {heading!r}")
+    return {row["claim_id"]: row for row in _read_csv_rows(CLAIM_MATRIX_PATH)}
+
+
+def _read_csv_rows(path: Path) -> list[dict[str, str]]:
+    with path.open(encoding="utf-8", newline="") as handle:
+        return list(csv.DictReader(handle))
+
+
+def _short_artifact_locator(locator: str) -> str:
+    return (
+        locator.replace("src/fci_engine/", "").replace("tests/", "").replace("; ", "\n")
+    )
+
+
+def _wrap_code_locator(locator: str, *, width: int) -> str:
+    lines: list[str] = []
+    for source_line in locator.splitlines():
+        pending = source_line
+        if "::" in pending and len(pending) > width:
+            path, symbol = pending.split("::", maxsplit=1)
+            lines.append(f"{path}::")
+            pending = symbol
+        while len(pending) > width:
+            split_at = pending.rfind("_", 0, width)
+            if split_at <= 0:
+                split_at = width
+                lines.append(pending[:split_at])
+                pending = pending[split_at:]
+            else:
+                lines.append(pending[: split_at + 1])
+                pending = pending[split_at + 1 :]
+        if pending:
+            lines.append(pending)
+    return "\n".join(lines)
 
 
 def plot_descriptive_contrasts(payload: dict[str, Any]) -> None:
@@ -468,7 +1309,7 @@ def plot_sensitivity(payload: dict[str, Any]) -> None:
     ]
     algorithms = ["fci", "fci_plus", "fci_plus_robust"]
     matrix = np.zeros((3, 4))
-    tests = np.zeros((3, 4), dtype=int)
+    tests: NDArray[np.int_] = np.zeros((3, 4), dtype=int)
     for row in rows:
         row_index = algorithms.index(row["algorithm"])
         column_index = columns.index((row["bins"], row["alpha"]))
@@ -479,7 +1320,7 @@ def plot_sensitivity(payload: dict[str, Any]) -> None:
     color_matrix = np.where(matrix == 1, 1.0, 0.0)
     axis.imshow(
         color_matrix,
-        cmap=plt.matplotlib.colors.ListedColormap(["#f2f4f7", "#d1fae5"]),
+        cmap=ListedColormap(["#f2f4f7", "#d1fae5"]),
         vmin=0,
         vmax=1,
         aspect="auto",
@@ -835,9 +1676,23 @@ def _draw_endpoint(
         axis.add_patch(triangle)
 
 
-def _save(figure: plt.Figure, filename: str) -> None:
+def _save(figure: Figure, filename: str) -> None:
     path = FIGURE_DIR / filename
     figure.savefig(path, format="pdf", metadata={"Creator": "fci-engine report"})
+    plt.close(figure)
+    print(path)
+
+
+def _save_research(figure: Figure, filename: str) -> None:
+    path = FIGURE_DIR / filename
+    figure.savefig(
+        path,
+        format="pdf",
+        metadata={
+            "Creator": "fci-engine research report",
+            "CreationDate": datetime(2026, 7, 26, tzinfo=timezone.utc),
+        },
+    )
     plt.close(figure)
     print(path)
 

@@ -19,6 +19,17 @@ ROOT = Path(__file__).resolve().parents[1]
 RESEARCH = ROOT / "reports" / "research"
 
 
+def test_required_research_figures_exist_and_are_nonempty() -> None:
+    for name in (
+        "fci_fci_plus_workflow.pdf",
+        "source_implementation_map.pdf",
+        "software_benchmark_comparison.pdf",
+        "software_feature_comparison.pdf",
+    ):
+        path = ROOT / "reports" / "figures" / name
+        assert path.stat().st_size > 10_000
+
+
 def test_research_dossier_has_required_primary_source_sections() -> None:
     text = (RESEARCH / "fci_fci_plus_source_dossier.md").read_text(encoding="utf-8")
 
