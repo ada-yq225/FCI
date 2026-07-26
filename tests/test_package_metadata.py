@@ -43,6 +43,12 @@ def test_ruff_policy_is_stable_across_minor_releases() -> None:
     assert 'select = ["E4", "E7", "E9", "F"]' in pyproject
 
 
+def test_dev_extra_includes_report_test_dependencies() -> None:
+    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+
+    assert '"matplotlib>=3.6"' in pyproject
+
+
 def test_package_uses_spdx_license_metadata() -> None:
     pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
 
