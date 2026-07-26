@@ -7,9 +7,9 @@
   </g>
   <g id="evidence-legend-12" data-pptx-bounds="56 122 1168 34">
     <rect x="56" y="122" width="16" height="16" rx="3" fill="#2E7D5B"/>
-    <text x="82" y="137" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" fill="#2E7D5B">RANDOMIZED KINDERGARTEN CONTRAST</text>
+    <text x="82" y="137" data-pptx-frame="82 119 280 24" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" fill="#2E7D5B">RANDOMIZED K CONTRAST</text>
     <rect x="480" y="122" width="16" height="16" rx="3" fill="#E58A2B"/>
-    <text x="506" y="137" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" fill="#E58A2B">DESCRIPTIVE GRADE-3 FOLLOW-UP (OBSERVED)</text>
+    <text x="506" y="137" data-pptx-frame="506 119 310 24" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" fill="#E58A2B">OBSERVED GRADE-3 FOLLOW-UP</text>
   </g>
   <g id="forest-plot-12" data-pptx-bounds="56 170 800 405">
     <rect x="56" y="170" width="800" height="405" rx="14" fill="#FFFFFF" stroke="#CBD2DC" stroke-width="1.5"/>
@@ -44,11 +44,11 @@
   </g>
   <g id="contrast-conclusion-12" data-pptx-bounds="888 170 336 405">
     <rect x="888" y="170" width="336" height="405" rx="16" fill="#183153"/>
-    <text x="918" y="207" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#A7E8DF">DESIGN-BASED READOUT</text>
-    <text x="918" y="255" font-family="Georgia, Times New Roman, serif" font-size="32" font-weight="700" fill="#FFFFFF">+13.90 points</text>
+    <text x="918" y="207" data-pptx-frame="918 184 266 30" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#A7E8DF">DESIGN-BASED READOUT</text>
+    <text x="918" y="255" data-pptx-frame="918 220 276 44" font-family="Georgia, Times New Roman, serif" font-size="30" font-weight="700" fill="#FFFFFF">13.90 points</text>
     <text x="918" y="289" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#E9EDF5">Small − regular, kindergarten<tspan x="918" dy="27">95% interval [5.21, 22.07]</tspan></text>
     <line x1="918" y1="357" x2="1194" y2="357" stroke="#5C7190" stroke-width="1.5"/>
-    <text x="918" y="397" font-family="Georgia, Times New Roman, serif" font-size="30" font-weight="700" fill="#FFFFFF">+0.31 points</text>
+    <text x="918" y="397" data-pptx-frame="918 364 276 42" font-family="Georgia, Times New Roman, serif" font-size="28" font-weight="700" fill="#FFFFFF">0.31 points</text>
     <text x="918" y="431" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#E9EDF5">Aide − regular, kindergarten<tspan x="918" dy="27">95% interval [−7.40, 7.38]</tspan></text>
     <rect x="918" y="496" width="276" height="54" rx="10" fill="#2E7D5B"/>
     <text x="1056" y="519" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">Observed-arm contrast supports<tspan x="1056" dy="22">a possible small-class benefit</tspan></text>

@@ -2,15 +2,15 @@
   <rect id="page-background-06" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#F7F5EF"/>
   <g id="header-06" data-pptx-bounds="56 34 1168 88">
     <text x="56" y="72" font-family="Georgia, Times New Roman, serif" font-size="42" font-weight="700" fill="#183153">Every Paper Stage Is Inspectable and Testable</text>
-    <text x="1224" y="104" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="18" fill="#5F6875">SOURCE → CODE → EVIDENCE</text>
+    <text x="1224" y="104" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="18" fill="#5F6875">TRACEABILITY</text>
     <line x1="56" y1="120" x2="1224" y2="120" stroke="#CBD2DC" stroke-width="1.5"/>
   </g>
   <g id="trace-table-06" data-pptx-bounds="56 137 1168 440">
     <rect x="56" y="137" width="1168" height="440" rx="14" fill="#FFFFFF" stroke="#CBD2DC" stroke-width="1.5"/>
     <rect x="56" y="137" width="1168" height="52" rx="14" fill="#183153"/>
-    <text x="86" y="171" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">SOURCE CONCEPT</text>
-    <text x="376" y="171" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">IMPLEMENTATION BOUNDARY</text>
-    <text x="880" y="171" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">TEST / AUDIT EVIDENCE</text>
+    <text x="86" y="171" data-pptx-frame="86 148 230 28" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">SOURCE</text>
+    <text x="376" y="171" data-pptx-frame="376 148 420 28" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">IMPLEMENTATION BOUNDARY</text>
+    <text x="880" y="171" data-pptx-frame="880 148 310 28" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">TEST / AUDIT EVIDENCE</text>
     <line x1="342" y1="189" x2="342" y2="577" stroke="#CBD2DC" stroke-width="1.5"/>
     <line x1="846" y1="189" x2="846" y2="577" stroke="#CBD2DC" stroke-width="1.5"/>
     <rect x="56" y="189" width="10" height="122" fill="#2F6BFF"/>
@@ -22,7 +22,7 @@
     <text x="880" y="255" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#5F6875">Possible-D-SEP unit paths<tspan x="880" dy="24">historical schedule regression</tspan></text>
     <line x1="56" y1="311" x2="1224" y2="311" stroke="#CBD2DC" stroke-width="1.5"/>
     <rect x="56" y="311" width="10" height="140" fill="#E58A2B"/>
-    <text x="86" y="345" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#E58A2B">Claassen FCI+</text>
+    <text x="86" y="345" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#E58A2B">Claassen FCI Plus</text>
     <text x="86" y="374" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1A2433">Augmented skeleton<tspan x="86" dy="25">D-SEP links + hierarchy</tspan><tspan x="86" dy="25">bounded endpoint bases</tspan></text>
     <text x="376" y="345" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#183153">dsep.py · fci_plus.py</text>
     <text x="376" y="374" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">build_augmented_skeleton<tspan x="376" dy="23">possible_dsep_links · hierarchy</tspan><tspan x="376" dy="23">refine_skeleton_with_fci_plus_dsep</tspan></text>

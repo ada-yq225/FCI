@@ -7,9 +7,9 @@
   </g>
   <g id="evidence-legend-11" data-pptx-bounds="56 122 1168 34">
     <rect x="56" y="122" width="16" height="16" rx="3" fill="#2E7D5B" />
-    <text x="82" y="137" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" fill="#2E7D5B">DESIGN-BASED EVIDENCE</text>
+    <text x="82" y="137" data-pptx-frame="82 119 190 24" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" fill="#2E7D5B">DESIGN-BASED</text>
     <rect x="305" y="122" width="16" height="16" rx="3" fill="#2F6BFF" />
-    <text x="331" y="137" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" fill="#2F6BFF">EXPLORATORY PAG EVIDENCE</text>
+    <text x="331" y="137" data-pptx-frame="331 119 210 24" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" fill="#2F6BFF">EXPLORATORY PAG</text>
   </g>
   <g id="cohort-funnel-11" data-pptx-bounds="56 170 720 400">
     <text x="56" y="194" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#5F6875">COHORT CONSTRUCTION</text>
@@ -36,10 +36,10 @@
     <rect x="820" y="170" width="404" height="400" rx="16" fill="#183153" />
     <text x="850" y="207" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#A7E8DF">IDENTIFICATION BOUNDARY</text>
     <text x="850" y="252" font-family="Georgia, Times New Roman, serif" font-size="30" font-weight="700" fill="#FFFFFF">Experiment first</text>
-    <text fill="#E9EDF5" font-size="20" font-family="Arial, Helvetica, sans-serif" x="850" y="289">Kindergarten arm assignment supplies</text><text fill="#E9EDF5" font-size="20" font-family="Arial, Helvetica, sans-serif" x="850" y="316">the strongest design basis.</text><line x1="850" y1="348" x2="1194" y2="348" stroke="#5C7190" stroke-width="1.5" />
+    <text font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#E9EDF5" x="850" y="289">Kindergarten arm assignment supplies</text><text font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#E9EDF5" x="850" y="316">the strongest design basis.</text><line x1="850" y1="348" x2="1194" y2="348" stroke="#5C7190" stroke-width="1.5" />
     <text x="850" y="385" font-family="Georgia, Times New Roman, serif" font-size="30" font-weight="700" fill="#FFFFFF">PAG second</text>
-    <text fill="#E9EDF5" font-size="20" font-family="Arial, Helvetica, sans-serif" x="850" y="422">Later complete-case panels may encode</text><text fill="#E9EDF5" font-size="20" font-family="Arial, Helvetica, sans-serif" x="850" y="449">attrition and conditioning effects.</text><rect x="850" y="490" width="344" height="54" rx="10" fill="#B45F4A" />
-    <text fill="#FFFFFF" font-size="18" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle" x="1022" y="513">No temporal constraints supplied</text><text fill="#FFFFFF" font-size="18" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle" x="1022" y="535">to the discovery algorithms</text></g>
+    <text font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#E9EDF5" x="850" y="422">Later complete-case panels may encode</text><text font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#E9EDF5" x="850" y="449">attrition and conditioning effects.</text><rect x="850" y="490" width="344" height="54" rx="10" fill="#B45F4A" />
+    <text font-family="Arial, Helvetica, sans-serif" text-anchor="middle" font-size="18" fill="#FFFFFF" font-weight="700" x="1022" y="513">No temporal constraints supplied</text><text font-family="Arial, Helvetica, sans-serif" text-anchor="middle" font-size="18" fill="#FFFFFF" font-weight="700" x="1022" y="535">to the discovery algorithms</text></g>
   <g id="bootstrap-note-11" data-pptx-bounds="56 596 1168 42">
     <text x="56" y="622" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1A2433"><tspan font-weight="700" fill="#2E7D5B">1,000 school-cluster resamples</tspan> for arm contrasts · <tspan font-weight="700" fill="#2F6BFF">12 school resamples</tspan> for coarse PAG stability only</text>
   </g>

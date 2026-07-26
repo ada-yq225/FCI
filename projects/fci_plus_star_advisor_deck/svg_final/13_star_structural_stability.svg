@@ -7,18 +7,18 @@
   </g>
   <g id="evidence-legend-13" data-pptx-bounds="56 122 1168 34">
     <rect x="56" y="122" width="16" height="16" rx="3" fill="#2E7D5B"/>
-    <text x="82" y="137" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" fill="#2E7D5B">STABLE STRUCTURE</text>
+    <text x="82" y="137" data-pptx-frame="82 119 155 24" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" fill="#2E7D5B">STABLE STRUCTURE</text>
     <rect x="255" y="122" width="16" height="16" rx="3" fill="#B45F4A"/>
-    <text x="281" y="137" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" fill="#B45F4A">DIRECTIONAL CONFLICT</text>
+    <text x="281" y="137" data-pptx-frame="281 119 195 24" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" fill="#B45F4A">DIRECTION CONFLICT</text>
     <rect x="520" y="122" width="16" height="16" rx="8" fill="#F7F5EF" stroke="#1C9A8A" stroke-width="3"/>
-    <text x="546" y="137" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" fill="#1C9A8A">ROBUST ABSTENTION</text>
+    <text x="546" y="137" data-pptx-frame="546 119 185 24" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="700" fill="#1C9A8A">ROBUST ABSTENTION</text>
   </g>
   <g id="order-audit-13" data-pptx-bounds="56 174 550 368">
     <rect x="56" y="174" width="550" height="368" rx="14" fill="#FFFFFF" stroke="#CBD2DC" stroke-width="1.5"/>
-    <text x="82" y="208" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#5F6875">EXACT BASELINE-PAG REPRODUCTIONS</text>
+    <text x="82" y="208" data-pptx-frame="82 185 360 30" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#5F6875">ORDER-SHIFT REPRODUCTIONS</text>
     <text x="82" y="248" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#5F6875">tested shifts</text>
     <text x="255" y="248" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#2F6BFF">FCI</text>
-    <text x="351" y="248" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#E58A2B">paper FCI+</text>
+    <text x="351" y="248" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#E58A2B">paper FCI Plus</text>
     <text x="493" y="248" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#1C9A8A">robust</text>
     <g id="chartArea">
       <line x1="82" y1="266" x2="580" y2="266" stroke="#CBD2DC" stroke-width="1.5"/>
@@ -56,25 +56,25 @@
     <line x1="810" y1="296" x2="1050" y2="296" stroke="#E58A2B" stroke-width="3"/>
     <polygon points="810,296 828,286 828,306" fill="#E58A2B"/>
     <circle cx="1050" cy="296" r="8" fill="#183153" stroke="#E58A2B" stroke-width="3"/>
-    <text x="672" y="302" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#E58A2B">paper FCI+</text>
+    <text x="672" y="302" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#E58A2B">paper FCI Plus</text>
     <text x="1078" y="302" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#FFC77E">reversed</text>
     <line x1="810" y1="364" x2="1050" y2="364" stroke="#7562A8" stroke-width="3"/>
     <polygon points="810,364 828,354 828,374" fill="#7562A8"/>
     <circle cx="1050" cy="364" r="8" fill="#183153" stroke="#7562A8" stroke-width="3"/>
-    <text x="672" y="370" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#BBAFE0">R pcalg FCI+</text>
+    <text x="672" y="370" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#BBAFE0">R pcalg FCI Plus</text>
     <text x="1078" y="370" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#BBAFE0">reversed</text>
     <line x1="810" y1="432" x2="1050" y2="432" stroke="#1C9A8A" stroke-width="3"/>
     <circle cx="810" cy="432" r="8" fill="#183153" stroke="#1C9A8A" stroke-width="3"/>
     <circle cx="1050" cy="432" r="8" fill="#183153" stroke="#1C9A8A" stroke-width="3"/>
-    <text x="672" y="438" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#A7E8DF">robust FCI+</text>
+    <text x="672" y="438" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#A7E8DF">robust FCI Plus</text>
     <text x="1078" y="438" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#A7E8DF">unresolved</text>
     <text x="672" y="503" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">A circle endpoint is calibrated abstention—</text>
     <text x="672" y="529" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#E9EDF5">not additional causal identification.</text>
   </g>
   <g id="stability-callout-13" data-pptx-bounds="56 567 1168 69">
     <rect x="56" y="567" width="1168" height="69" rx="12" fill="#DDF3EF"/>
-    <text x="80" y="596" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#1C9A8A">STABLE ADJACENCIES</text>
-    <text x="80" y="624" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1A2433">Early achievement—later achievement and early achievement—observation: 100% local bootstrap frequency.</text>
+    <text x="80" y="596" data-pptx-frame="80 575 230 26" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#1C9A8A">STABLE ADJACENCIES</text>
+    <text x="80" y="624" data-pptx-frame="80 602 1110 28" font-family="Arial, Helvetica, sans-serif" font-size="19" fill="#1A2433">Early–later achievement and early achievement–observation: 100% local bootstrap frequency.</text>
   </g>
   <g id="footer-13" data-pptx-bounds="56 648 1168 40">
     <text x="56" y="672" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">26 finite cyclic column shifts, not a theorem of order invariance · focused class—grade-3 adjacency disappears at α = .01</text>

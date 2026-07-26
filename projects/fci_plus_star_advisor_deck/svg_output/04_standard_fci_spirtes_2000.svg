@@ -24,7 +24,8 @@
     <line x1="610" y1="244" x2="640" y2="244" stroke="#183153" stroke-width="2.5" marker-end="url(#arrow-04)"/>
     <rect x="650" y="176" width="178" height="136" rx="12" fill="#E8F0FF" stroke="#2F6BFF" stroke-width="3"/>
     <text x="739" y="214" text-anchor="middle" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#2F6BFF">04</text>
-    <text x="739" y="248" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#183153">Possible-D-SEP<tspan x="739" dy="29">both orders</tspan></text>
+    <text x="739" y="248" data-pptx-frame="657 225 164 28" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#183153">Possible-D-SEP</text>
+    <text x="739" y="279" data-pptx-frame="657 256 164 28" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#183153">both orders</text>
     <line x1="828" y1="244" x2="858" y2="244" stroke="#183153" stroke-width="2.5" marker-end="url(#arrow-04)"/>
     <rect x="868" y="188" width="158" height="112" rx="12" fill="#FFFFFF" stroke="#2F6BFF" stroke-width="2"/>
     <text x="947" y="222" text-anchor="middle" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#2F6BFF">05</text>

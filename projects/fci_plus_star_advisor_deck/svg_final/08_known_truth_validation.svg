@@ -43,15 +43,15 @@
     </g>
     <text x="586" y="210" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">Exact oracle · Figure 4(b) logical CI queries</text>
     <text x="1070" y="245" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#FFFFFF">FCI 102</text>
-    <text x="901" y="285" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#FFFFFF">FCI+ 63</text>
+    <text x="901" y="285" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#FFFFFF">FCI Plus 63</text>
     <text x="586" y="345" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">Fixed-α regression · α = .001 for both · 5 families × 3 seeds</text>
     <text x="586" y="377" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#E9EDF5">Endpoint-sensitive exact-edge F1</text>
     <text x="926" y="407" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#FFC77E">paper .536</text>
     <text x="1020" y="443" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#A7E8DF">robust .703</text>
-    <text fill="#E9EDF5" font-size="18" font-family="Arial, Helvetica, sans-serif" x="586" y="511">Skeleton F1: .979 for both profiles</text><text fill="#E9EDF5" font-size="18" font-family="Arial, Helvetica, sans-serif" x="586" y="539">Mean CI calls: 197.1 → 380.7 · N = 2,500</text></g>
+    <text font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#E9EDF5" x="586" y="511">Skeleton F1: .979 for both profiles</text><text font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#E9EDF5" x="586" y="539">Mean CI calls: 197.1 → 380.7 · N = 2,500</text></g>
   <g id="caveat-08" data-pptx-bounds="56 585 1168 55">
     <text x="56" y="611" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#B45F4A">Fewer oracle queries ≠ finite-sample superiority.</text>
-    <text fill="#5F6875" font-size="16" font-family="Arial, Helvetica, sans-serif" x="665" y="590">The source prints a MAG;</text><text fill="#5F6875" font-size="16" font-family="Arial, Helvetica, sans-serif" x="665" y="612">the repository derives the PAG target independently.</text></g>
+    <text font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875" x="665" y="590">The source prints a MAG;</text><text font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875" x="665" y="612">the repository derives the PAG target independently.</text></g>
   <g id="footer-08" data-pptx-bounds="56 651 1168 37">
     <text x="56" y="676" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">Exact-oracle fixtures · committed finite-sample validation · Claassen et al. (2013), Figure 4(b)</text>
     <text x="1224" y="676" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="16" fill="#5F6875">08 / 15</text>

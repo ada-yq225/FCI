@@ -28,48 +28,48 @@
     </g>
     <text x="78" y="177" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">TOOL / EVIDENCE</text>
     <text x="355" y="177" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">FCI</text>
-    <text x="465" y="177" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">FCI+</text>
-    <text x="585" y="177" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">CI TRACE</text>
-    <text x="720" y="177" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">ORDER AUDIT</text>
+    <text x="465" y="177" data-pptx-frame="418 153 94 30" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" fill="#FFFFFF">FCI Plus</text>
+    <text x="585" y="177" data-pptx-frame="528 153 114 30" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700" fill="#FFFFFF">CI TRACE</text>
+    <text x="720" y="177" data-pptx-frame="658 153 124 30" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700" fill="#FFFFFF">ORDER AUDIT</text>
     <text x="860" y="177" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">BOOTSTRAP</text>
     <text x="995" y="177" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">EXPORT</text>
     <text x="1142" y="177" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">STATUS</text>
     <text x="92" y="247" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#2F6BFF">fci_engine 0.1.0</text>
     <text x="92" y="329" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#7562A8">pcalg 2.7-12</text>
-    <text fill="#7562A8" font-size="18" font-family="Arial, Helvetica, sans-serif" font-weight="700" x="92" y="401">causal-learn</text><text fill="#7562A8" font-size="18" font-family="Arial, Helvetica, sans-serif" font-weight="700" x="92" y="422">0.1.4.7</text><text x="92" y="493" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#5F6875">Tetrad 7.6.10</text>
+    <text font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#7562A8" font-weight="700" x="92" y="401">causal-learn</text><text font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#7562A8" font-weight="700" x="92" y="422">0.1.4.7</text><text x="92" y="493" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#5F6875">Tetrad 7.6.10</text>
     <text x="355" y="250" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#2E7D5B">YES</text>
     <text x="465" y="250" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#2E7D5B">YES</text>
     <text x="585" y="250" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#2E7D5B">structured</text>
     <text x="720" y="250" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#2E7D5B">built in</text>
     <text x="860" y="250" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#2E7D5B">built in</text>
     <text x="995" y="250" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#2E7D5B">artifacts</text>
-    <text x="1142" y="250" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#7562A8">EXECUTED</text>
+    <text x="1142" y="250" data-pptx-frame="1070 228 144 30" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#7562A8">RUN</text>
     <text x="355" y="332" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#2E7D5B">YES</text>
     <text x="465" y="332" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#2E7D5B">YES</text>
     <text x="585" y="332" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#5F6875">not established</text>
     <text x="720" y="332" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#5F6875">partial</text>
     <text x="860" y="332" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#5F6875">not established</text>
     <text x="995" y="332" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#B45F4A">NO</text>
-    <text x="1142" y="332" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#7562A8">EXECUTED</text>
+    <text x="1142" y="332" data-pptx-frame="1070 310 144 30" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#7562A8">RUN</text>
     <text x="355" y="414" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#2E7D5B">YES</text>
     <text x="465" y="414" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#B45F4A">NO</text>
     <text x="585" y="414" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#B45F4A">not exported</text>
     <text x="720" y="414" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#5F6875">not established</text>
     <text x="860" y="414" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#5F6875">not established</text>
     <text x="995" y="414" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#B45F4A">NO</text>
-    <text x="1142" y="414" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#7562A8">EXECUTED</text>
+    <text x="1142" y="414" data-pptx-frame="1070 392 144 30" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#7562A8">RUN</text>
     <text x="355" y="496" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#2E7D5B">YES</text>
     <text x="465" y="496" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#B45F4A">NO</text>
     <text x="585" y="496" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#5F6875">logger only</text>
     <text x="720" y="496" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#5F6875">partial</text>
     <text x="860" y="496" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#5F6875">workflow</text>
     <text x="995" y="496" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#B45F4A">NO</text>
-    <text x="1142" y="496" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#5F6875">DOCS ONLY</text>
+    <text x="1142" y="496" data-pptx-frame="1070 474 144 30" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700" fill="#5F6875">DOCS ONLY</text>
   </g>
   <g id="distinction-09" data-pptx-bounds="56 554 1168 80">
     <rect x="56" y="554" width="1168" height="80" rx="12" fill="#E9EDF5" />
     <text x="80" y="584" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#183153">LOCAL DISTINCTION</text>
-    <text fill="#1A2433" font-size="22" font-family="Arial, Helvetica, sans-serif" font-weight="700" x="80" y="606">Explicit paper profiles + CI/orientation traces + separator provenance</text><text fill="#1A2433" font-size="22" font-family="Arial, Helvetica, sans-serif" font-weight="700" x="80" y="633">+ stability audits + reproducible artifact exports</text></g>
+    <text font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#1A2433" font-weight="700" x="80" y="606">Explicit paper profiles + CI/orientation traces + separator provenance</text><text font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#1A2433" font-weight="700" x="80" y="633">+ stability audits + reproducible artifact exports</text></g>
   <g id="footer-09" data-pptx-bounds="56 649 1168 39">
     <text x="56" y="674" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">Dated software inventory, 2026-07-26 · Feature availability is not an accuracy ranking · endpoint encodings require normalization</text>
     <text x="1224" y="674" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="16" fill="#5F6875">09 / 15</text>

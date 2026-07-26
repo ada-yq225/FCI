@@ -38,10 +38,10 @@
       <circle cx="508" cy="477" r="10" fill="#44366C" />
     </g>
     <text x="78" y="284" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#2F6BFF">Local FCI · Spirtes profile</text>
-    <text x="78" y="334" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#E58A2B">Local FCI+ · Claassen profile</text>
-    <text x="78" y="384" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#1C9A8A">Local FCI+ · robust workflow</text>
+    <text x="78" y="334" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#E58A2B">Local FCI Plus · Claassen profile</text>
+    <text x="78" y="384" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#1C9A8A">Local FCI Plus · robust workflow</text>
     <text x="78" y="434" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#7562A8">causal-learn FCI · 0.1.4.7</text>
-    <text x="78" y="484" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#7562A8">pcalg FCI+ · 2.7-12</text>
+    <text x="78" y="484" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#7562A8">pcalg FCI Plus · 2.7-12</text>
     <text x="982" y="284" font-family="Consolas, Courier New, monospace" font-size="20" fill="#1A2433">449.7</text>
     <text x="982" y="334" font-family="Consolas, Courier New, monospace" font-size="20" fill="#1A2433">197.1</text>
     <text x="982" y="384" font-family="Consolas, Courier New, monospace" font-size="20" fill="#1A2433">401.9</text>
@@ -55,7 +55,7 @@
     <text x="80" y="610" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#183153">semantic F1 .985 · endpoint accuracy .840</text>
     <rect x="640" y="550" width="584" height="79" rx="12" fill="#FFF1E9" />
     <text x="664" y="579" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#B45F4A">INTERPRETATION LIMIT</text>
-    <text fill="#1A2433" font-size="18" font-family="Arial, Helvetica, sans-serif" x="664" y="596">Different α policy: workflow evidence,</text><text fill="#1A2433" font-size="18" font-family="Arial, Helvetica, sans-serif" x="664" y="619">not isolated algorithm superiority.</text></g>
+    <text font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1A2433" x="664" y="596">Different α policy: workflow evidence,</text><text font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1A2433" x="664" y="619">not isolated algorithm superiority.</text></g>
   <g id="footer-10" data-pptx-bounds="56 649 1168 39">
     <text x="56" y="674" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">reports/data/software_benchmark_summary.csv · pcalg timing includes R startup · wall time is not a cross-language contest</text>
     <text x="1224" y="674" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="16" fill="#5F6875">10 / 15</text>

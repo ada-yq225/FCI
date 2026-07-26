@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" data-pptx-page-role="content">
   <rect id="page-background-14" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#F7F5EF"/>
   <g id="header-14" data-pptx-bounds="56 34 1168 88">
-    <text x="56" y="72" font-family="Georgia, Times New Roman, serif" font-size="40" font-weight="700" fill="#183153">FCI+ Reduces CI Work, Not Causal Uncertainty</text>
+    <text x="56" y="72" font-family="Georgia, Times New Roman, serif" font-size="39" font-weight="700" fill="#183153">FCI Plus Reduces CI Work, Not Causal Uncertainty</text>
     <text x="1224" y="56" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="18" fill="#E58A2B">STAR COMPUTATION</text>
     <line x1="56" y1="106" x2="1224" y2="106" stroke="#CBD2DC" stroke-width="1.5"/>
   </g>
@@ -52,7 +52,7 @@
   </g>
   <g id="ratios-14" data-pptx-bounds="56 566 1168 72">
     <rect x="56" y="566" width="1168" height="72" rx="12" fill="#FFF3E3"/>
-    <text x="80" y="590" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#E58A2B">Paper FCI+ / FCI CI work:</text>
+    <text x="80" y="590" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#E58A2B">Paper FCI Plus / FCI CI work:</text>
     <text x="368" y="590" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#183153">47% attrition · 35% longitudinal · 64% focused</text>
     <text x="80" y="620" font-family="Consolas, Courier New, monospace" font-size="16" fill="#5F6875">Median seconds [FCI / paper / robust / R] — A: 5.44/1.79/2.84/10.39 · L: 2.15/.34/.56/1.65 · F: .32/.16/.25/.88</text>
   </g>

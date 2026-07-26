@@ -43,7 +43,7 @@
     </g>
     <text x="586" y="210" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">Exact oracle · Figure 4(b) logical CI queries</text>
     <text x="1070" y="245" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#FFFFFF">FCI 102</text>
-    <text x="901" y="285" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#FFFFFF">FCI+ 63</text>
+    <text x="901" y="285" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#FFFFFF">FCI Plus 63</text>
     <text x="586" y="345" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">Fixed-α regression · α = .001 for both · 5 families × 3 seeds</text>
     <text x="586" y="377" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#E9EDF5">Endpoint-sensitive exact-edge F1</text>
     <text x="926" y="407" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#FFC77E">paper .536</text>

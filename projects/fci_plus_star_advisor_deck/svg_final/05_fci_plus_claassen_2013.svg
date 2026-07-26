@@ -4,7 +4,7 @@
   </defs>
   <rect id="page-background-05" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#F7F5EF" />
   <g id="header-05" data-pptx-bounds="56 36 1168 86">
-    <text x="56" y="74" font-family="Georgia, Times New Roman, serif" font-size="42" font-weight="700" fill="#183153">FCI+ Uses a Sparse Logical Characterization</text>
+    <text x="56" y="74" font-family="Georgia, Times New Roman, serif" font-size="40" font-weight="700" fill="#183153">FCI Plus Uses a Sparse Logical Characterization</text>
     <text x="1224" y="57" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="18" fill="#E58A2B">CLAASSEN ET AL. 2013</text>
     <line x1="56" y1="106" x2="1224" y2="106" stroke="#CBD2DC" stroke-width="1.5" />
   </g>
@@ -17,27 +17,27 @@
     <line x1="382" y1="249" x2="430" y2="249" stroke="#183153" stroke-width="2.5" marker-end="url(#arrow-05)" />
     <rect x="440" y="183" width="386" height="143" rx="14" fill="#FFF3E3" stroke="#E58A2B" stroke-width="3" />
     <text x="466" y="217" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#E58A2B">02  Augmented skeleton</text>
-    <text fill="#1A2433" font-size="22" font-family="Arial, Helvetica, sans-serif" font-weight="700" x="466" y="250">Temporary arrowheads</text><text fill="#1A2433" font-size="22" font-family="Arial, Helvetica, sans-serif" font-weight="700" x="466" y="277">encode dependence</text><text x="466" y="310" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">Recognize candidate D-SEP-link witnesses.</text>
+    <text font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#1A2433" font-weight="700" x="466" y="250">Temporary arrowheads</text><text font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#1A2433" font-weight="700" x="466" y="277">encode dependence</text><text x="466" y="310" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">Recognize candidate D-SEP-link witnesses.</text>
     <line x1="633" y1="326" x2="633" y2="342" stroke="#183153" stroke-width="2.5" marker-end="url(#arrow-05)" />
     <rect x="440" y="342" width="386" height="176" rx="14" fill="#FFFFFF" stroke="#E58A2B" stroke-width="2" />
     <text x="466" y="376" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#E58A2B">03  Recursive hierarchy</text>
-    <text fill="#1A2433" font-size="22" font-family="Arial, Helvetica, sans-serif" font-weight="700" x="466" y="411">Construct a targeted</text><text fill="#1A2433" font-size="22" font-family="Arial, Helvetica, sans-serif" font-weight="700" x="466" y="438">separator basis</text><text fill="#5F6875" font-size="16" font-family="Arial, Helvetica, sans-serif" x="466" y="474">Use known sepsets and collider structure</text><text fill="#5F6875" font-size="16" font-family="Arial, Helvetica, sans-serif" x="466" y="496">instead of broad Possible-D-SEP enumeration.</text><line x1="440" y1="430" x2="392" y2="430" stroke="#183153" stroke-width="2.5" marker-end="url(#arrow-05)" />
+    <text font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#1A2433" font-weight="700" x="466" y="411">Construct a targeted</text><text font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#1A2433" font-weight="700" x="466" y="438">separator basis</text><text font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875" x="466" y="474">Use known sepsets and collider structure</text><text font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875" x="466" y="496">instead of broad Possible-D-SEP enumeration.</text><line x1="440" y1="430" x2="392" y2="430" stroke="#183153" stroke-width="2.5" marker-end="url(#arrow-05)" />
     <rect x="56" y="342" width="326" height="176" rx="14" fill="#183153" />
     <text x="82" y="376" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#FFC77E">04  Test → minimize → revisit</text>
-    <text fill="#FFFFFF" font-size="22" font-family="Arial, Helvetica, sans-serif" font-weight="700" x="82" y="413">Remove a verified</text><text fill="#FFFFFF" font-size="22" font-family="Arial, Helvetica, sans-serif" font-weight="700" x="82" y="440">D-SEP link</text><text fill="#E9EDF5" font-size="16" font-family="Arial, Helvetica, sans-serif" x="82" y="476">Update candidates; then orient</text><text fill="#E9EDF5" font-size="16" font-family="Arial, Helvetica, sans-serif" x="82" y="498">the verified final skeleton.</text></g>
+    <text font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#FFFFFF" font-weight="700" x="82" y="413">Remove a verified</text><text font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#FFFFFF" font-weight="700" x="82" y="440">D-SEP link</text><text font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#E9EDF5" x="82" y="476">Update candidates; then orient</text><text font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#E9EDF5" x="82" y="498">the verified final skeleton.</text></g>
   <g id="witness-05" data-pptx-bounds="56 558 1168 70">
     <text x="56" y="584" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#5F6875">D-SEP WITNESS</text>
-    <text x="238" y="590" font-family="Consolas, Courier New, monospace" font-size="24" font-weight="700" fill="#E58A2B">U ↔ X ↔ Y ↔ V</text>
+    <text x="238" y="590" data-pptx-frame="238 562 210 36" font-family="Consolas, Courier New, monospace" font-size="22" font-weight="700" fill="#E58A2B">U ↔ X ↔ Y ↔ V</text>
     <text x="468" y="590" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1A2433">+ hierarchy-derived separating information</text>
   </g>
   <g id="complexity-05" data-pptx-bounds="890 140 334 406">
     <rect x="890" y="140" width="334" height="406" rx="16" fill="#183153" />
     <text x="920" y="177" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFC77E">CONDITIONAL QUERY BOUND</text>
-    <text x="1057" y="258" text-anchor="middle" font-family="Georgia, Times New Roman, serif" font-size="34" font-weight="700" fill="#FFFFFF">O(N^(2(k+2)))</text>
+    <text x="1057" y="258" data-pptx-frame="920 220 274 58" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" fill="#FFFFFF">O(N²ᵏ⁺⁴)</text>
     <line x1="920" y1="294" x2="1194" y2="294" stroke="#5C7190" stroke-width="1.5" />
     <text x="920" y="332" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#FFFFFF">Only under:</text>
-    <text fill="#E9EDF5" font-size="20" font-family="Arial, Helvetica, sans-serif" x="920" y="371">• fixed observed-MAG degree k</text><text fill="#E9EDF5" font-size="20" font-family="Arial, Helvetica, sans-serif" x="920" y="403">• Faithfulness</text><text fill="#E9EDF5" font-size="20" font-family="Arial, Helvetica, sans-serif" x="920" y="435">• constant-time exact CI oracle</text><rect x="920" y="461" width="274" height="54" rx="10" fill="#B45F4A" />
-    <text fill="#FFFFFF" font-size="18" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle" x="1057" y="483">NOT a sample-accuracy guarantee</text><text fill="#FFFFFF" font-size="18" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle" x="1057" y="505">NOT a wall-clock guarantee</text></g>
+    <text font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#E9EDF5" x="920" y="371">• fixed observed-MAG degree k</text><text font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#E9EDF5" x="920" y="403">• Faithfulness</text><text font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#E9EDF5" x="920" y="435">• constant-time exact CI oracle</text><rect x="920" y="461" width="274" height="54" rx="10" fill="#B45F4A" />
+    <text font-family="Arial, Helvetica, sans-serif" text-anchor="middle" font-size="18" fill="#FFFFFF" font-weight="700" x="1057" y="483">NOT a sample-accuracy guarantee</text><text font-family="Arial, Helvetica, sans-serif" text-anchor="middle" font-size="18" fill="#FFFFFF" font-weight="700" x="1057" y="505">NOT a wall-clock guarantee</text></g>
   <g id="footer-05" data-pptx-bounds="56 640 1168 48">
     <text x="56" y="665" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">Claassen, Mooij &amp; Heskes (2013), Def. 3, Lemmas 4–7, Algorithm 2 p. 178, complexity p. 179 · supplement theorem/body</text>
     <text x="1224" y="665" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="16" fill="#5F6875">05 / 15</text>

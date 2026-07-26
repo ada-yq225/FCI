@@ -26,7 +26,7 @@
     <line x1="231" y1="275" x2="289" y2="347" stroke="#7562A8" stroke-width="3" marker-end="url(#arrow-purple-02)" />
     <line x1="139" y1="388" x2="469" y2="388" stroke="#B45F4A" stroke-width="3" marker-end="url(#arrow-red-02)" />
     <line x1="361" y1="374" x2="472" y2="356" stroke="#B45F4A" stroke-width="3" marker-end="url(#arrow-red-02)" />
-    <text fill="#1A2433" font-size="22" font-family="Arial, Helvetica, sans-serif" x="56" y="505">Marginalizing U and conditioning on S can induce a</text><text fill="#1A2433" font-size="22" font-family="Arial, Helvetica, sans-serif" x="56" y="533">mixed ancestral relation among observed variables.</text></g>
+    <text font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#1A2433" x="56" y="505">Marginalizing U and conditioning on S can induce a</text><text font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#1A2433" x="56" y="533">mixed ancestral relation among observed variables.</text></g>
   <g id="pag-target-02" data-pptx-bounds="716 142 508 386">
     <rect x="716" y="142" width="508" height="386" rx="16" fill="#183153" />
     <text x="746" y="177" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#E9EDF5">RIGHT OUTPUT TARGET</text>
@@ -43,10 +43,10 @@
     <polygon points="755,402 773,392 773,412" fill="#FFFFFF" />
     <polygon points="900,402 882,392 882,412" fill="#FFFFFF" />
     <text x="929" y="410" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#FFFFFF">bidirected</text>
-    <text fill="#E9EDF5" font-size="18" font-family="Arial, Helvetica, sans-serif" x="746" y="463">Adjacency ≠ direct effect</text><text fill="#E9EDF5" font-size="18" font-family="Arial, Helvetica, sans-serif" x="746" y="489">Circle = unresolved endpoint</text><text fill="#E9EDF5" font-size="18" font-family="Arial, Helvetica, sans-serif" x="746" y="515">Sample CI test ≠ exact oracle</text></g>
+    <text font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#E9EDF5" x="746" y="463">Adjacency ≠ direct effect</text><text font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#E9EDF5" x="746" y="489">Circle = unresolved endpoint</text><text font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#E9EDF5" x="746" y="515">Sample CI test ≠ exact oracle</text></g>
   <g id="claim-02" data-pptx-bounds="56 558 1168 76">
     <rect x="56" y="558" width="1168" height="76" rx="12" fill="#E9EDF5" />
-    <text fill="#183153" font-size="28" font-family="Arial, Helvetica, sans-serif" font-weight="700" x="80" y="585">The graph records invariant ancestral constraints—</text><text fill="#183153" font-size="28" font-family="Arial, Helvetica, sans-serif" font-weight="700" x="80" y="616">and preserves uncertainty where the data cannot decide.</text></g>
+    <text font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#183153" font-weight="700" x="80" y="585">The graph records invariant ancestral constraints—</text><text font-family="Arial, Helvetica, sans-serif" font-size="28" fill="#183153" font-weight="700" x="80" y="616">and preserves uncertainty where the data cannot decide.</text></g>
   <g id="footer-02" data-pptx-bounds="56 650 1168 38">
     <text x="56" y="674" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">Spirtes et al. (2000), Ch. 6 · Richardson &amp; Spirtes (2002) · Zhang (2008)</text>
     <text x="1224" y="674" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="16" fill="#5F6875">02 / 15</text>
