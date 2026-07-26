@@ -6,6 +6,10 @@ import csv
 import json
 from pathlib import Path
 
+import pandas as pd
+
+from reports.generate_software_comparison import generate_software_comparison
+
 
 ROOT = Path(__file__).resolve().parents[1]
 RESEARCH = ROOT / "reports" / "research"
@@ -110,3 +114,63 @@ def test_claim_matrix_requires_a_locator_for_every_report_claim() -> None:
                 assert (ROOT / path_text).exists(), (
                     f"{row['claim_id']} has an invalid repository path: {path_text}"
                 )
+
+
+def test_software_comparison_generator_writes_complete_tables(
+    tmp_path: Path,
+) -> None:
+    outputs = generate_software_comparison(
+        output_dir=tmp_path,
+        repeats=1,
+        samples=600,
+        include_pcalg=False,
+    )
+
+    cases = pd.read_csv(outputs["cases"])
+    summary = pd.read_csv(outputs["summary"])
+    features = pd.read_csv(outputs["features"])
+    assert all(
+        b"\r\n" not in path.read_bytes()
+        for path in outputs.values()
+    )
+
+    expected_algorithms = {
+        "fci_engine.fci",
+        "fci_engine.fci_plus",
+        "fci_engine.fci_plus.robust",
+        "causal-learn.fci.fisherz",
+    }
+    assert expected_algorithms <= set(summary["algorithm"])
+    assert {
+        "mean_skeleton_f1",
+        "mean_exact_edge_f1",
+        "mean_semantic_edge_f1",
+        "mean_endpoint_accuracy",
+        "mean_elapsed_seconds",
+    } <= set(summary.columns)
+
+    profiles = cases.groupby("algorithm")["profile"].first().to_dict()
+    assert profiles["fci_engine.fci"] == "spirtes_2000_paper"
+    assert profiles["fci_engine.fci_plus"] == "claassen_2013_paper"
+    assert profiles["fci_engine.fci_plus.robust"] == "practical_robust"
+    effective_alpha = (
+        cases.groupby("algorithm")["effective_alpha"].first().to_dict()
+    )
+    assert effective_alpha["fci_engine.fci_plus"] == 0.001
+    assert effective_alpha["fci_engine.fci_plus.robust"] == 0.05
+    assert cases.loc[
+        cases["algorithm"] == "fci_engine.fci_plus", "configuration"
+    ].str.contains('"skeleton_stable": false', regex=False).all()
+    assert cases.loc[
+        cases["algorithm"] == "fci_engine.fci_plus.robust", "configuration"
+    ].str.contains('"alpha": "auto"', regex=False).all()
+    assert set(cases["timing_scope"]) == {"in_process_algorithm_call"}
+
+    assert set(features["tool"]) >= {
+        "fci_engine",
+        "pcalg",
+        "causal-learn",
+        "Tetrad",
+    }
+    assert not (cases["algorithm"] == "Tetrad").any()
+    assert not (summary["algorithm"] == "Tetrad").any()
