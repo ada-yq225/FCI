@@ -169,9 +169,7 @@ def _run_case(
         max_path_length=case.max_path_length,
     )
 
-    local_runs: tuple[
-        tuple[str, str, FCIConfig, Callable[..., FCIResult]], ...
-    ] = (
+    local_runs: tuple[tuple[str, str, FCIConfig, Callable[..., FCIResult]], ...] = (
         (
             "fci_engine.fci",
             "spirtes_2000_paper",
@@ -193,58 +191,71 @@ def _run_case(
     )
     for algorithm, profile, config, function in local_runs:
         result = _run_local_config(case, function, algorithm, config)
-        yield result, _algorithm_metadata(
-            algorithm=algorithm,
-            family="FCI+" if "fci_plus" in algorithm else "FCI",
-            tool="fci_engine",
-            version=versions["fci_engine"],
-            profile=profile,
-            config=config,
-            ci_test_method="fisher_z",
-            effective_alpha=_effective_alpha(config.alpha, len(case.data)),
-            timing_scope="in_process_algorithm_call",
+        yield (
+            result,
+            _algorithm_metadata(
+                algorithm=algorithm,
+                family="FCI+" if "fci_plus" in algorithm else "FCI",
+                tool="fci_engine",
+                version=versions["fci_engine"],
+                profile=profile,
+                config=config,
+                ci_test_method="fisher_z",
+                effective_alpha=_effective_alpha(config.alpha, len(case.data)),
+                timing_scope="in_process_algorithm_call",
+            ),
         )
 
-    causal_result = run_causal_learn_fci(case, method="fisherz")
+    causal_result = _safe_external_run(
+        case,
+        "causal-learn.fci.fisherz",
+        lambda: run_causal_learn_fci(case, method="fisherz"),
+    )
     causal_config = {
         "alpha": case.alpha,
-        "depth": (
-            -1
-            if case.max_cond_set_size is None
-            else case.max_cond_set_size
-        ),
+        "depth": (-1 if case.max_cond_set_size is None else case.max_cond_set_size),
         "max_path_length": (
             -1 if case.max_path_length is None else case.max_path_length
         ),
     }
-    yield causal_result, _algorithm_metadata(
-        algorithm="causal-learn.fci.fisherz",
-        family="FCI",
-        tool="causal-learn",
-        version=versions["causal-learn"],
-        profile="documented_fci_api",
-        config=causal_config,
-        ci_test_method="fisherz",
-        effective_alpha=case.alpha,
-        timing_scope="in_process_algorithm_call",
+    yield (
+        causal_result,
+        _algorithm_metadata(
+            algorithm="causal-learn.fci.fisherz",
+            family="FCI",
+            tool="causal-learn",
+            version=versions["causal-learn"],
+            profile="documented_fci_api",
+            config=causal_config,
+            ci_test_method="fisherz",
+            effective_alpha=case.alpha,
+            timing_scope="in_process_algorithm_call",
+        ),
     )
 
     if include_pcalg:
-        pcalg_result = run_pcalg_fci_plus(case)
-        yield pcalg_result, _algorithm_metadata(
-            algorithm="pcalg.fciPlus",
-            family="FCI+",
-            tool="pcalg",
-            version=versions["pcalg"],
-            profile="pcalg_fciPlus_default",
-            config={
-                "alpha": case.alpha,
-                "indepTest": "gaussCItest",
-                "selectionBias": True,
-            },
-            ci_test_method="gaussCItest",
-            effective_alpha=case.alpha,
-            timing_scope="external_R_process_including_startup",
+        pcalg_result = _safe_external_run(
+            case,
+            "pcalg.fciPlus",
+            lambda: run_pcalg_fci_plus(case),
+        )
+        yield (
+            pcalg_result,
+            _algorithm_metadata(
+                algorithm="pcalg.fciPlus",
+                family="FCI+",
+                tool="pcalg",
+                version=versions["pcalg"],
+                profile="pcalg_fciPlus_default",
+                config={
+                    "alpha": case.alpha,
+                    "indepTest": "gaussCItest",
+                    "selectionBias": True,
+                },
+                ci_test_method="gaussCItest",
+                effective_alpha=case.alpha,
+                timing_scope="external_R_process_including_startup",
+            ),
         )
 
 
@@ -258,6 +269,26 @@ def _run_local_config(
         return function(data, config=config)
 
     return run_fci_engine(case, configured, algorithm)
+
+
+def _safe_external_run(
+    case: OracleCase,
+    algorithm: str,
+    runner: Callable[[], BenchmarkResult],
+) -> BenchmarkResult:
+    try:
+        return runner()
+    except Exception as exc:
+        reason = f"external runner failed: {type(exc).__name__}: {exc}"
+        return BenchmarkResult(
+            case_name=case.name,
+            algorithm=algorithm,
+            comparison=None,
+            semantic_comparison=None,
+            edges={},
+            elapsed_time=None,
+            skipped_reason=reason.replace("\n", " ")[:500],
+        )
 
 
 def _algorithm_metadata(
@@ -325,15 +356,9 @@ def _case_row(
         **metadata_row,
         "status": "skipped" if result.skipped else "completed",
         "skipped_reason": result.skipped_reason or "",
-        "skeleton_f1": (
-            None if comparison is None else comparison.skeleton_f1
-        ),
-        "exact_edge_f1": (
-            None if comparison is None else comparison.exact_edge_f1
-        ),
-        "semantic_edge_f1": (
-            None if semantic is None else semantic.semantic_edge_f1
-        ),
+        "skeleton_f1": (None if comparison is None else comparison.skeleton_f1),
+        "exact_edge_f1": (None if comparison is None else comparison.exact_edge_f1),
+        "semantic_edge_f1": (None if semantic is None else semantic.semantic_edge_f1),
         "endpoint_accuracy": (
             None if comparison is None else comparison.endpoint_accuracy
         ),
@@ -352,11 +377,7 @@ def _summary_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         completed = [row for row in group if row["status"] == "completed"]
         first = group[0]
         reasons = sorted(
-            {
-                str(row["skipped_reason"])
-                for row in group
-                if row["skipped_reason"]
-            }
+            {str(row["skipped_reason"]) for row in group if row["skipped_reason"]}
         )
         summaries.append(
             {
@@ -486,17 +507,20 @@ def _pcalg_version() -> str:
                 break
     if rscript is None:
         return "not installed"
-    completed = subprocess.run(
-        [
-            rscript,
-            "-e",
-            "cat(as.character(packageVersion('pcalg')))",
-        ],
-        capture_output=True,
-        text=True,
-        timeout=30,
-        check=False,
-    )
+    try:
+        completed = subprocess.run(
+            [
+                rscript,
+                "-e",
+                "cat(as.character(packageVersion('pcalg')))",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return "version unavailable"
     if completed.returncode != 0:
         return "not installed"
     return completed.stdout.strip() or "version unavailable"
