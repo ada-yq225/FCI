@@ -17,6 +17,8 @@ class PAG:
 
     def __init__(self, nodes: Sequence[str]) -> None:
         self._nodes = tuple(nodes)
+        if any(not isinstance(node, str) for node in self._nodes):
+            raise TypeError("PAG node names must be strings.")
         if len(set(self._nodes)) != len(self._nodes):
             raise ValueError("PAG nodes must be unique.")
 
@@ -45,6 +47,8 @@ class PAG:
         """
 
         self._validate_pair(x, y)
+        self._validate_endpoint(endpoint_x)
+        self._validate_endpoint(endpoint_y)
         if Endpoint.NONE in (endpoint_x, endpoint_y):
             raise ValueError("Edges must use non-NONE endpoints.")
 
@@ -88,6 +92,7 @@ class PAG:
         """Set the endpoint at ``y`` on edge ``x-y``."""
 
         self._validate_pair(x, y)
+        self._validate_endpoint(endpoint)
         if endpoint is Endpoint.NONE:
             raise ValueError("Use remove_edge() to remove PAG edges.")
         if not self.is_adjacent(x, y):
@@ -265,6 +270,11 @@ class PAG:
         self._validate_node(y)
         if x == y:
             raise ValueError("PAG edges require two distinct nodes.")
+
+    @staticmethod
+    def _validate_endpoint(endpoint: object) -> None:
+        if not isinstance(endpoint, Endpoint):
+            raise TypeError("PAG endpoints must be Endpoint enum values.")
 
     @staticmethod
     def _left_mark(endpoint: Endpoint) -> str:

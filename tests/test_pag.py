@@ -17,6 +17,11 @@ def test_pag_rejects_duplicate_nodes() -> None:
         PAG(["X", "X"])
 
 
+def test_pag_rejects_non_string_node_names() -> None:
+    with pytest.raises(TypeError, match="strings"):
+        PAG(["X", 1])
+
+
 def test_add_and_remove_edge() -> None:
     pag = PAG(["X", "Y"])
 
@@ -56,6 +61,16 @@ def test_endpoint_setting_and_orientation_helpers() -> None:
 
     pag.orient_arrowhead("Y", "X")
     assert pag.edge_repr("X", "Y") == "X <-> Y"
+
+
+def test_pag_rejects_non_enum_endpoint_values_without_corrupting_graph() -> None:
+    pag = PAG(["X", "Y"])
+    pag.add_circle_edge("X", "Y")
+
+    with pytest.raises(TypeError, match="Endpoint enum"):
+        pag.set_endpoint("X", "Y", "ARROW")
+
+    assert pag.edge_repr("X", "Y") == "X o-o Y"
 
 
 @pytest.mark.parametrize(

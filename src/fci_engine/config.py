@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from math import isfinite
+from numbers import Integral, Real
 from typing import Any, Literal, Optional, Union
 
 from typing_extensions import TypedDict, Unpack
@@ -110,15 +112,38 @@ class FCIConfig:
         if isinstance(self.alpha, str):
             if self.alpha != "auto":
                 raise ValueError("If string, alpha must be 'auto'.")
-        elif not 0.0 < self.alpha < 1.0:
-            raise ValueError("alpha must be between 0 and 1.")
+        else:
+            _validate_alpha(self.alpha)
 
-        if self.max_cond_set_size is not None and self.max_cond_set_size < 0:
-            raise ValueError("max_cond_set_size must be non-negative.")
-        if self.sparsity_bound is not None and self.sparsity_bound < 0:
-            raise ValueError("sparsity_bound must be non-negative.")
-        if self.max_path_length is not None and self.max_path_length < 0:
-            raise ValueError("max_path_length must be non-negative.")
+        _validate_optional_nonnegative_integer(
+            "max_cond_set_size",
+            self.max_cond_set_size,
+        )
+        _validate_optional_nonnegative_integer(
+            "sparsity_bound",
+            self.sparsity_bound,
+        )
+        _validate_optional_nonnegative_integer(
+            "max_path_length",
+            self.max_path_length,
+        )
+        for name in (
+            "do_pdsep",
+            "skeleton_stable",
+            "pdsep_stable",
+            "conservative_colliders",
+            "conservative_orientation",
+            "verbose",
+        ):
+            if not isinstance(getattr(self, name), bool):
+                raise TypeError(f"{name} must be a boolean.")
+        if self.ci_test is not None and not isinstance(self.ci_test, CITest):
+            raise TypeError("ci_test must implement the CITest interface.")
+        if self.background_knowledge is not None and not isinstance(
+            self.background_knowledge,
+            BackgroundKnowledge,
+        ):
+            raise TypeError("background_knowledge must be BackgroundKnowledge.")
         if self.sepset_selection not in {"first", "max_pvalue"}:
             raise ValueError("sepset_selection must be 'first' or 'max_pvalue'.")
         if self.orientation_strategy not in {
@@ -282,3 +307,23 @@ class FCIPlusConfig(FCIConfig):
         if normalized in {"paper", "paper_aligned"}:
             return cls.paper(**overrides)
         raise ValueError("Unknown FCI+ profile. Expected 'practical' or 'paper'.")
+
+
+def _validate_optional_nonnegative_integer(
+    name: str,
+    value: object,
+) -> None:
+    if value is None:
+        return
+    if isinstance(value, bool) or not isinstance(value, Integral):
+        raise TypeError(f"{name} must be an integer or None.")
+    if int(value) < 0:
+        raise ValueError(f"{name} must be non-negative.")
+
+
+def _validate_alpha(value: object) -> None:
+    if isinstance(value, bool) or not isinstance(value, Real):
+        raise ValueError("alpha must be between 0 and 1.")
+    numeric_value = float(value)
+    if not isfinite(numeric_value) or not 0.0 < numeric_value < 1.0:
+        raise ValueError("alpha must be between 0 and 1.")

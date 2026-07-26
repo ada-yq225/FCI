@@ -351,6 +351,7 @@ class FCIResult:
         a standalone interactive HTML report. Returned paths are absolute.
         """
 
+        _validate_artifact_stem(stem)
         output_directory = Path(directory).expanduser().resolve()
         output_directory.mkdir(parents=True, exist_ok=True)
         paths = {
@@ -365,6 +366,18 @@ class FCIResult:
             title=report_title,
         )
         return paths
+
+
+def _validate_artifact_stem(stem: str) -> None:
+    if (
+        not isinstance(stem, str)
+        or not stem
+        or stem in {".", ".."}
+        or Path(stem).name != stem
+        or "/" in stem
+        or "\\" in stem
+    ):
+        raise ValueError("stem must be a non-empty file name without path separators.")
 
 
 def _lookup_sepset(

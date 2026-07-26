@@ -27,6 +27,17 @@ def test_ndarray_variable_names_are_generated() -> None:
 
     assert names == ["X0", "X1", "X2"]
     assert np.array_equal(data, array)
+    assert data is not array
+    assert not data.flags.writeable
+
+
+def test_normalized_array_cannot_be_changed_through_caller_input() -> None:
+    array = np.arange(12.0).reshape(4, 3)
+
+    data, _ = validate_numeric_data(array)
+    array[:] = -1.0
+
+    assert np.array_equal(data, np.arange(12.0).reshape(4, 3))
 
 
 def test_rejects_1d_array_with_clear_error() -> None:
@@ -43,6 +54,28 @@ def test_rejects_non_numeric_dataframe_columns_for_fisher_z() -> None:
     )
 
     with pytest.raises(TypeError, match="non-numeric columns: status"):
+        validate_numeric_data(frame)
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        np.empty((0, 2)),
+        pd.DataFrame(columns=["x", "y"], dtype=float),
+    ],
+)
+def test_rejects_empty_datasets(data) -> None:
+    with pytest.raises(ValueError, match="at least one row"):
+        validate_numeric_data(data)
+
+
+@pytest.mark.parametrize("columns", [["x", "x"], [1, "1"]])
+def test_rejects_dataframe_column_names_that_are_not_unique_as_strings(
+    columns,
+) -> None:
+    frame = pd.DataFrame(np.ones((5, 2)), columns=columns)
+
+    with pytest.raises(ValueError, match="unique after conversion to strings"):
         validate_numeric_data(frame)
 
 

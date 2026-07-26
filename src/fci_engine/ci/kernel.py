@@ -34,12 +34,18 @@ class KernelCITest(CITest):
         random_state: Optional[int] = 0,
     ) -> None:
         super().__init__(alpha=alpha)
-        if n_permutations <= 0:
-            raise ValueError("n_permutations must be positive.")
-        if regularization <= 0.0:
-            raise ValueError("regularization must be positive.")
-        if eigenvalue_threshold <= 0.0:
-            raise ValueError("eigenvalue_threshold must be positive.")
+        if (
+            not isinstance(n_permutations, int)
+            or isinstance(n_permutations, bool)
+            or n_permutations <= 0
+        ):
+            raise ValueError("n_permutations must be a positive integer.")
+        if gamma is not None and (not np.isfinite(gamma) or gamma <= 0.0):
+            raise ValueError("gamma must be finite and positive.")
+        if not np.isfinite(regularization) or regularization <= 0.0:
+            raise ValueError("regularization must be finite and positive.")
+        if not np.isfinite(eigenvalue_threshold) or eigenvalue_threshold <= 0.0:
+            raise ValueError("eigenvalue_threshold must be finite and positive.")
         self.n_permutations = n_permutations
         self.gamma = gamma
         self.regularization = regularization

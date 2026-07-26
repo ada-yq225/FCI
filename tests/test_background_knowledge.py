@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+import fci_engine.discovery.base as base_module
 from fci_engine import BackgroundKnowledge, fci
 from fci_engine.ci import CITest, CITestResult
 from fci_engine.graph import Endpoint, PAG
@@ -62,6 +63,27 @@ def test_background_knowledge_rejects_contradictory_constraints() -> None:
         )
 
 
+def test_failed_constraint_mutation_does_not_corrupt_knowledge() -> None:
+    knowledge = BackgroundKnowledge(required_edges={("X", "Y")})
+
+    with pytest.raises(ValueError, match="both require and forbid"):
+        knowledge.forbid("X", "Y")
+
+    assert knowledge.required_edges == {("X", "Y")}
+    assert knowledge.forbidden_edges == set()
+    knowledge.forbid("Z", "Y")
+    assert knowledge.forbidden_edges == {("Z", "Y")}
+
+
+def test_background_knowledge_rejects_unknown_graph_nodes() -> None:
+    graph = PAG(["X", "Y"])
+    graph.add_circle_edge("X", "Y")
+    knowledge = BackgroundKnowledge(required_edges={("X", "Typo")})
+
+    with pytest.raises(KeyError, match="Typo"):
+        apply_background_knowledge(graph, knowledge)
+
+
 def test_fci_applies_required_background_knowledge() -> None:
     data = np.random.default_rng(0).normal(size=(100, 2))
     knowledge = BackgroundKnowledge(required_edges={("X0", "X1")})
@@ -92,3 +114,22 @@ def test_fci_preserves_background_knowledge_through_orientation_rules() -> None:
 
     assert result.graph.get_endpoint("X1", "X0") is Endpoint.ARROW
     assert result.graph.get_endpoint("X0", "X1") is Endpoint.TAIL
+
+
+def test_fci_reapplies_background_knowledge_after_all_rules(monkeypatch) -> None:
+    def overwrite_constraint(graph, *args, **kwargs):
+        graph.add_edge("X0", "X1", Endpoint.ARROW, Endpoint.TAIL)
+        return graph
+
+    monkeypatch.setattr(base_module, "apply_orientation_rules", overwrite_constraint)
+    data = np.random.default_rng(2).normal(size=(100, 2))
+    knowledge = BackgroundKnowledge(required_edges={("X0", "X1")})
+
+    result = fci(
+        data,
+        ci_test=AlwaysDependentCITest(),
+        background_knowledge=knowledge,
+        do_pdsep=False,
+    )
+
+    assert result.graph.edge_repr("X0", "X1") == "X0 --> X1"

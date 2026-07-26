@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import Optional
+
+import numpy as np
 
 from fci_engine.ci.base import CITest, CITestResult
 from fci_engine.diagnostics import CITraceEvent
@@ -19,7 +22,13 @@ class CITestCache(CITest):
         self.ci_test = ci_test
         self.alpha = ci_test.alpha
         self.allow_nan = getattr(ci_test, "allow_nan", False)
+        self.requires_numeric_data = getattr(
+            ci_test,
+            "requires_numeric_data",
+            True,
+        )
         self._cache: dict[CacheKey, CITestResult] = {}
+        self._cached_data: Optional[Array] = None
         self.n_tests_total = 0
         self.n_cache_hits = 0
         self.trace: list[CITraceEvent] = []
@@ -34,6 +43,18 @@ class CITestCache(CITest):
         """Run or retrieve the cached result for a CI query."""
 
         self.n_tests_total += 1
+        cacheable = isinstance(data, np.ndarray) and not data.flags.writeable
+        if not cacheable:
+            self._cache.clear()
+            self._cached_data = None
+            result = self.ci_test.test(data, x, y, tuple(cond_set))
+            self._record_trace(x, y, cond_set, result, cache_hit=False)
+            return result
+
+        if self._cached_data is not data:
+            self._cache.clear()
+            self._cached_data = data
+
         key = self._make_key(x, y, cond_set)
         if key in self._cache:
             self.n_cache_hits += 1
@@ -50,6 +71,7 @@ class CITestCache(CITest):
         """Clear cached results and reset cache counters."""
 
         self._cache.clear()
+        self._cached_data = None
         self.n_tests_total = 0
         self.n_cache_hits = 0
         self.trace.clear()

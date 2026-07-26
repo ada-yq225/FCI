@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 from dataclasses import replace
 from math import ceil
+from numbers import Integral, Real
 from typing import Any, Literal, Optional, overload
 
 import numpy as np
@@ -36,10 +37,7 @@ def bootstrap_edge_frequencies(
 ) -> dict[str, float]:
     """Return exact PAG edge representation frequencies over bootstrap runs."""
 
-    if n_bootstraps <= 0:
-        raise ValueError("n_bootstraps must be positive.")
-    if sample_fraction <= 0.0:
-        raise ValueError("sample_fraction must be positive.")
+    _validate_resampling_parameters(n_bootstraps, sample_fraction)
 
     counts: Counter[str] = Counter()
     results = _bootstrap_results(
@@ -71,10 +69,7 @@ def bootstrap_adjacency_frequencies(
 ) -> dict[tuple[str, str], float]:
     """Return unordered adjacency frequencies over bootstrap FCI runs."""
 
-    if n_bootstraps <= 0:
-        raise ValueError("n_bootstraps must be positive.")
-    if sample_fraction <= 0.0:
-        raise ValueError("sample_fraction must be positive.")
+    _validate_resampling_parameters(n_bootstraps, sample_fraction)
 
     counts: Counter[tuple[str, str]] = Counter()
     results = _bootstrap_results(
@@ -206,8 +201,7 @@ def _stable_discovery(
     n_jobs: int,
     **fci_kwargs: Any,
 ) -> FCIResult:
-    if not 0.0 <= edge_threshold <= 1.0:
-        raise ValueError("edge_threshold must be between 0 and 1.")
+    _validate_edge_threshold(edge_threshold)
 
     result = estimator_cls(**fci_kwargs).fit(data)
     frequencies = _bootstrap_adjacency_frequencies(
@@ -241,10 +235,7 @@ def _bootstrap_adjacency_frequencies(
     n_jobs: int = 1,
     **fci_kwargs: Any,
 ) -> dict[tuple[str, str], float]:
-    if n_bootstraps <= 0:
-        raise ValueError("n_bootstraps must be positive.")
-    if sample_fraction <= 0.0:
-        raise ValueError("sample_fraction must be positive.")
+    _validate_resampling_parameters(n_bootstraps, sample_fraction)
 
     counts: Counter[tuple[str, str]] = Counter()
     results = _bootstrap_results(
@@ -276,12 +267,8 @@ def _bootstrap_results(
     n_jobs: int,
     fci_kwargs: dict[str, Any],
 ) -> list[FCIResult]:
-    if n_bootstraps <= 0:
-        raise ValueError("n_bootstraps must be positive.")
-    if sample_fraction <= 0.0:
-        raise ValueError("sample_fraction must be positive.")
-    if n_jobs <= 0:
-        raise ValueError("n_jobs must be positive.")
+    _validate_resampling_parameters(n_bootstraps, sample_fraction)
+    _validate_positive_integer("n_jobs", n_jobs)
 
     n_samples = _n_rows(data)
     if n_samples == 0:
@@ -327,3 +314,28 @@ def _sample_rows(data: object, indices: Array) -> object:
     if isinstance(data, pd.DataFrame):
         return data.iloc[indices].reset_index(drop=True)
     return np.asarray(data)[indices]
+
+
+def _validate_resampling_parameters(
+    n_bootstraps: object,
+    sample_fraction: object,
+) -> None:
+    _validate_positive_integer("n_bootstraps", n_bootstraps)
+    if isinstance(sample_fraction, bool) or not isinstance(sample_fraction, Real):
+        raise ValueError("sample_fraction must be finite and positive.")
+    numeric_fraction = float(sample_fraction)
+    if not np.isfinite(numeric_fraction) or numeric_fraction <= 0.0:
+        raise ValueError("sample_fraction must be finite and positive.")
+
+
+def _validate_positive_integer(name: str, value: object) -> None:
+    if isinstance(value, bool) or not isinstance(value, Integral) or int(value) <= 0:
+        raise ValueError(f"{name} must be a positive integer.")
+
+
+def _validate_edge_threshold(value: object) -> None:
+    if isinstance(value, bool) or not isinstance(value, Real):
+        raise ValueError("edge_threshold must be between 0 and 1.")
+    numeric_value = float(value)
+    if not np.isfinite(numeric_value) or not 0.0 <= numeric_value <= 1.0:
+        raise ValueError("edge_threshold must be between 0 and 1.")

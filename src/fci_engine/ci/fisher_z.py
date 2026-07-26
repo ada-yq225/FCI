@@ -61,8 +61,15 @@ class FisherZTest(CITest):
     def _correlation_matrix(self, data: object) -> tuple[Array, int, int]:
         if isinstance(data, Mapping):
             return self._correlation_from_sufficient_stats(data)
-        if self._cached_input is data and self._cached_correlation is not None:
+        cacheable = isinstance(data, np.ndarray) and not data.flags.writeable
+        if (
+            cacheable
+            and self._cached_input is data
+            and self._cached_correlation is not None
+        ):
             return self._cached_correlation
+        if not cacheable:
+            self.clear_cache()
 
         input_object = data
         array = self._validate_data(data)
@@ -70,9 +77,16 @@ class FisherZTest(CITest):
         if not np.all(np.isfinite(corr)):
             raise ValueError("Cannot compute correlations for non-finite data.")
         result = np.asarray(corr, dtype=float), array.shape[0], array.shape[1]
-        self._cached_input = input_object
-        self._cached_correlation = result
+        if cacheable:
+            self._cached_input = input_object
+            self._cached_correlation = result
         return result
+
+    def clear_cache(self) -> None:
+        """Discard the cached correlation matrix."""
+
+        self._cached_input = None
+        self._cached_correlation = None
 
     @staticmethod
     def _validate_data(data: object) -> Array:
@@ -142,6 +156,11 @@ class FisherZTest(CITest):
             raise ValueError("Correlation matrix must be symmetric.")
         if not np.allclose(np.diag(corr), 1.0, atol=1e-6):
             raise ValueError("Correlation matrix diagonal must be all ones.")
+        if np.any(np.abs(corr) > 1.0 + 1e-8):
+            raise ValueError("Correlation matrix entries must lie between -1 and 1.")
+        minimum_eigenvalue = float(np.linalg.eigvalsh(corr).min())
+        if minimum_eigenvalue < -1e-8:
+            raise ValueError("Correlation matrix must be positive semidefinite.")
 
     @staticmethod
     def _validate_square_matrix(matrix: Array, name: str) -> None:

@@ -245,6 +245,9 @@ result = fci_plus(
 For discrete data use `ChiSquareTest` or `GSquareTest`. For nonlinear
 continuous relationships use `KernelCITest`. A custom test can implement the
 public `CITest` interface and be passed through the same `ci_test` argument.
+Categorical DataFrames are preserved end to end for the built-in discrete
+tests. A custom test that intentionally accepts non-numeric values should set
+`requires_numeric_data = False`; numeric validation remains the safe default.
 
 ### 8. Add bootstrap stability analysis when needed
 

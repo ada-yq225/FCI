@@ -37,15 +37,17 @@ class BackgroundKnowledge:
     def require(self, source: str, target: str) -> "BackgroundKnowledge":
         """Require ``source -> target`` and return ``self`` for chaining."""
 
-        self.required_edges.add((source, target))
-        self._validate()
+        required_edges = self.required_edges | {(source, target)}
+        self._validate_sets(required_edges, self.forbidden_edges)
+        self.required_edges = required_edges
         return self
 
     def forbid(self, source: str, target: str) -> "BackgroundKnowledge":
         """Forbid ``source -> target`` and return ``self`` for chaining."""
 
-        self.forbidden_edges.add((source, target))
-        self._validate()
+        forbidden_edges = self.forbidden_edges | {(source, target)}
+        self._validate_sets(self.required_edges, forbidden_edges)
+        self.forbidden_edges = forbidden_edges
         return self
 
     def is_required(self, source: str, target: str) -> bool:
@@ -59,17 +61,26 @@ class BackgroundKnowledge:
         return (source, target) in self.forbidden_edges
 
     def _validate(self) -> None:
-        for source, target in self.required_edges | self.forbidden_edges:
+        self._validate_sets(self.required_edges, self.forbidden_edges)
+
+    @staticmethod
+    def _validate_sets(
+        required_edges: set[DirectedEdge],
+        forbidden_edges: set[DirectedEdge],
+    ) -> None:
+        for source, target in required_edges | forbidden_edges:
+            if not isinstance(source, str) or not isinstance(target, str):
+                raise TypeError("Background knowledge node names must be strings.")
             if source == target:
                 raise ValueError("Background knowledge edges require distinct nodes.")
-        conflicts = self.required_edges & self.forbidden_edges
+        conflicts = required_edges & forbidden_edges
         if conflicts:
             raise ValueError(
                 "Background knowledge cannot both require and forbid the same "
                 f"directed edge: {sorted(conflicts)!r}."
             )
-        reverse_required = {(target, source) for source, target in self.required_edges}
-        opposite_required = self.required_edges & reverse_required
+        reverse_required = {(target, source) for source, target in required_edges}
+        opposite_required = required_edges & reverse_required
         if opposite_required:
             raise ValueError(
                 "Background knowledge cannot require both directions for an "
@@ -86,6 +97,17 @@ def apply_background_knowledge(
 
     if knowledge is None:
         return graph
+
+    constrained_nodes = {
+        node
+        for edge in knowledge.required_edges | knowledge.forbidden_edges
+        for node in edge
+    }
+    unknown_nodes = sorted(constrained_nodes - set(graph.nodes))
+    if unknown_nodes:
+        raise KeyError(
+            f"Background knowledge references unknown graph nodes: {unknown_nodes!r}."
+        )
 
     for x, y in graph.edges():
         if knowledge.is_required(str(x), str(y)):

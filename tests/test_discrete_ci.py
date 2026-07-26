@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 
 from fci_engine import fci_plus
-from fci_engine.ci import ChiSquareTest, GSquareTest
+from fci_engine.ci import CITestCache, ChiSquareTest, GSquareTest
 
 
 def test_chi_square_detects_independent_discrete_variables() -> None:
@@ -73,3 +73,47 @@ def test_g_square_runs_end_to_end_on_discrete_common_cause() -> None:
     assert result.graph.is_adjacent("Z", "Y")
     assert not result.graph.is_adjacent("X", "Y")
     assert any("expected cell counts" in note for note in result.assumption_notes())
+
+
+def test_discrete_fci_pipeline_accepts_categorical_dataframe() -> None:
+    rng = np.random.default_rng(32)
+    n_samples = 2_000
+    z_binary = rng.integers(0, 2, size=n_samples)
+    x_binary = np.bitwise_xor(z_binary, rng.random(n_samples) < 0.05)
+    y_binary = np.bitwise_xor(z_binary, rng.random(n_samples) < 0.05)
+    data = pd.DataFrame(
+        {
+            "Z": np.where(z_binary, "present", "absent"),
+            "X": np.where(x_binary, "high", "low"),
+            "Y": np.where(y_binary, "yes", "no"),
+        }
+    )
+
+    result = fci_plus(
+        data,
+        profile="paper",
+        k=1,
+        ci_test=GSquareTest(alpha=0.001),
+        alpha=0.001,
+    )
+
+    assert result.graph.is_adjacent("Z", "X")
+    assert result.graph.is_adjacent("Z", "Y")
+    assert not result.graph.is_adjacent("X", "Y")
+
+
+def test_ci_cache_preserves_categorical_data_capability() -> None:
+    data = pd.DataFrame(
+        {
+            "X": ["a", "b"] * 100,
+            "Y": ["yes", "no"] * 100,
+        }
+    )
+
+    result = fci_plus(
+        data,
+        ci_test=CITestCache(GSquareTest(alpha=0.01)),
+        max_cond_set_size=0,
+    )
+
+    assert result.nodes == ("X", "Y")

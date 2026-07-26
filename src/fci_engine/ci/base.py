@@ -24,6 +24,7 @@ class CITest(ABC):
     """Abstract base class for conditional independence tests."""
 
     allow_nan = False
+    requires_numeric_data = True
 
     def __init__(self, alpha: float = 0.05) -> None:
         if not 0.0 < alpha < 1.0:

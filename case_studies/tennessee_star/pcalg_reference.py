@@ -126,7 +126,7 @@ def load_pcalg_reference(
         if abs(float(row["alpha"]) - expected_alpha) > 1e-12:
             raise ValueError(f"Stale pcalg alpha for {panel_name}.")
 
-        panel_edges = edge_frame.loc[edge_frame["panel"] == panel_name]
+        panel_edges = edge_frame.loc[edge_frame["panel"] == panel_name, :]
         edge_records = [
             {
                 "x": str(edge["x"]),
@@ -139,7 +139,7 @@ def load_pcalg_reference(
             for edge in panel_edges.to_dict(orient="records")
         ]
         temporal_flags = _temporal_flags(edge_records)
-        panel_audit = audit_frame.loc[audit_frame["panel"] == panel_name]
+        panel_audit = audit_frame.loc[audit_frame["panel"] == panel_name, :]
         elapsed_runs = [
             float(value)
             for value in str(row["elapsed_runs_seconds"]).split(";")

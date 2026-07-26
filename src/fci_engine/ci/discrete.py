@@ -17,6 +17,7 @@ class ChiSquareTest(CITest):
     """Pearson chi-square CI test for discrete variables."""
 
     method = "chi_square"
+    requires_numeric_data = False
 
     def test(
         self,
@@ -48,6 +49,7 @@ class GSquareTest(CITest):
     """Likelihood-ratio G-square CI test for discrete variables."""
 
     method = "g_square"
+    requires_numeric_data = False
 
     def test(
         self,

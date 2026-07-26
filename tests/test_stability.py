@@ -104,6 +104,34 @@ def test_bootstrap_rejects_nonpositive_parallelism() -> None:
         )
 
 
+@pytest.mark.parametrize("value", [0, -1, 1.5, True])
+def test_bootstrap_count_must_be_a_positive_integer(value) -> None:
+    data = np.random.default_rng(43).normal(size=(40, 2))
+
+    with pytest.raises(ValueError, match="positive integer"):
+        bootstrap_adjacency_frequencies(data, n_bootstraps=value)
+
+
+@pytest.mark.parametrize("value", [0.0, -1.0, np.nan, np.inf, True])
+def test_bootstrap_sample_fraction_must_be_finite_and_positive(value) -> None:
+    data = np.random.default_rng(44).normal(size=(40, 2))
+
+    with pytest.raises(ValueError, match="finite and positive"):
+        bootstrap_adjacency_frequencies(
+            data,
+            n_bootstraps=2,
+            sample_fraction=value,
+        )
+
+
+@pytest.mark.parametrize("value", [np.nan, np.inf, True])
+def test_stable_fci_rejects_invalid_edge_threshold(value) -> None:
+    data = np.random.default_rng(45).normal(size=(40, 2))
+
+    with pytest.raises(ValueError, match="between 0 and 1"):
+        stable_fci(data, n_bootstraps=2, edge_threshold=value)
+
+
 def test_stable_fci_filters_low_frequency_edges() -> None:
     data = np.random.default_rng(5).normal(size=(60, 2))
 

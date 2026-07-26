@@ -2,6 +2,7 @@ import json
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from fci_engine import EdgeExplanation, FCIConfig, fci, fci_plus
 from fci_engine.ci import CITest, CITestResult
@@ -129,6 +130,15 @@ def test_result_saves_integrated_artifact_bundle(tmp_path) -> None:
     edge_table = pd.read_csv(paths["edges_csv"])
     assert {"x", "y", "endpoint_x", "endpoint_y", "edge"} <= set(edge_table.columns)
     assert "<html" in paths["report_html"].read_text(encoding="utf-8").lower()
+
+
+@pytest.mark.parametrize("stem", ["", ".", "..", "../escape", "sub/file", r"sub\\file"])
+def test_result_artifact_stem_cannot_escape_output_directory(
+    tmp_path,
+    stem,
+) -> None:
+    with pytest.raises(ValueError, match="stem"):
+        _chain_result().save_artifacts(tmp_path, stem=stem)
 
 
 def test_fci_config_is_exported_from_top_level_package() -> None:

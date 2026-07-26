@@ -12,6 +12,7 @@ from case_studies.tennessee_star.download_data import (
     STUDENT_PATH,
     sha256,
 )
+from case_studies.tennessee_star.pcalg_reference import load_pcalg_reference
 from case_studies.tennessee_star.report import render_report
 from case_studies.tennessee_star.study import load_star, prepare_study
 
@@ -42,6 +43,17 @@ def test_star_preparation_builds_expected_independent_panels() -> None:
         assert not panel.data.isna().any().any()
         assert all(np.issubdtype(dtype, np.integer) for dtype in panel.data.dtypes)
         assert len(panel.school_ids) == len(panel.data)
+
+
+def test_committed_pcalg_tables_load_into_validated_report_records() -> None:
+    study = prepare_study(load_star())
+
+    records, metadata = load_pcalg_reference(study)
+
+    assert {record["panel"] for record in records} == set(study.panels)
+    assert all(record["pag_edges"] for record in records)
+    assert all(record["order_audit"]["rows"] for record in records)
+    assert metadata["algorithm"] == "pcalg_fci_plus"
 
 
 def test_committed_star_report_is_reproducible_from_summary_payload() -> None:

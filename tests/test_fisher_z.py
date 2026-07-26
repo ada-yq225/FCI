@@ -120,6 +120,7 @@ def test_fisher_z_accepts_covariance_sufficient_statistics() -> None:
 def test_fisher_z_reuses_correlation_matrix_for_same_array(monkeypatch) -> None:
     rng = np.random.default_rng(7)
     data = rng.normal(size=(800, 4))
+    data.setflags(write=False)
     calls = {"count": 0}
     original_corrcoef = np.corrcoef
 
@@ -135,3 +136,66 @@ def test_fisher_z_reuses_correlation_matrix_for_same_array(monkeypatch) -> None:
     test.test(data, 2, 3, [0, 1])
 
     assert calls["count"] == 1
+
+
+def test_fisher_z_does_not_reuse_correlation_for_mutable_array() -> None:
+    rng = np.random.default_rng(8)
+    x = rng.normal(size=1_000)
+    data = np.column_stack([x, x + rng.normal(scale=0.01, size=1_000)])
+    test = FisherZTest(alpha=0.01)
+
+    before = test.test(data, 0, 1)
+    data[:, 1] = rng.normal(size=1_000)
+    after = test.test(data, 0, 1)
+
+    assert not before.independent
+    assert after.independent
+    assert before.p_value != after.p_value
+
+
+def test_fisher_z_invalidates_cache_if_read_only_data_becomes_writable() -> None:
+    rng = np.random.default_rng(9)
+    x = rng.normal(size=1_000)
+    data = np.column_stack([x, x + rng.normal(scale=0.01, size=1_000)])
+    data.setflags(write=False)
+    test = FisherZTest(alpha=0.01)
+
+    before = test.test(data, 0, 1)
+    data.setflags(write=True)
+    data[:, 1] = rng.normal(size=1_000)
+    after_mutation = test.test(data, 0, 1)
+    data.setflags(write=False)
+    after_refreeze = test.test(data, 0, 1)
+
+    assert not before.independent
+    assert after_mutation.independent
+    assert after_refreeze.p_value == after_mutation.p_value
+
+
+def test_fisher_z_rejects_out_of_range_correlation_matrix() -> None:
+    with pytest.raises(ValueError, match="between -1 and 1"):
+        FisherZTest().test(
+            {
+                "correlation": np.array([[1.0, 1.2], [1.2, 1.0]]),
+                "n_samples": 100,
+            },
+            0,
+            1,
+        )
+
+
+def test_fisher_z_rejects_non_positive_semidefinite_correlation_matrix() -> None:
+    invalid_correlation = np.array(
+        [
+            [1.0, 0.9, 0.9],
+            [0.9, 1.0, -0.9],
+            [0.9, -0.9, 1.0],
+        ]
+    )
+
+    with pytest.raises(ValueError, match="positive semidefinite"):
+        FisherZTest().test(
+            {"correlation": invalid_correlation, "n_samples": 100},
+            0,
+            1,
+        )

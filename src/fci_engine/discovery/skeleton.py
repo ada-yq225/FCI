@@ -6,10 +6,12 @@ from collections.abc import Sequence
 from itertools import combinations
 from typing import Optional
 
+import pandas as pd
+
 from fci_engine.ci import CITest
 from fci_engine.graph import PAG
 from fci_engine.types import Array, Node, SepsetMap, SepsetSourceMap
-from fci_engine.utils.validation import validate_numeric_data
+from fci_engine.utils.validation import validate_tabular_data
 
 
 def create_complete_pag(nodes: Sequence[Node]) -> PAG:
@@ -229,7 +231,12 @@ def _prepare_data_for_graph(
     *,
     allow_nan: bool = False,
 ) -> tuple[Array, dict[str, int]]:
-    normalized_data, variable_names = validate_numeric_data(data, allow_nan=allow_nan)
+    is_dataframe = isinstance(data, pd.DataFrame)
+    normalized_data, variable_names = validate_tabular_data(
+        data,
+        require_numeric=False,
+        allow_nan=allow_nan,
+    )
     if normalized_data.shape[1] != len(graph.nodes):
         raise ValueError(
             "data column count must match the number of graph nodes "
@@ -237,13 +244,19 @@ def _prepare_data_for_graph(
         )
 
     graph_node_names = [str(node) for node in graph.nodes]
-    if set(variable_names) == set(graph_node_names) and len(
-        set(graph_node_names)
-    ) == len(graph_node_names):
+    if is_dataframe and set(variable_names) != set(graph_node_names):
+        missing = sorted(set(graph_node_names) - set(variable_names))
+        unexpected = sorted(set(variable_names) - set(graph_node_names))
+        raise ValueError(
+            "DataFrame columns must match graph nodes exactly; "
+            f"missing={missing!r}, unexpected={unexpected!r}."
+        )
+    if set(variable_names) == set(graph_node_names):
         column_index = {name: index for index, name in enumerate(variable_names)}
         normalized_data = normalized_data[
             :, [column_index[name] for name in graph_node_names]
         ]
+        normalized_data.setflags(write=False)
 
     node_to_index = {node: index for index, node in enumerate(graph.nodes)}
     return normalized_data, node_to_index

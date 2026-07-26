@@ -20,7 +20,7 @@ from fci_engine.graph import PAG
 from fci_engine.knowledge import apply_background_knowledge
 from fci_engine.result import FCIResult
 from fci_engine.types import Array
-from fci_engine.utils.validation import validate_numeric_data
+from fci_engine.utils.validation import validate_tabular_data
 
 
 @dataclass
@@ -81,8 +81,14 @@ class BaseFCIEstimator:
 
     def _prepare_run(self, data: object) -> DiscoveryRun:
         initial_allow_nan = getattr(self.config.ci_test, "allow_nan", False)
-        normalized_data, variable_names = validate_numeric_data(
+        requires_numeric_data = getattr(
+            self.config.ci_test,
+            "requires_numeric_data",
+            True,
+        )
+        normalized_data, variable_names = validate_tabular_data(
             data,
+            require_numeric=requires_numeric_data,
             allow_nan=initial_allow_nan,
         )
         self.variable_names = variable_names
@@ -195,6 +201,11 @@ class BaseFCIEstimator:
             ambiguous_triples=run.ambiguous_triples,
             conservative_orientation=run.config.conservative_orientation,
             orientation_strategy=run.config.orientation_strategy,
+        )
+        apply_background_knowledge(
+            graph,
+            run.config.background_knowledge,
+            trace=run.orientation_trace,
         )
 
     def _build_result(

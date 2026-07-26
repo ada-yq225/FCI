@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from fci_engine.ci import FisherZTest, KernelCITest
 
@@ -77,3 +78,27 @@ def test_kernel_ci_conditions_on_nonlinear_common_cause() -> None:
 
     assert not marginal.independent
     assert conditional.independent
+
+
+@pytest.mark.parametrize(
+    ("parameter", "value"),
+    [
+        ("gamma", 0.0),
+        ("gamma", -1.0),
+        ("gamma", np.nan),
+        ("gamma", np.inf),
+        ("regularization", np.nan),
+        ("regularization", np.inf),
+        ("eigenvalue_threshold", np.nan),
+        ("eigenvalue_threshold", np.inf),
+    ],
+)
+def test_kernel_ci_rejects_invalid_numeric_configuration(parameter, value) -> None:
+    with pytest.raises(ValueError, match="finite|positive"):
+        KernelCITest(**{parameter: value})
+
+
+@pytest.mark.parametrize("value", [0, -1, 1.5, True])
+def test_kernel_ci_requires_positive_integer_permutation_count(value) -> None:
+    with pytest.raises(ValueError, match="positive integer"):
+        KernelCITest(n_permutations=value)

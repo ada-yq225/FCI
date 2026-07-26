@@ -1,4 +1,6 @@
 import numpy as np
+import pandas as pd
+import pytest
 
 from fci_engine.ci import CITest, CITestResult
 from fci_engine.discovery import create_complete_pag, learn_initial_skeleton
@@ -191,3 +193,35 @@ def test_order_dependent_skeleton_kept_for_explicit_compatibility() -> None:
     assert not learned.is_adjacent("A", "D")
     assert learned.is_adjacent("C", "D")
     assert ("C", "D") not in sepsets
+
+
+def test_dataframe_columns_must_match_explicit_graph_nodes() -> None:
+    data = pd.DataFrame(np.ones((20, 2)), columns=["X", "Typo"])
+    graph = create_complete_pag(["X", "Y"])
+    oracle = OracleCITest(set())
+
+    with pytest.raises(ValueError, match="must match graph nodes exactly"):
+        learn_initial_skeleton(data, graph, oracle)
+
+
+def test_dataframe_columns_are_reordered_to_explicit_graph_node_order() -> None:
+    data = pd.DataFrame(
+        {
+            "C": np.full(20, 3.0),
+            "A": np.full(20, 1.0),
+            "B": np.full(20, 2.0),
+        }
+    )
+    graph = create_complete_pag(["A", "B", "C"])
+
+    class ColumnOrderCITest(OracleCITest):
+        def test(self, values, x, y, cond_set):
+            assert np.array_equal(values[0], np.array([1.0, 2.0, 3.0]))
+            return super().test(values, x, y, cond_set)
+
+    learn_initial_skeleton(
+        data,
+        graph,
+        ColumnOrderCITest(set()),
+        max_cond_set_size=0,
+    )
