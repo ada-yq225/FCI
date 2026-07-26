@@ -1518,8 +1518,7 @@ def plot_figure4_validation() -> None:
     )
     _draw_pag(axes[1], nodes, learned_edges, positions)
     axes[1].set_title(
-        f"Recovered FCI+ PAG\n{result.ci_test_count} CI queries; "
-        "exact endpoint match",
+        f"Recovered FCI+ PAG\n{result.ci_test_count} CI queries; exact endpoint match",
         fontweight="bold",
     )
     figure.suptitle(

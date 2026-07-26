@@ -118,34 +118,22 @@ def test_oracle_validation_summary_is_frozen_and_reproducible(
     assert len({row["target_sha256"] for row in rows}) == 1
     assert len(rows[0]["target_sha256"]) == 64
     assert {row["status"] for row in rows} == {"completed"}
-    by_key = {
-        (row["regime"], row["algorithm"], row["n_samples"]): row for row in rows
-    }
+    by_key = {(row["regime"], row["algorithm"], row["n_samples"]): row for row in rows}
     assert (
-        by_key[("finite_sample", "fci_plus", "5000")][
-            "exact_target_recovered"
-        ]
+        by_key[("finite_sample", "fci_plus", "5000")]["exact_target_recovered"]
         == "false"
     )
 
     assert by_key[("exact_oracle", "fci", "")]["ci_test_count"] == "102"
     assert by_key[("exact_oracle", "fci_plus", "")]["ci_test_count"] == "63"
-    assert (
-        by_key[("finite_sample", "fci_plus", "5000")]["exact_edge_f1"]
-        == "0.923077"
-    )
-    assert (
-        by_key[("finite_sample", "fci_plus", "50000")]["exact_edge_f1"]
-        == "1.000000"
-    )
+    assert by_key[("finite_sample", "fci_plus", "5000")]["exact_edge_f1"] == "0.923077"
+    assert by_key[("finite_sample", "fci_plus", "50000")]["exact_edge_f1"] == "1.000000"
 
 
 def test_report_figures_keep_legend_and_source_boundary_explicit(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    payload = json.loads(
-        report_figures.SUMMARY_PATH.read_text(encoding="utf-8")
-    )
+    payload = json.loads(report_figures.SUMMARY_PATH.read_text(encoding="utf-8"))
     captured: dict[str, object] = {}
 
     def capture(figure: object, filename: str) -> None:
