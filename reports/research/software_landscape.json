@@ -39,11 +39,11 @@
       ],
       "smoke_observation": "Local FCI and FCI+ calls completed on the seeded three-variable continuous fixture.",
       "source_urls": [
-        "../../../pyproject.toml",
-        "../../../README.md",
-        "../../../src/fci_engine/result.py",
-        "../../../src/fci_engine/discovery/fci.py",
-        "../../../src/fci_engine/discovery/fci_plus.py"
+        "../../pyproject.toml",
+        "../../README.md",
+        "../../src/fci_engine/result.py",
+        "../../src/fci_engine/discovery/fci.py",
+        "../../src/fci_engine/discovery/fci_plus.py"
       ],
       "comparison_limits": [
         "Project metadata classifies version 0.1.0 as pre-alpha.",
