@@ -11,6 +11,7 @@ build/
 dist/
 *.egg-info/
 tmp/
+.worktrees/
 
 # Local reports and TeX build products that are not package sources.
 /IRP_Project_Plan.*
