@@ -56,7 +56,17 @@ analysis therefore:
 5. uses the paper profile for standard FCI;
 6. uses the Claassen et al. paper profile for FCI+ with `k=3`;
 7. runs CRAN `pcalg::fciPlus` as an independent R reference;
-8. resamples whole kindergarten schools for adjacency stability.
+8. separately runs `fci_plus(..., profile="practical")` as the recommended
+   finite-sample application result;
+9. audits every local algorithm under every cyclic variable ordering;
+10. resamples whole kindergarten schools for adjacency stability.
+
+The paper-profile runs answer “did the implementation follow and reproduce the
+published algorithms?” The robust application run answers “which conclusions
+survive finite-sample safeguards?” They are intentionally separate. The robust
+profile uses stable depth-wise skeleton updates, strongest-at-depth separating
+sets, conservative colliders, and cautious orientation. It does not modify the
+paper implementation and does not add domain-forced arrows.
 
 The R runner supplies a compact-table G-square function matching
 `src/fci_engine/ci/discrete.py`. It intentionally does not use the default
@@ -94,6 +104,8 @@ The command writes:
 - `output/star_benchmark.csv`: runtime and CI-test comparison;
 - `output/star_pag_edges.csv`: every learned PAG edge;
 - `output/star_bootstrap_adjacencies.csv`: school-bootstrap frequencies;
+- `output/star_python_order_audit.csv`: all cyclic-order refits for the three
+  local analysis profiles;
 - `output/star_sensitivity.csv`: alpha/binning sensitivity;
 - `output/star_descriptive_contrasts.csv`: randomized-arm summaries.
 - `output/star_pcalg_runs.csv`: R and `pcalg` versions, timings, and CI calls;
@@ -110,15 +122,23 @@ The report deliberately presents three different forms of evidence:
 - self-implemented FCI/FCI+ PAGs;
 - an independently executed R `pcalg::fciPlus` PAG.
 
-The three algorithms return an identical focused-treatment PAG, but do not
-fully agree on the attrition and longitudinal endpoint orientations. The R
-implementation gives the temporally sensible
+The three paper-comparison algorithms return an identical focused-treatment
+PAG, but do not fully agree on the attrition and longitudinal endpoint
+orientations. The R implementation gives the temporally sensible
 `K_Achievement --> Grade3_Observed` relation in the attrition panel, while both
 FCI+ implementations reverse the kindergarten/grade-3 achievement chronology
-in the longitudinal panel. Consequently, the project does not label one
-empirical PAG as universally best: randomized design evidence is strongest for
-the treatment effect, and cross-implementation skeleton agreement is more
-credible than implementation-specific arrowheads.
+in the longitudinal panel.
+
+The separate robust FCI+ application result is exactly invariant across all
+cyclic column orders in all three panels, retains each main target adjacency,
+and contains no fully directed temporal reversal. Its main target edges are
+`o-o`: the improvement comes from refusing to assert unstable directions, not
+from discovering stronger causal identification. Consequently, the project
+uses the robust profile for applied skeleton-level conclusions but does not
+label any empirical PAG as universally true. Randomized design evidence
+remains strongest for the treatment effect, and cross-implementation,
+cross-order skeleton agreement is more credible than
+implementation-specific arrowheads.
 
 The PAG does not estimate a class-size treatment effect. A bidirected edge is
 not automatically proof of latent confounding, particularly after restricting

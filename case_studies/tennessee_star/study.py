@@ -27,7 +27,7 @@ from case_studies.tennessee_star.download_data import (
     STUDENT_PATH,
 )
 
-AlgorithmName = Literal["fci", "fci_plus"]
+AlgorithmName = Literal["fci", "fci_plus", "fci_plus_robust"]
 
 HERE = Path(__file__).resolve().parent
 PROCESSED_DIR = HERE / "data" / "processed"
@@ -123,6 +123,7 @@ class DiscoveryRecord:
     median_elapsed: float
     bootstrap_adjacencies: dict[tuple[str, str], float]
     temporal_flags: tuple[str, ...]
+    order_audit: dict[str, Any]
 
     @property
     def edge_count(self) -> int:
@@ -294,8 +295,9 @@ def run_discovery_suite(
     bootstraps: int = 12,
     n_jobs: int = 4,
     random_state: int = 20260716,
+    order_audit: bool = True,
 ) -> list[DiscoveryRecord]:
-    """Fit both algorithms to every panel and compute cluster stability."""
+    """Fit validation and robust application profiles to every panel."""
 
     if benchmark_repeats <= 0:
         raise ValueError("benchmark_repeats must be positive.")
@@ -303,7 +305,11 @@ def run_discovery_suite(
         raise ValueError("bootstraps cannot be negative.")
 
     records: list[DiscoveryRecord] = []
-    algorithms: tuple[AlgorithmName, ...] = ("fci", "fci_plus")
+    algorithms: tuple[AlgorithmName, ...] = (
+        "fci",
+        "fci_plus",
+        "fci_plus_robust",
+    )
     for panel_index, panel in enumerate(study.panels.values()):
         for algorithm_index, algorithm in enumerate(algorithms):
             results = [
@@ -341,6 +347,17 @@ def run_discovery_suite(
                     median_elapsed=float(median(elapsed)),
                     bootstrap_adjacencies=frequencies,
                     temporal_flags=tuple(temporal_orientation_flags(first)),
+                    order_audit=(
+                        cyclic_order_audit(
+                            panel.data,
+                            algorithm=algorithm,
+                            alpha=alpha,
+                            sparsity_bound=sparsity_bound,
+                            baseline=first,
+                        )
+                        if order_audit
+                        else {}
+                    ),
                 )
             )
     return records
@@ -361,10 +378,19 @@ def _fit_panel(
             alpha=alpha,
             ci_test=ci_test,
         )
+    if algorithm == "fci_plus":
+        return fci_plus(
+            data,
+            profile="paper",
+            k=sparsity_bound,
+            alpha=alpha,
+            ci_test=ci_test,
+        )
     return fci_plus(
         data,
-        profile="paper",
-        k=sparsity_bound,
+        profile="practical",
+        max_cond_set_size=sparsity_bound,
+        sparsity_bound=sparsity_bound,
         alpha=alpha,
         ci_test=ci_test,
     )
@@ -564,7 +590,7 @@ def sensitivity_analysis(
     for bins in bin_counts:
         panel = prepare_study(frame, achievement_bins=bins).panels["focused_treatment"]
         for alpha in alphas:
-            for algorithm in ("fci", "fci_plus"):
+            for algorithm in ("fci", "fci_plus", "fci_plus_robust"):
                 result = _fit_panel(
                     panel.data,
                     algorithm=algorithm,
@@ -631,6 +657,84 @@ def skeleton_jaccard(left: FCIResult, right: FCIResult) -> float:
     right_edges = {_edge_key(x, y) for x, y in right.edges}
     union = left_edges | right_edges
     return 1.0 if not union else len(left_edges & right_edges) / len(union)
+
+
+def cyclic_order_audit(
+    data: pd.DataFrame,
+    *,
+    algorithm: AlgorithmName,
+    alpha: float,
+    sparsity_bound: int,
+    baseline: FCIResult | None = None,
+) -> dict[str, Any]:
+    """Refit every cyclic column shift and quantify order sensitivity."""
+
+    columns = list(data.columns)
+    if not columns:
+        raise ValueError("Order audit requires at least one column.")
+    reference = baseline or _fit_panel(
+        data,
+        algorithm=algorithm,
+        alpha=alpha,
+        sparsity_bound=sparsity_bound,
+    )
+    reference_shape = _pag_shape(reference)
+    if "Grade3_Observed" in columns:
+        target = ("K_Achievement", "Grade3_Observed")
+    elif "K_Achievement" in columns:
+        target = ("K_Achievement", "Grade3_Achievement")
+    else:
+        target = ("K_Class", "Grade3_Achievement")
+    rows: list[dict[str, Any]] = []
+    for shift in range(len(columns)):
+        ordering = columns[shift:] + columns[:shift]
+        result = (
+            reference
+            if shift == 0 and tuple(reference.nodes) == tuple(columns)
+            else _fit_panel(
+                data.loc[:, ordering],
+                algorithm=algorithm,
+                alpha=alpha,
+                sparsity_bound=sparsity_bound,
+            )
+        )
+        rows.append(
+            {
+                "ordering": f"cyclic_shift_{shift}",
+                "first_node": ordering[0],
+                "exact_pag_match": _pag_shape(result) == reference_shape,
+                "skeleton_jaccard": skeleton_jaccard(reference, result),
+                "edges": len(result.edges),
+                "ci_tests": result.ci_test_count,
+                "elapsed_seconds": result.elapsed_time,
+                "target_edge": edge_for_pair(result, *target),
+                "temporal_flags": temporal_orientation_flags(result),
+            }
+        )
+    exact_matches = sum(bool(row["exact_pag_match"]) for row in rows)
+    target_matches = sum(row["target_edge"] is not None for row in rows)
+    temporal_failures = sum(bool(row["temporal_flags"]) for row in rows)
+    return {
+        "exact_pag_match_rate": exact_matches / len(rows),
+        "mean_skeleton_jaccard": float(
+            np.mean([float(row["skeleton_jaccard"]) for row in rows])
+        ),
+        "minimum_skeleton_jaccard": min(float(row["skeleton_jaccard"]) for row in rows),
+        "target_adjacency_rate": target_matches / len(rows),
+        "temporal_reversal_rate": temporal_failures / len(rows),
+        "ci_test_range": [
+            min(int(row["ci_tests"]) for row in rows),
+            max(int(row["ci_tests"]) for row in rows),
+        ],
+        "rows": rows,
+    }
+
+
+def _pag_shape(result: FCIResult) -> dict[tuple[str, str], tuple[str, str]]:
+    return {
+        _edge_key(str(edge["x"]), str(edge["y"])): _canonical_endpoints(edge)
+        for edge in result.to_edge_records()
+    }
 
 
 def _edge_key(x: str, y: str) -> tuple[str, str]:
@@ -703,6 +807,7 @@ def build_summary_payload(
                     for edge, frequency in record.bootstrap_adjacencies.items()
                 ],
                 "assumption_notes": record.result.assumption_notes(),
+                "order_audit": record.order_audit,
             }
         )
     if external_records:
@@ -722,6 +827,16 @@ def build_summary_payload(
             "fci_profile": "paper",
             "fci_plus_profile": "paper",
             "fci_plus_k": sparsity_bound,
+            "robust_application_profile": "practical",
+            "robust_application_options": {
+                "stable_skeleton": True,
+                "sepset_selection": "max_pvalue",
+                "conservative_colliders": True,
+                "orientation_strategy": "robust",
+                "possible_dsep_stage": False,
+                "max_cond_set_size": sparsity_bound,
+                "sparsity_bound": sparsity_bound,
+            },
             "cluster_bootstraps": bootstraps,
             "external_reference": external_metadata,
         },
@@ -742,6 +857,7 @@ def build_summary_payload(
         "runs": run_rows,
         "comparisons": comparisons,
         "three_algorithm_comparisons": _three_algorithm_comparisons(run_rows),
+        "robust_application_comparisons": _robust_application_comparisons(run_rows),
         "sensitivity": sensitivity,
     }
 
@@ -814,6 +930,65 @@ def _three_algorithm_comparisons(
                 for algorithm in algorithms[1:]
             ),
             "target_edges": _target_edge_comparison(panel_runs, panel),
+        }
+    return output
+
+
+def _robust_application_comparisons(
+    run_rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    indexed = {(str(run["panel"]), str(run["algorithm"])): run for run in run_rows}
+    output: dict[str, Any] = {}
+    for panel in PANEL_DESCRIPTIONS:
+        paper = indexed.get((panel, "fci_plus"))
+        robust = indexed.get((panel, "fci_plus_robust"))
+        if paper is None or robust is None:
+            continue
+        paper_skeleton = {
+            _edge_key(str(edge["x"]), str(edge["y"])) for edge in paper["pag_edges"]
+        }
+        robust_skeleton = {
+            _edge_key(str(edge["x"]), str(edge["y"])) for edge in robust["pag_edges"]
+        }
+        union = paper_skeleton | robust_skeleton
+        common = paper_skeleton & robust_skeleton
+        target = {
+            "attrition": ("K_Achievement", "Grade3_Observed"),
+            "longitudinal": ("K_Achievement", "Grade3_Achievement"),
+            "focused_treatment": ("K_Class", "Grade3_Achievement"),
+        }[panel]
+        target_key = _edge_key(*target)
+
+        def target_edge(run: dict[str, Any]) -> str | None:
+            return next(
+                (
+                    str(edge["edge"])
+                    for edge in run["pag_edges"]
+                    if _edge_key(str(edge["x"]), str(edge["y"])) == target_key
+                ),
+                None,
+            )
+
+        output[panel] = {
+            "paper_target_edge": target_edge(paper),
+            "robust_target_edge": target_edge(robust),
+            "skeleton_jaccard": 1.0 if not union else len(common) / len(union),
+            "paper_exact_order_rate": paper["order_audit"].get("exact_pag_match_rate"),
+            "robust_exact_order_rate": robust["order_audit"].get(
+                "exact_pag_match_rate"
+            ),
+            "paper_minimum_skeleton_jaccard": paper["order_audit"].get(
+                "minimum_skeleton_jaccard"
+            ),
+            "robust_minimum_skeleton_jaccard": robust["order_audit"].get(
+                "minimum_skeleton_jaccard"
+            ),
+            "paper_temporal_flags": len(paper["temporal_flags"]),
+            "robust_temporal_flags": len(robust["temporal_flags"]),
+            "ci_test_ratio": robust["ci_tests"] / paper["ci_tests"],
+            "runtime_ratio": (
+                robust["median_elapsed_seconds"] / paper["median_elapsed_seconds"]
+            ),
         }
     return output
 

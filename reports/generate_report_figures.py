@@ -28,6 +28,7 @@ GREY = "#667085"
 LIGHT_GREY = "#d0d5dd"
 INK = "#172033"
 RED = "#b42318"
+PURPLE = "#7c3aed"
 
 PANEL_LABELS = {
     "attrition": "Attrition / observation",
@@ -58,9 +59,10 @@ def main() -> None:
     plot_bootstrap_stability(payload)
     plot_sensitivity(payload)
     plot_three_algorithm_agreement(payload)
-    plot_pcalg_order_audit(payload)
+    plot_order_audit(payload)
     for panel in ("attrition", "longitudinal", "focused_treatment"):
         plot_pag_comparison(payload, panel)
+    plot_robust_pag_application(payload)
     plot_figure4_validation()
 
 
@@ -167,9 +169,14 @@ def plot_performance(payload: dict[str, Any]) -> None:
     run_index = {(run["panel"], run["algorithm"]): run for run in payload["runs"]}
     panels = ["attrition", "longitudinal", "focused_treatment"]
     labels = [PANEL_LABELS[panel] for panel in panels]
-    algorithms = ["fci", "fci_plus", "pcalg_fci_plus"]
-    algorithm_labels = ["Standard FCI", "Self FCI+", "R pcalg FCI+"]
-    colors = [BLUE, GREEN, ORANGE]
+    algorithms = ["fci", "fci_plus", "fci_plus_robust", "pcalg_fci_plus"]
+    algorithm_labels = [
+        "Standard FCI",
+        "Self FCI+ paper",
+        "Self FCI+ robust",
+        "R pcalg FCI+",
+    ]
+    colors = [BLUE, GREEN, PURPLE, ORANGE]
     test_values = [
         [run_index[(panel, algorithm)]["ci_tests"] for panel in panels]
         for algorithm in algorithms
@@ -179,7 +186,7 @@ def plot_performance(payload: dict[str, Any]) -> None:
         for algorithm in algorithms
     ]
     positions = np.arange(len(panels))
-    width = 0.24
+    width = 0.19
 
     figure, axes = plt.subplots(1, 2, figsize=(10.5, 4.0))
     for axis, values, title, unit in (
@@ -190,7 +197,7 @@ def plot_performance(payload: dict[str, Any]) -> None:
             zip(values, algorithm_labels, colors)
         ):
             bars = axis.bar(
-                positions + (index - 1) * width,
+                positions + (index - 1.5) * width,
                 algorithm_values,
                 width,
                 color=color,
@@ -210,7 +217,7 @@ def plot_performance(payload: dict[str, Any]) -> None:
         axis.spines[["top", "right"]].set_visible(False)
     axes[0].legend(frameon=False, loc="upper right")
     figure.suptitle(
-        "Primary STAR fits across three algorithm implementations",
+        "STAR fits: paper validation and robust application profile",
         x=0.02,
         ha="left",
         fontsize=13,
@@ -286,60 +293,70 @@ def plot_three_algorithm_agreement(payload: dict[str, Any]) -> None:
     _save(figure, "star_three_algorithm_agreement.pdf")
 
 
-def plot_pcalg_order_audit(payload: dict[str, Any]) -> None:
-    runs = {
-        run["panel"]: run
-        for run in payload["runs"]
-        if run["algorithm"] == "pcalg_fci_plus"
-    }
+def plot_order_audit(payload: dict[str, Any]) -> None:
+    run_index = {(run["panel"], run["algorithm"]): run for run in payload["runs"]}
     panels = ["attrition", "longitudinal", "focused_treatment"]
-    exact = [runs[panel]["order_audit"]["exact_pag_match_rate"] for panel in panels]
-    skeleton = [runs[panel]["order_audit"]["mean_skeleton_jaccard"] for panel in panels]
+    algorithms = ["fci_plus", "fci_plus_robust", "pcalg_fci_plus"]
+    labels = ["Self FCI+ paper", "Self FCI+ robust", "R pcalg FCI+"]
+    colors = [GREEN, PURPLE, ORANGE]
     positions = np.arange(len(panels))
-    width = 0.34
+    width = 0.24
 
-    figure, axis = plt.subplots(figsize=(8.8, 3.3))
-    exact_bars = axis.bar(
-        positions - width / 2,
-        exact,
-        width,
-        color=ORANGE,
-        label="Exact PAG match",
-    )
-    skeleton_bars = axis.bar(
-        positions + width / 2,
-        skeleton,
-        width,
-        color=GREEN,
-        label="Skeleton Jaccard",
-    )
-    axis.bar_label(
-        exact_bars,
-        labels=[f"{value:.0%}" for value in exact],
-        padding=3,
+    figure, axes = plt.subplots(1, 2, figsize=(10.5, 3.7))
+    for axis, metric, title in (
+        (axes[0], "exact_pag_match_rate", "Exact PAG match rate"),
+        (axes[1], "mean_skeleton_jaccard", "Mean skeleton Jaccard"),
+    ):
+        for algorithm_index, (algorithm, label, color) in enumerate(
+            zip(algorithms, labels, colors)
+        ):
+            values = [
+                run_index[(panel, algorithm)]["order_audit"][metric] for panel in panels
+            ]
+            bars = axis.bar(
+                positions + (algorithm_index - 1) * width,
+                values,
+                width,
+                color=color,
+                label=label,
+            )
+            axis.bar_label(
+                bars,
+                labels=[f"{value:.0%}" for value in values],
+                padding=3,
+                fontsize=7,
+            )
+        axis.set_ylim(0, 1.12)
+        axis.set_xticks(positions)
+        axis.set_xticklabels(
+            [PANEL_LABELS[panel] for panel in panels],
+            rotation=16,
+            ha="right",
+        )
+        axis.set_yticks(np.linspace(0, 1, 6))
+        axis.set_yticklabels([f"{value:.0%}" for value in np.linspace(0, 1, 6)])
+        axis.set_title(title, loc="left", fontweight="bold")
+        axis.grid(axis="y", color=LIGHT_GREY, linewidth=0.7, alpha=0.7)
+        axis.spines[["top", "right"]].set_visible(False)
+    handles, legend_labels = axes[0].get_legend_handles_labels()
+    figure.legend(
+        handles,
+        legend_labels,
+        frameon=False,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 0.88),
+        ncol=3,
         fontsize=8,
     )
-    axis.bar_label(
-        skeleton_bars,
-        labels=[f"{value:.0%}" for value in skeleton],
-        padding=3,
-        fontsize=8,
-    )
-    axis.set_ylim(0, 1.12)
-    axis.set_xticks(positions)
-    axis.set_xticklabels([PANEL_LABELS[panel] for panel in panels])
-    axis.set_yticks(np.linspace(0, 1, 6))
-    axis.set_yticklabels([f"{value:.0%}" for value in np.linspace(0, 1, 6)])
-    axis.set_title(
-        "R pcalg FCI+ cyclic variable-order audit",
-        loc="left",
+    figure.suptitle(
+        "Cyclic variable-order robustness separates skeletons from endpoints",
+        x=0.02,
+        ha="left",
+        fontsize=13,
         fontweight="bold",
     )
-    axis.grid(axis="y", color=LIGHT_GREY, linewidth=0.7, alpha=0.7)
-    axis.spines[["top", "right"]].set_visible(False)
-    axis.legend(frameon=False, loc="lower right")
-    figure.tight_layout()
-    _save(figure, "star_pcalg_order_audit.pdf")
+    figure.tight_layout(rect=(0, 0, 1, 0.80))
+    _save(figure, "star_order_audit.pdf")
 
 
 def plot_bootstrap_stability(payload: dict[str, Any]) -> None:
@@ -372,23 +389,34 @@ def plot_bootstrap_stability(payload: dict[str, Any]) -> None:
         _bootstrap_frequency(run_index[(panel, "fci_plus")], x, y)
         for panel, x, y in targets
     ]
+    robust_values = [
+        _bootstrap_frequency(run_index[(panel, "fci_plus_robust")], x, y)
+        for panel, x, y in targets
+    ]
     y_positions = np.arange(len(targets))
-    height = 0.34
+    height = 0.23
 
     figure, axis = plt.subplots(figsize=(10.5, 4.4))
     bars_fci = axis.barh(
-        y_positions - height / 2,
+        y_positions - height,
         fci_values,
         height,
         color=BLUE,
         label="Standard FCI",
     )
     bars_plus = axis.barh(
-        y_positions + height / 2,
+        y_positions,
         plus_values,
         height,
         color=GREEN,
-        label="FCI+",
+        label="FCI+ paper",
+    )
+    bars_robust = axis.barh(
+        y_positions + height,
+        robust_values,
+        height,
+        color=PURPLE,
+        label="FCI+ robust",
     )
     axis.set_xlim(0, 1.05)
     axis.set_xticks(np.linspace(0, 1, 6))
@@ -419,6 +447,12 @@ def plot_bootstrap_stability(payload: dict[str, Any]) -> None:
         padding=3,
         fontsize=8,
     )
+    axis.bar_label(
+        bars_robust,
+        labels=[f"{value:.0%}" for value in robust_values],
+        padding=3,
+        fontsize=8,
+    )
     axis.legend(frameon=False, loc="lower right")
     figure.tight_layout()
     _save(figure, "star_bootstrap_stability.pdf")
@@ -432,9 +466,9 @@ def plot_sensitivity(payload: dict[str, Any]) -> None:
         (4, 0.01),
         (4, 0.05),
     ]
-    algorithms = ["fci", "fci_plus"]
-    matrix = np.zeros((2, 4))
-    tests = np.zeros((2, 4), dtype=int)
+    algorithms = ["fci", "fci_plus", "fci_plus_robust"]
+    matrix = np.zeros((3, 4))
+    tests = np.zeros((3, 4), dtype=int)
     for row in rows:
         row_index = algorithms.index(row["algorithm"])
         column_index = columns.index((row["bins"], row["alpha"]))
@@ -450,7 +484,7 @@ def plot_sensitivity(payload: dict[str, Any]) -> None:
         vmax=1,
         aspect="auto",
     )
-    for row_index in range(2):
+    for row_index in range(3):
         for column_index in range(4):
             label = (
                 "Present\n" if matrix[row_index, column_index] else "Absent\n"
@@ -469,8 +503,8 @@ def plot_sensitivity(payload: dict[str, Any]) -> None:
     axis.set_xticklabels(
         [f"{bins} bins\n$\\alpha={alpha:.2f}$" for bins, alpha in columns]
     )
-    axis.set_yticks(range(2))
-    axis.set_yticklabels(["Standard FCI", "FCI+"])
+    axis.set_yticks(range(3))
+    axis.set_yticklabels(["Standard FCI", "FCI+ paper", "FCI+ robust"])
     axis.set_title(
         "Sensitivity of the focused class-assignment / grade-3 adjacency",
         loc="left",
@@ -533,6 +567,58 @@ def plot_pag_comparison(payload: dict[str, Any], panel: str) -> None:
     )
     figure.tight_layout(rect=(0, 0.07, 1, 0.92))
     _save(figure, f"pag_{panel}.pdf")
+
+
+def plot_robust_pag_application(payload: dict[str, Any]) -> None:
+    run_index = {(run["panel"], run["algorithm"]): run for run in payload["runs"]}
+    panels = ["attrition", "longitudinal", "focused_treatment"]
+    figure, axes = plt.subplots(1, 3, figsize=(15.4, 5.5))
+    for axis, panel in zip(axes, panels):
+        run = run_index[(panel, "fci_plus_robust")]
+        positions = _tier_positions(run["node_names"])
+        _draw_pag(axis, run["node_names"], run["pag_edges"], positions)
+        audit = run["order_audit"]
+        axis.set_title(
+            f"{PANEL_LABELS[panel]}\n"
+            f"{run['edges']} edges, "
+            f"{audit['exact_pag_match_rate']:.0%} exact across orders",
+            fontweight="bold",
+        )
+    figure.suptitle(
+        "Robust FCI+ application profile: conservative STAR PAGs",
+        x=0.02,
+        ha="left",
+        fontsize=13,
+        fontweight="bold",
+    )
+    legend = [
+        Line2D(
+            [0],
+            [0],
+            color=GREY,
+            marker="o",
+            markerfacecolor="white",
+            label="circle: unresolved endpoint",
+        ),
+        Line2D([0], [0], color=GREY, marker=">", label="arrowhead"),
+        Line2D(
+            [0],
+            [0],
+            color=GREY,
+            marker="|",
+            markersize=10,
+            label="tail: ancestral endpoint",
+        ),
+    ]
+    figure.legend(
+        handles=legend,
+        loc="lower center",
+        ncol=3,
+        frameon=False,
+        fontsize=8,
+    )
+    figure.tight_layout(rect=(0, 0.07, 1, 0.92))
+    _save(figure, "pag_robust_application.pdf")
 
 
 def plot_figure4_validation() -> None:

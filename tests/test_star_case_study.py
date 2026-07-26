@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 
 from case_studies.tennessee_star.download_data import (
     GUIDE_PATH,
@@ -14,7 +15,12 @@ from case_studies.tennessee_star.download_data import (
 )
 from case_studies.tennessee_star.pcalg_reference import load_pcalg_reference
 from case_studies.tennessee_star.report import render_report
-from case_studies.tennessee_star.study import load_star, prepare_study
+from case_studies.tennessee_star.study import (
+    _fit_panel,
+    cyclic_order_audit,
+    load_star,
+    prepare_study,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "case_studies" / "tennessee_star" / "output"
@@ -69,11 +75,12 @@ def test_committed_star_report_is_reproducible_from_summary_payload() -> None:
     assert "Where the three algorithms agree" in html
     assert "Researcher self-assessment" in html
     assert "K_Class &lt;-&gt; Grade3_Achievement" in html
-    assert "not uniformly the most credible PAG" in html
+    assert "A separate robust FCI+ application profile" in html
+    assert "a universally correct causal graph" in html
     assert "doi.org/10.7910/DVN/SIWH9F" in html
 
 
-def test_star_summary_contains_three_algorithms_for_every_panel() -> None:
+def test_star_summary_contains_validation_and_robust_runs_for_every_panel() -> None:
     payload = json.loads(
         (OUTPUT / "star_case_study_summary.json").read_text(encoding="utf-8")
     )
@@ -82,14 +89,56 @@ def test_star_summary_contains_three_algorithms_for_every_panel() -> None:
     assert combinations == {
         ("attrition", "fci"),
         ("attrition", "fci_plus"),
+        ("attrition", "fci_plus_robust"),
         ("attrition", "pcalg_fci_plus"),
         ("longitudinal", "fci"),
         ("longitudinal", "fci_plus"),
+        ("longitudinal", "fci_plus_robust"),
         ("longitudinal", "pcalg_fci_plus"),
         ("focused_treatment", "fci"),
         ("focused_treatment", "fci_plus"),
+        ("focused_treatment", "fci_plus_robust"),
         ("focused_treatment", "pcalg_fci_plus"),
     }
+
+
+def test_robust_application_profile_is_conservative_and_order_stable() -> None:
+    data = np.tile(
+        np.array(
+            [
+                [0, 0, 0],
+                [1, 1, 1],
+                [2, 0, 2],
+                [0, 1, 0],
+                [1, 0, 1],
+                [2, 1, 2],
+            ]
+        ),
+        (20, 1),
+    )
+    frame = pd.DataFrame(
+        data,
+        columns=["K_Class", "Gender", "Grade3_Achievement"],
+    )
+    result = _fit_panel(
+        frame,
+        algorithm="fci_plus_robust",
+        alpha=0.05,
+        sparsity_bound=2,
+    )
+    audit = cyclic_order_audit(
+        frame,
+        algorithm="fci_plus_robust",
+        alpha=0.05,
+        sparsity_bound=2,
+        baseline=result,
+    )
+
+    assert result.config.skeleton_stable is True
+    assert result.config.orientation_strategy == "robust"
+    assert result.config.conservative_colliders is True
+    assert audit["exact_pag_match_rate"] == 1.0
+    assert audit["minimum_skeleton_jaccard"] == 1.0
 
 
 def test_star_three_algorithm_comparison_records_replication_and_disagreement() -> None:
@@ -116,3 +165,21 @@ def test_star_three_algorithm_comparison_records_replication_and_disagreement() 
     assert attrition["target_edges"]["pcalg_fci_plus"] == (
         "K_Achievement --> Grade3_Observed"
     )
+
+
+def test_star_robust_application_improves_order_and_temporal_audits() -> None:
+    payload = json.loads(
+        (OUTPUT / "star_case_study_summary.json").read_text(encoding="utf-8")
+    )
+    comparisons = payload["robust_application_comparisons"]
+    run_index = {(run["panel"], run["algorithm"]): run for run in payload["runs"]}
+
+    for panel, comparison in comparisons.items():
+        assert comparison["robust_exact_order_rate"] == 1.0
+        assert comparison["robust_minimum_skeleton_jaccard"] == 1.0
+        assert comparison["robust_temporal_flags"] == 0
+        robust_run = run_index[(panel, "fci_plus_robust")]
+        assert robust_run["order_audit"]["target_adjacency_rate"] == 1.0
+
+    assert comparisons["longitudinal"]["paper_exact_order_rate"] < 1.0
+    assert comparisons["longitudinal"]["paper_temporal_flags"] > 0

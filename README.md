@@ -105,11 +105,13 @@ assumptions do not match the dataset.
 
 ### 2. Run the bounded practical FCI+ profile
 
-For an initial bounded analysis, the `practical` profile enables
+For a bounded empirical analysis, the `practical` profile enables
 stable skeleton discovery, strongest-at-depth separating-set selection, a
 bounded sparse D-SEP search, automatic alpha selection, and robust finite-sample
-orientation. It is a convenience profile, not a universal statistical optimum;
-compare important results with standard FCI and sensitivity settings.
+orientation. It is the recommended starting profile for real data, but not a
+universal statistical optimum; compare important results with standard FCI,
+the paper profile, variable-order permutations, bootstrap stability, and
+sensitivity settings.
 
 ```python
 from fci_engine import fci_plus
@@ -280,6 +282,31 @@ several safeguards that matter in finite-sample research data:
 | Dense Possible-D-Sep path growth | Ordered edge-state BFS avoids full simple-path enumeration. |
 | Finite-sample false positives | `stable_fci(...)` and `stable_fci_plus(...)` filter weak bootstrap edges. |
 | Hard-to-audit decisions | CI traces, sepset sources, orientation traces, and edge explanations are exported. |
+
+For conclusions that will be reported substantively, use this reliability
+protocol:
+
+1. Run `fci_plus(..., profile="practical")` as the finite-sample application
+   result.
+2. Repeat the fit under several column permutations. Treat an endpoint as
+   reliable only if its mark is invariant; stable adjacency with changing
+   endpoints supports a skeleton-level conclusion only.
+3. Run `stable_fci_plus` or a domain-appropriate cluster bootstrap and report
+   adjacency frequency.
+4. Repeat important fits at stricter and looser alpha values and, for
+   discretized data, alternative bin counts.
+5. Compare with `fci(..., profile="paper")` and
+   `fci_plus(..., profile="paper", k=...)` for algorithmic sensitivity, while
+   keeping those literal paper profiles separate from the recommended
+   application result.
+6. Reject or downgrade directed conclusions that contradict time order,
+   randomization, or other externally known design facts.
+
+The Tennessee STAR application implements this protocol end to end. Its robust
+profile is exactly invariant across all cyclic variable orders in the three
+reported panels and removes fully directed temporal reversals by leaving
+unsupported endpoints unresolved. This is greater robustness, not proof that
+the remaining PAG is the unique causal graph.
 
 The correct way to claim accuracy is to run a transparent benchmark on known
 oracle graphs. This repository includes that workflow instead of treating any

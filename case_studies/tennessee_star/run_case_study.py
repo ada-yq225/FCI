@@ -37,6 +37,7 @@ def run(
     refresh_pcalg: bool = False,
     rscript: Path | None = None,
     pcalg_order_audit: bool = True,
+    python_order_audit: bool = True,
 ) -> dict[str, Path]:
     """Execute the application and return generated artifact paths."""
 
@@ -54,6 +55,7 @@ def run(
         benchmark_repeats=benchmark_repeats,
         bootstraps=bootstraps,
         n_jobs=n_jobs,
+        order_audit=python_order_audit,
     )
     sensitivity = sensitivity_analysis(
         frame,
@@ -94,6 +96,7 @@ def run(
         "benchmark": output_directory / "star_benchmark.csv",
         "pag_edges": output_directory / "star_pag_edges.csv",
         "bootstrap": output_directory / "star_bootstrap_adjacencies.csv",
+        "order_audit": output_directory / "star_python_order_audit.csv",
         "sensitivity": output_directory / "star_sensitivity.csv",
         "contrasts": output_directory / "star_descriptive_contrasts.csv",
     }
@@ -102,6 +105,7 @@ def run(
     _benchmark_frame(payload).to_csv(paths["benchmark"], index=False)
     _pag_edge_frame(payload).to_csv(paths["pag_edges"], index=False)
     _bootstrap_frame(payload).to_csv(paths["bootstrap"], index=False)
+    _order_audit_frame(payload).to_csv(paths["order_audit"], index=False)
     pd.DataFrame(payload["sensitivity"]).to_csv(
         paths["sensitivity"],
         index=False,
@@ -159,6 +163,23 @@ def _bootstrap_frame(payload: dict[str, Any]) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def _order_audit_frame(payload: dict[str, Any]) -> pd.DataFrame:
+    rows = []
+    for run_record in payload["runs"]:
+        if run_record["algorithm"] == "pcalg_fci_plus":
+            continue
+        for audit_row in run_record.get("order_audit", {}).get("rows", []):
+            rows.append(
+                {
+                    "panel": run_record["panel"],
+                    "algorithm": run_record["algorithm"],
+                    **audit_row,
+                    "temporal_flags": "; ".join(audit_row["temporal_flags"]),
+                }
+            )
+    return pd.DataFrame(rows)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output-directory", type=Path, default=OUTPUT_DIR)
@@ -171,6 +192,7 @@ def main() -> None:
     parser.add_argument("--refresh-pcalg", action="store_true")
     parser.add_argument("--rscript", type=Path)
     parser.add_argument("--skip-pcalg-order-audit", action="store_true")
+    parser.add_argument("--skip-python-order-audit", action="store_true")
     args = parser.parse_args()
 
     paths = run(
@@ -184,6 +206,7 @@ def main() -> None:
         refresh_pcalg=args.refresh_pcalg,
         rscript=args.rscript,
         pcalg_order_audit=not args.skip_pcalg_order_audit,
+        python_order_audit=not args.skip_python_order_audit,
     )
     for name, path in paths.items():
         print(f"{name}: {path.resolve()}")

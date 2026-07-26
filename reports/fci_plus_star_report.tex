@@ -202,10 +202,11 @@ at the end of kindergarten (95\% interval 5.2 to 22.1) and by 11.7 points at
 grade 3 among observed students (3.7 to 19.4). The regular-class-with-aide
 contrasts are close to zero.
 
-Every primary panel is fitted by three algorithms: self-implemented standard
-FCI, self-implemented \FCIplus{}, and CRAN \code{pcalg::fciPlus} as an
-independent R reference. The same compact-table G-square decision rule is
-supplied to all three so that the comparison is not driven by
+Every primary panel is first fitted by three paper-comparison algorithms:
+self-implemented standard FCI, self-implemented paper-profile \FCIplus{}, and
+CRAN \code{pcalg::fciPlus} as an independent R reference. The same
+compact-table G-square decision rule is supplied to all three so that the
+comparison is not driven by
 \code{pcalg}'s sparse-table default. The focused panel yields an exact
 three-way match: all algorithms return the same 10-edge PAG, including
 \(K\_\mathrm{Class}\leftrightarrow
@@ -216,14 +217,11 @@ overlap, but several endpoint marks disagree and both \FCIplus{}
 implementations produce at least one order- or chronology-sensitive endpoint.
 The self-implemented \FCIplus{} uses 35--64\% of the CI tests required by
 self-implemented standard FCI, but it is not uniformly the most plausible
-STAR graph.
-
-The main substantive conclusion is therefore deliberately layered. The
-randomized design provides the strongest evidence that smaller classes improve
-early achievement, whereas the PAG analysis contributes a structural audit of
-attrition, achievement persistence, and specification sensitivity. Neither
-FCI nor \FCIplus{} estimates a treatment effect, identifies a unique DAG, or
-by itself proves latent confounding.
+STAR graph. A fourth, explicitly separate robust application fit uses stable
+skeleton deletion, strongest-at-depth separating sets, conservative collider
+handling, and cautious orientation. It is exactly invariant across every
+cyclic variable order in all three panels and contains no fully directed
+temporal reversal, at the cost of more CI calls and less endpoint specificity.
 
 \chapter*{Executive Summary}
 \addcontentsline{toc}{chapter}{Executive Summary}
@@ -238,7 +236,7 @@ Tennessee STAR randomized class-size experiment?
 with standard FCI, paper-aligned and practical \FCIplus{} profiles, multiple CI
 tests, PAG diagnostics, stability analysis, HTML/JSON/CSV exports, strict type
 checking, and a Python 3.9--3.13 continuous-integration matrix. At the time of
-this report, 261 repository tests pass.
+this report, all 351 repository tests pass.
 
 \textbf{Algorithm outcome.} Exact oracle tests establish that the implemented
 search and orientation logic can recover the intended PAGs when conditional
@@ -256,6 +254,14 @@ longitudinal panels, pairwise skeleton Jaccard values range from 0.765 to
 0.929, but exact endpoint agreement on shared edges is lower. Cyclic variable
 orders preserve every \code{pcalg} skeleton yet reproduce the original PAG
 endpoints in only 67--78\% of orders.
+
+\textbf{Robust application outcome.} The paper implementations remain
+unchanged for fidelity testing. A separate practical profile is used for
+empirical interpretation. Across all 26 cyclic column shifts it reproduces
+each panel's complete PAG exactly, retains the main target adjacencies in every
+order, and replaces chronology-conflicting definite arrows with unresolved
+circle endpoints. This improves stability without claiming new causal
+identification.
 
 \textbf{STAR outcome.} The official data were converted into three independent
 application panels:
@@ -291,6 +297,9 @@ interpretation.
         knowledge of randomization.
   \item Cross-implementation skeleton consensus is more credible than endpoint
         marks that conflict with chronology or change under variable order.
+  \item The robust application profile supports the same main adjacencies but
+        leaves their directions unresolved; this is the preferred
+        finite-sample reading of the discovery output.
   \item PAG endpoints should be read as equivalence-class constraints, not
         regression coefficients or direct effects.
 \end{itemize}
@@ -602,9 +611,11 @@ Exploratory finite-sample work, subject to sensitivity analysis. \\
 \end{tabularx}
 \end{table}
 
-The STAR analysis uses the paper profiles for both algorithms so that the
-comparison concerns the published search strategies rather than different
-finite-sample convenience defaults.
+The STAR paper comparison uses the paper profiles for both local algorithms so
+that it concerns the published search strategies rather than different
+finite-sample defaults. A separate STAR application result uses
+\code{profile="practical"}. This preserves algorithm fidelity while applying
+additional safeguards to conclusions drawn from finite-sample data.
 
 \section{Public API and artifacts}
 
@@ -625,6 +636,17 @@ print(result.to_pandas_edges())
 result.save_artifacts("output", stem="analysis")
 \end{lstlisting}
 
+\begin{lstlisting}[style=python,caption={Recommended finite-sample FCI+ application API.}]
+robust_result = fci_plus(
+    data,
+    profile="practical",
+    max_cond_set_size=3,
+    sparsity_bound=3,
+    alpha=0.05,
+    ci_test=GSquareTest(alpha=0.05),
+)
+\end{lstlisting}
+
 An \code{FCIResult} stores the learned PAG together with the resolved
 configuration, sample and node counts, separating sets and their sources, CI
 trace, orientation trace, D-SEP diagnostics, runtime, and assumption notes.
@@ -638,7 +660,7 @@ marker. Strict MyPy checks the package and the STAR application. Ruff checks
 style and formatting. GitHub Actions independently runs Pytest across all five
 supported Python versions, then runs the quality checks and builds, installs,
 and imports the wheel in a clean environment. The revision used for the STAR
-case study passed all jobs and 261 local tests.
+case study passed all jobs and all 351 local tests.
 
 These checks establish software consistency; they do not establish the truth
 of empirical causal conclusions. Statistical validation requires separate
@@ -715,6 +737,35 @@ threshold. \\
 \bottomrule
 \end{tabularx}
 \end{table}
+
+\subsection{Multi-seed robustness regression}
+
+The application safeguard was also tested on 15 deterministic latent-SEM
+cases: five realistic graph families, three random seeds each, and 2,500
+observations per case. The oracle PAG is known for every case. This test
+compares the unchanged paper profile with the practical profile used in the
+STAR application.
+
+\begin{table}[H]
+\centering
+\caption{Mean recovery across 15 finite-sample oracle cases.}
+\label{tab:robust-finite-sample}
+\begin{tabular}{lrrrrrr}
+\toprule
+Profile & Skeleton F1 & Exact F1 & Endpoint acc. & Semantic F1 &
+Compatible endpoint & CI calls \\
+\midrule
+Paper & 0.980 & 0.536 & 0.744 & 0.951 & 0.948 & 197.1 \\
+Robust & 0.980 & 0.703 & 0.821 & 0.980 & 0.962 & 380.7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The robust profile preserves mean skeleton recovery while improving exact and
+compatibility-aware endpoint scores. It uses about 1.93 times as many CI calls.
+This does not prove universal dominance, but it provides a known-truth
+regression check that the STAR stability gain is not achieved by simply
+discarding useful structure.
 
 This result is a useful warning against claiming that fewer CI tests imply
 uniformly better finite-sample accuracy. FCI and \FCIplus{} can make different
@@ -823,6 +874,9 @@ meaning of separation between assignment and the later outcome.
 
 \section{Variable coding}
 
+\begingroup
+\small
+\renewcommand{\arraystretch}{1.05}
 \begin{longtable}{p{0.23\textwidth}p{0.23\textwidth}p{0.46\textwidth}}
 \caption{Variables supplied to FCI and \FCIplus{}.}
 \label{tab:variables}\\
@@ -859,6 +913,7 @@ quartiles among students with both scores. \\
 Indicator that both grade-3 scores are present. \\
 \bottomrule
 \end{longtable}
+\endgroup
 
 All model inputs are integer-coded discrete categories. The exact numeric
 tables supplied to the algorithms are committed under
@@ -911,12 +966,17 @@ Setting & Value \\
 CI test & G-square on discretised variables \\
 Significance threshold & \(\alpha=0.05\) \\
 Standard FCI & \code{profile="paper"}; unbounded paper schedule \\
-\FCIplus{} & \code{profile="paper"}; \(k=3\) \\
+Paper \FCIplus{} & \code{profile="paper"}; \(k=3\) \\
+Robust application \FCIplus{} &
+\code{profile="practical"}; stable skeleton; strongest separating set;
+conservative colliders; robust orientation; depth and sparsity bound 3 \\
 R reference & \code{pcalg::fciPlus}; selection bias enabled; no exposed
 explicit \(k\) setting \\
 Timing & Three full-data repetitions; median elapsed time reported \\
 PAG stability & 12 kindergarten-school cluster bootstrap fits per algorithm
-and panel for the two self-implemented algorithms \\
+and panel for all three self-implemented profiles \\
+Order audit & Every cyclic column shift for all local profiles and the R
+reference \\
 Random seed & Fixed by the application script for reproducibility \\
 Prior temporal constraints & None supplied to discovery; temporal reversals
 are audited after fitting \\
@@ -954,12 +1014,27 @@ The focused treatment-outcome analysis is repeated for:
 \begin{itemize}[leftmargin=2em]
   \item \(\alpha\in\{0.01,0.05\}\);
   \item three versus four quantile bins for age and achievement;
-  \item standard FCI and \FCIplus{}.
+  \item standard FCI, paper-profile \FCIplus{}, and robust application
+        \FCIplus{}.
 \end{itemize}
 
 The target is whether \code{K\_Class} remains adjacent to
 \code{Grade3\_Achievement}. This directly tests whether the most
 substantively tempting PAG edge is robust to reasonable analysis choices.
+
+\section{Decision rule for robust conclusions}
+
+The application distinguishes a reproducible adjacency from a credible
+direction. A skeleton-level conclusion is promoted only when the target
+adjacency survives every cyclic column shift and has high school-cluster
+bootstrap frequency. A directional conclusion additionally requires invariant
+endpoint marks, no conflict with measurement time or randomization, and no
+material reversal under the alpha/binning sensitivity checks.
+
+Failure of the directional rule does not delete the edge. It downgrades the
+claim to conditional-dependence structure with unresolved direction. This
+pre-specified rule is why the robust profile's circle endpoints are treated as
+a reliability improvement rather than an incomplete result.
 
 \chapter{STAR Results}
 
@@ -1044,11 +1119,11 @@ FCI/R-\FCIplus{}, and self-/R-\FCIplus{} skeleton Jaccard values are 0.824,
 0.929, and 0.765. All three omit a direct
 \code{K\_Class}--\code{Grade3\_Observed} adjacency. In the self-implementation
 school bootstrap that adjacency appears in only 17\% of FCI fits and 8\% of
-\FCIplus{} fits.
+both paper and robust \FCIplus{} fits.
 
 By contrast, \code{K\_Achievement}--
-\code{Grade3\_Observed} is adjacent in 100\% of the bootstrap fits for both
-algorithms. The corresponding free-lunch/observation adjacency is also stable
+\code{Grade3\_Observed} is adjacent in 100\% of the bootstrap fits for all
+three local profiles. The corresponding free-lunch/observation adjacency is also stable
 in the targeted audit. These results suggest that later data availability is
 not independent of early achievement and measured socioeconomic or school
 context.
@@ -1084,12 +1159,15 @@ Pairwise skeleton Jaccard is 0.769 for FCI/self-\FCIplus{}, 0.833 for FCI/R,
 and 0.923 for the two \FCIplus{} implementations.
 
 All three algorithms retain the kindergarten/grade-3 achievement adjacency,
-and it appears in all 12 school-cluster bootstrap samples for both local
-algorithms.
+and it appears in all 12 school-cluster bootstrap samples for all three local
+profiles.
 Neither full-data PAG retains a direct class-assignment/grade-3 achievement
 adjacency once kindergarten achievement is included. That treatment-outcome
 adjacency nevertheless reappears in 50\% of FCI and 67\% of \FCIplus{}
-bootstrap fits, indicating moderate instability across resampled schools.
+paper-profile bootstrap fits. It appears in all robust-profile bootstrap fits
+despite being absent from the robust full-data PAG. This discordance is a
+warning that conservative orientation and order invariance do not remove
+school-resampling sensitivity.
 
 Both \FCIplus{} implementations orient grade-3 achievement toward
 kindergarten achievement, which is temporally impossible if read causally.
@@ -1116,8 +1194,9 @@ PAG, not merely the same skeleton. All three contain
   K\_\mathrm{Class}\leftrightarrow
   Grade3\_\mathrm{Achievement}.
 \]
-The adjacency appears in 92\% of the FCI school bootstraps and 83\% of the
-self-\FCIplus{} bootstraps. The independent exact PAG replication makes this
+The adjacency appears in 92\% of the FCI school bootstraps, 83\% of the
+paper self-\FCIplus{} bootstraps, and 100\% of the robust-profile bootstraps.
+The independent exact PAG replication makes this
 observed conditional-independence pattern more credible, but does not make the
 literal latent-confounding interpretation credible.
 
@@ -1128,6 +1207,64 @@ observed and omits early post-assignment achievement. Conditioning on
 observation, school-level dependence, omitted post-randomization variables,
 and CI-test approximation can all create an observed independence pattern
 that is represented by arrowheads at both endpoints.
+
+\section{Robust application profile}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{pag_robust_application.pdf}
+\caption{The three STAR PAGs from the separate robust application profile.
+Stable skeleton search and conservative orientation preserve the main
+adjacencies while leaving unsupported directions unresolved.}
+\label{fig:pag-robust-application}
+\end{figure}
+
+The robust profile is not presented as a fourth paper implementation. It is a
+finite-sample decision layer applied after the literal FCI and \FCIplus{}
+comparisons. It returns 17, 12, and 10 edges on the attrition, longitudinal,
+and focused panels, respectively. The target relations are
+\[
+\begin{aligned}
+ K\_\mathrm{Achievement} &\circ\!\!-\!\!\circ
+ Grade3\_\mathrm{Observed},\\
+ K\_\mathrm{Achievement} &\circ\!\!-\!\!\circ
+ Grade3\_\mathrm{Achievement},\\
+ K\_\mathrm{Class} &\circ\!\!-\!\!\circ
+ Grade3\_\mathrm{Achievement}.
+\end{aligned}
+\]
+Thus it retains the relevant skeleton information without repeating the
+paper-profile chronology reversal or the focused-panel bidirected
+over-interpretation.
+
+\begin{table}[H]
+\centering
+\caption{Cyclic-order audit for paper and robust self-\FCIplus{} profiles.}
+\label{tab:robust-order-audit}
+\begin{tabular}{llrrr}
+\toprule
+Panel & Profile & Exact PAG & Worst skeleton & Temporal reversals \\
+\midrule
+\multirow{2}{*}{Attrition}
+ & Paper & 100.0\% & 100.0\% & 0 \\
+ & Robust & 100.0\% & 100.0\% & 0 \\
+\addlinespace
+\multirow{2}{*}{Longitudinal}
+ & Paper & 55.6\% & 92.3\% & 1 \\
+ & Robust & 100.0\% & 100.0\% & 0 \\
+\addlinespace
+\multirow{2}{*}{Focused}
+ & Paper & 75.0\% & 100.0\% & 0 \\
+ & Robust & 100.0\% & 100.0\% & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\keyresult{The robust profile improves the measured reliability of the STAR
+output: every tested column order returns the same complete PAG, every target
+adjacency survives, and no fully directed edge runs backward in measurement
+time. The price is deliberate under-orientation and additional CI work.
+Reliability has improved; identifiability has not.}
 
 \section{Stability and sensitivity}
 
@@ -1150,8 +1287,9 @@ or four quantile bins are used.}
 
 The sensitivity result is decisive for interpretation. The focused
 treatment-outcome adjacency is robust to the tested bin count but not to the
-CI threshold. At \(\alpha=0.01\), neither algorithm retains it; at
-\(\alpha=0.05\), both retain the same bidirected mark.
+CI threshold. At \(\alpha=0.01\), none of the three local profiles retains it;
+at \(\alpha=0.05\), the paper profiles retain a bidirected mark while the
+robust profile retains the adjacency with two unresolved circles.
 
 The stronger threshold requires more evidence against conditional
 independence before an edge is kept. Its removal therefore indicates that the
@@ -1198,19 +1336,22 @@ Panel & Pair & Skeleton Jaccard & Exact endpoint rate \\
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.94\textwidth]{star_pcalg_order_audit.pdf}
-\caption{R \code{pcalg::fciPlus} cyclic-order audit. Every tested order
-reproduces the original skeleton, whereas exact endpoint reproduction ranges
-from 67\% to 78\% across panels.}
-\label{fig:pcalg-order-audit}
+\includegraphics[width=\textwidth]{star_order_audit.pdf}
+\caption{Cyclic-order audit for paper self-\FCIplus{}, robust
+self-\FCIplus{}, and R \code{pcalg::fciPlus}. Skeleton agreement is generally
+stronger than exact endpoint agreement; the robust profile is invariant on
+both measures.}
+\label{fig:order-audit}
 \end{figure}
 
 The order audit rotates the input variable list through every cyclic shift.
-All 26 refits preserve their panel's skeleton exactly. Exact PAG endpoints are
-reproduced in 7 of 9 attrition orders, 6 of 9 longitudinal orders, and 6 of 8
-focused orders. Thus the R reference strongly supports skeleton robustness in
-this audit, but also independently demonstrates that some endpoint marks are
-implementation-order sensitive.
+The R reference preserves every panel skeleton, while reproducing exact PAG
+endpoints in 7 of 9 attrition orders, 6 of 9 longitudinal orders, and 6 of 8
+focused orders. Paper self-\FCIplus{} is exact in 9 of 9, 5 of 9, and 6 of 8
+orders, respectively; its longitudinal skeleton changes slightly in some
+orders. Robust self-\FCIplus{} is exact in all 26 refits. The combined evidence
+supports skeleton robustness while independently showing that more aggressive
+endpoint marks can be implementation- and order-sensitive.
 
 \section{Computational comparison}
 
@@ -1225,25 +1366,28 @@ schedules and language runtimes are not identical.}
 
 \begin{table}[H]
 \centering
-\caption{Three-algorithm performance on the STAR panels.}
+\caption{Paper-comparison and robust-profile performance on the STAR panels.}
 \label{tab:performance}
 \begin{tabular}{llrrr}
 \toprule
 Panel & Algorithm & Edges & CI tests & Median seconds \\
 \midrule
-\multirow{3}{*}{Attrition}
- & FCI & 14 & 1,705 & 4.568 \\
- & Self-\FCIplus{} & 17 & 793 & 4.118 \\
+\multirow{4}{*}{Attrition}
+ & FCI & 14 & 1,705 & 5.437 \\
+ & Self-\FCIplus{} paper & 17 & 793 & 1.788 \\
+ & Self-\FCIplus{} robust & 17 & 1,304 & 2.838 \\
  & R-\FCIplus{} & 13 & 1,191 & 10.394 \\
 \addlinespace
-\multirow{3}{*}{Longitudinal}
- & FCI & 10 & 960 & 3.577 \\
- & Self-\FCIplus{} & 13 & 335 & 0.805 \\
+\multirow{4}{*}{Longitudinal}
+ & FCI & 10 & 960 & 2.148 \\
+ & Self-\FCIplus{} paper & 13 & 335 & 0.337 \\
+ & Self-\FCIplus{} robust & 12 & 619 & 0.562 \\
  & R-\FCIplus{} & 12 & 475 & 1.650 \\
 \addlinespace
-\multirow{3}{*}{Focused}
- & FCI & 10 & 291 & 0.754 \\
- & Self-\FCIplus{} & 10 & 185 & 0.330 \\
+\multirow{4}{*}{Focused}
+ & FCI & 10 & 291 & 0.322 \\
+ & Self-\FCIplus{} paper & 10 & 185 & 0.159 \\
+ & Self-\FCIplus{} robust & 10 & 334 & 0.247 \\
  & R-\FCIplus{} & 10 & 256 & 0.884 \\
 \bottomrule
 \end{tabular}
@@ -1256,6 +1400,11 @@ counts. Runtime is not a language-neutral benchmark: the R runner includes
 R-level contingency-table construction, whereas the Python implementation
 uses the package's native data path. CI-call counts are the more interpretable
 search-work comparison.
+
+Relative to paper self-\FCIplus{}, the robust profile uses 1.64, 1.85, and
+1.81 times as many CI calls. Relative to standard FCI, it uses 76.5\%, 64.5\%,
+and 114.8\%. The added work purchases stable skeleton deletion and invariant
+conservative endpoints; it is not claimed as a speed improvement.
 
 These results demonstrate reduced search work, not universal algorithmic
 dominance. In the two panels where skeleton Jaccard is below one, efficiency
@@ -1411,12 +1560,14 @@ identical internal search schedule.
 
 \subsection{Endpoint order sensitivity}
 
-The R cyclic-order audit preserves all three skeletons but changes some
-endpoint marks. This is a known practical warning for constraint-based
-orientation under finite-sample CI decisions: deterministic output for one
-column order is not the same as order-invariant causal information. The report
-therefore gives more evidential weight to cross-order skeleton consensus than
-to isolated endpoint marks.
+The R and paper-profile self-\FCIplus{} audits change some endpoint marks; the
+paper self-\FCIplus{} longitudinal skeleton also changes slightly. This is a
+practical warning for constraint-based orientation under finite-sample CI
+decisions: deterministic output for one column order is not the same as
+order-invariant causal information. The robust profile removes the observed
+order dependence by stable deletion and conservative orientation. The report
+therefore uses it for applied interpretation, while still giving more
+evidential weight to skeleton consensus than to isolated endpoint marks.
 
 \subsection{Coarse PAG bootstrap}
 
@@ -1462,9 +1613,20 @@ treatment-outcome edge is conditional on complete cases and disappears under a
 stricter alpha, while some endpoint marks change with variable order or violate
 chronology.
 
-No algorithm is uniformly ``best'' on the STAR data. The self-implemented
-\FCIplus{} is the most auditable in this repository, passes the exact oracle
-fixtures, and usually requires the fewest CI calls. R \code{pcalg} provides
+A separate robust application profile then addresses the principal empirical
+failure found by those audits. Across every cyclic variable order it returns
+the same PAG in all three panels, preserves the main target adjacencies, and
+reports no fully directed temporal reversal. It does so by leaving unsupported
+endpoints unresolved and by spending more CI calls. This is the appropriate
+robustness trade-off for the application: fewer directional claims, backed by
+stronger reproducibility.
+
+No algorithm is uniformly ``best'' on the STAR data. The paper-profile
+self-\FCIplus{} is the most auditable validation implementation in this
+repository, passes the exact oracle fixtures, and usually requires the fewest
+CI calls. The robust self-\FCIplus{} profile is the preferred empirical output
+because it passes the order and temporal audits, although its circles identify
+less direction. R \code{pcalg} provides
 valuable independent replication and gives the most plausible direction for
 the attrition target edge, yet shares the longitudinal reversal and exhibits
 endpoint order sensitivity. Standard FCI is less economical but leaves the
@@ -1489,12 +1651,12 @@ independence constraints, uncertainty, and modelling sensitivity.
         for stability frequencies.
   \item Run separate reading and mathematics analyses and examine prespecified
         treatment-effect heterogeneity.
-  \item Add defensible temporal background knowledge and compare constrained
-        and unconstrained PAGs.
+  \item Evaluate defensible temporal background knowledge separately from the
+        data-only robust profile, without silently forcing preferred arrows.
   \item Compare alternative CI tests and \(k=2,3,4\) \FCIplus{} profiles while
         diagnosing which edges depend on the sparsity bound.
-  \item Extend order audits and bootstrap endpoint compatibility, rather than
-        reporting only adjacency frequencies.
+  \item Increase bootstrap repetitions and extend stability reporting to
+        endpoint compatibility, rather than only adjacency frequencies.
 \end{enumerate}
 
 \appendix
@@ -1535,6 +1697,7 @@ Vector-figure generator reading the committed result JSON. \\
 \bottomrule
 \end{longtable}
 
+\clearpage
 \section{Commands}
 
 \begin{lstlisting}[style=python,caption={Reproduce the STAR application.}]
@@ -1591,7 +1754,7 @@ The committed official data files are:
 \section{Primary discovery results}
 
 \small
-\begin{longtable}{@{}p{0.16\textwidth}p{0.13\textwidth}rrrrp{0.20\textwidth}@{}}
+\begin{longtable}{@{}p{0.14\textwidth}p{0.16\textwidth}rrrrp{0.20\textwidth}@{}}
 \caption{Primary full-data discovery results and temporal audit.}
 \label{tab:all-runs}\\
 \toprule
@@ -1602,17 +1765,20 @@ Panel & Algorithm & Samples & Edges & CI tests & Seconds & Temporal flag \\
 Panel & Algorithm & Samples & Edges & CI tests & Seconds & Temporal flag \\
 \midrule
 \endhead
-Attrition & FCI & 5,744 & 14 & 1,705 & 4.568 &
+Attrition & FCI & 5,744 & 14 & 1,705 & 5.437 &
 Grade3 Observed \(\to\) K Achievement \\
-Attrition & Self-\FCIplus{} & 5,744 & 17 & 793 & 4.118 & None \\
+Attrition & Self-\FCIplus{} paper & 5,744 & 17 & 793 & 1.788 & None \\
+Attrition & Self-\FCIplus{} robust & 5,744 & 17 & 1,304 & 2.838 & None \\
 Attrition & R-\FCIplus{} & 5,744 & 13 & 1,191 & 10.394 & None \\
-Longitudinal & FCI & 2,787 & 10 & 960 & 3.577 & None \\
-Longitudinal & Self-\FCIplus{} & 2,787 & 13 & 335 & 0.805 &
+Longitudinal & FCI & 2,787 & 10 & 960 & 2.148 & None \\
+Longitudinal & Self-\FCIplus{} paper & 2,787 & 13 & 335 & 0.337 &
 Grade3 Achievement \(\to\) K Achievement \\
+Longitudinal & Self-\FCIplus{} robust & 2,787 & 12 & 619 & 0.562 & None \\
 Longitudinal & R-\FCIplus{} & 2,787 & 12 & 475 & 1.650 &
 Grade3 Achievement \(\to\) K Achievement \\
-Focused & FCI & 2,976 & 10 & 291 & 0.754 & None \\
-Focused & Self-\FCIplus{} & 2,976 & 10 & 185 & 0.330 & None \\
+Focused & FCI & 2,976 & 10 & 291 & 0.322 & None \\
+Focused & Self-\FCIplus{} paper & 2,976 & 10 & 185 & 0.159 & None \\
+Focused & Self-\FCIplus{} robust & 2,976 & 10 & 334 & 0.247 & None \\
 Focused & R-\FCIplus{} & 2,976 & 10 & 256 & 0.884 & None \\
 \bottomrule
 \end{longtable}
@@ -1623,18 +1789,24 @@ Focused & R-\FCIplus{} & 2,976 & 10 & 256 & 0.884 & None \\
 \begin{table}[H]
 \centering
 \caption{Presence of the class-assignment/grade-3 adjacency.}
-\begin{tabular}{rrlrr}
+\begin{tabular}{rrlp{0.32\textwidth}r}
 \toprule
 Bins & \(\alpha\) & Algorithm & Adjacent? & CI tests \\
 \midrule
 3 & 0.01 & FCI & No & 225 \\
-3 & 0.01 & \FCIplus{} & No & 150 \\
+3 & 0.01 & \FCIplus{} paper & No & 150 \\
+3 & 0.01 & \FCIplus{} robust & No & 233 \\
 3 & 0.05 & FCI & Yes, \(K\_\mathrm{Class}\leftrightarrow G3\) & 305 \\
-3 & 0.05 & \FCIplus{} & Yes, \(K\_\mathrm{Class}\leftrightarrow G3\) & 214 \\
+3 & 0.05 & \FCIplus{} paper & Yes, \(K\_\mathrm{Class}\leftrightarrow G3\) & 214 \\
+3 & 0.05 & \FCIplus{} robust &
+Yes, \(K\_\mathrm{Class}\leftarrow\!\circ G3\) & 360 \\
 4 & 0.01 & FCI & No & 252 \\
-4 & 0.01 & \FCIplus{} & No & 163 \\
+4 & 0.01 & \FCIplus{} paper & No & 163 \\
+4 & 0.01 & \FCIplus{} robust & No & 253 \\
 4 & 0.05 & FCI & Yes, \(K\_\mathrm{Class}\leftrightarrow G3\) & 291 \\
-4 & 0.05 & \FCIplus{} & Yes, \(K\_\mathrm{Class}\leftrightarrow G3\) & 185 \\
+4 & 0.05 & \FCIplus{} paper & Yes, \(K\_\mathrm{Class}\leftrightarrow G3\) & 185 \\
+4 & 0.05 & \FCIplus{} robust &
+Yes, \(K\_\mathrm{Class}\circ\!-\!\circ G3\) & 334 \\
 \bottomrule
 \end{tabular}
 \end{table}
