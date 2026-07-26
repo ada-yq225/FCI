@@ -1,0 +1,172 @@
+{
+  "as_of": "2026-07-26",
+  "scope": "Capability and execution-evidence snapshot; not an accuracy or speed ranking.",
+  "evidence_definitions": {
+    "executed": "The named local version completed a small smoke call in this environment; this establishes callability only.",
+    "documentation": "The capability was checked in official documentation or source but was not executed locally."
+  },
+  "tools": [
+    {
+      "tool": "fci_engine",
+      "version": "0.1.0 (local worktree)",
+      "as_of": "2026-07-26",
+      "evidence_kind": "executed",
+      "language": "Python",
+      "algorithms": [
+        "FCI",
+        "FCI+",
+        "stable FCI",
+        "stable FCI+"
+      ],
+      "ci_tests": [
+        "fisher_z",
+        "missing_value_fisher_z",
+        "chi_square",
+        "g_square",
+        "kernel"
+      ],
+      "latent_confounding": true,
+      "selection_bias": true,
+      "custom_ci": true,
+      "audit_exports": true,
+      "audit_capabilities": [
+        "separating sets and source provenance",
+        "per-query CI trace",
+        "orientation-event trace",
+        "D-SEP diagnostics",
+        "per-edge explanations",
+        "JSON, CSV, and standalone HTML artifacts"
+      ],
+      "smoke_observation": "Local FCI and FCI+ calls completed on the seeded three-variable continuous fixture.",
+      "source_urls": [
+        "../../../pyproject.toml",
+        "../../../README.md",
+        "../../../src/fci_engine/result.py",
+        "../../../src/fci_engine/discovery/fci.py",
+        "../../../src/fci_engine/discovery/fci_plus.py"
+      ],
+      "comparison_limits": [
+        "Project metadata classifies version 0.1.0 as pre-alpha.",
+        "A smoke run is not an independent correctness benchmark.",
+        "Paper, practical, and robust profiles have different guarantees and must be labeled separately."
+      ]
+    },
+    {
+      "tool": "pcalg",
+      "version": "2.7-12 (locally observed and CRAN source version)",
+      "as_of": "2026-07-26",
+      "evidence_kind": "executed",
+      "language": "R",
+      "algorithms": [
+        "FCI",
+        "FCI+",
+        "RFCI"
+      ],
+      "ci_tests": [
+        "user-supplied indepTest(x, y, S, suffStat)",
+        "gaussCItest",
+        "disCItest",
+        "binCItest"
+      ],
+      "latent_confounding": true,
+      "selection_bias": true,
+      "custom_ci": true,
+      "audit_exports": false,
+      "audit_capabilities": [
+        "standard fci result sepset and pMax slots",
+        "test counts",
+        "PAG adjacency matrix"
+      ],
+      "smoke_observation": "Installed pcalg 2.7.12 completed fci() and fciPlus() with gaussCItest on the seeded three-variable covariance fixture.",
+      "source_urls": [
+        "https://cran.r-project.org/package=pcalg",
+        "https://cran.r-project.org/web/packages/pcalg/pcalg.pdf",
+        "https://cran.r-project.org/src/contrib/pcalg_2.7-12.tar.gz"
+      ],
+      "comparison_limits": [
+        "The current fciPlus() source constructs its final public fciAlgo with an empty sepset, zero pMax, and empty D-SEP list.",
+        "No single-call JSON/CSV/interactive audit bundle was established.",
+        "Raw PAG matrices require explicit endpoint-code normalization before cross-library comparison."
+      ]
+    },
+    {
+      "tool": "causal-learn",
+      "version": "0.1.4.7 locally observed; PyPI 0.1.4.8 current on 2026-07-26",
+      "as_of": "2026-07-26",
+      "evidence_kind": "executed",
+      "language": "Python",
+      "algorithms": [
+        "FCI"
+      ],
+      "ci_tests": [
+        "fisherz",
+        "mv_fisherz",
+        "chisq",
+        "gsq",
+        "kci"
+      ],
+      "latent_confounding": true,
+      "selection_bias": true,
+      "custom_ci": false,
+      "audit_exports": false,
+      "audit_capabilities": [
+        "graph object",
+        "edge list",
+        "PNG example through GraphUtils/pydot"
+      ],
+      "smoke_observation": "Local causal-learn FCI completed on the seeded three-variable continuous fixture and returned a graph plus edge list.",
+      "source_urls": [
+        "https://pypi.org/project/causal-learn/",
+        "https://causal-learn.readthedocs.io/en/latest/search_methods_index/Constraint-based%20causal%20discovery%20methods/FCI.html",
+        "https://github.com/py-why/causal-learn/blob/main/causallearn/search/ConstraintBased/FCI.py"
+      ],
+      "comparison_limits": [
+        "No local or documented public FCI+ entry point was identified in the inspected FCI module.",
+        "The public FCI return does not document a structured separator, CI-query, or orientation-event audit export.",
+        "The installed version is one patch release behind the current PyPI record."
+      ]
+    },
+    {
+      "tool": "Tetrad",
+      "version": "7.6.10 (latest official release inspected)",
+      "as_of": "2026-07-26",
+      "evidence_kind": "documentation",
+      "language": "Java",
+      "algorithms": [
+        "FCI",
+        "RFCI",
+        "GFCI",
+        "BossFci",
+        "GraspFci",
+        "FgesFci",
+        "SpFci",
+        "StarFci"
+      ],
+      "ci_tests": [
+        "IndependenceTest interface"
+      ],
+      "latent_confounding": true,
+      "selection_bias": true,
+      "custom_ci": true,
+      "audit_exports": false,
+      "audit_capabilities": [
+        "Fci.getSepsets() SepsetMap",
+        "TetradLogger verbose messages",
+        "broader GUI and graph-saving workflows"
+      ],
+      "smoke_observation": null,
+      "source_urls": [
+        "https://github.com/cmu-phil/tetrad/releases/latest",
+        "https://github.com/cmu-phil/tetrad/blob/development/tetrad-lib/src/main/java/edu/cmu/tetrad/search/Fci.java",
+        "https://github.com/cmu-phil/tetrad/blob/development/tetrad-lib/src/main/java/edu/cmu/tetrad/search/test/IndependenceTest.java",
+        "https://github.com/cmu-phil/tetrad/tree/development/tetrad-lib/src/main/java/edu/cmu/tetrad/search"
+      ],
+      "comparison_limits": [
+        "No working Java runtime was available, so no Tetrad algorithm was executed here.",
+        "No drop-in implementation of Claassen et al.'s FCI+ was established in the inspected public source.",
+        "FCI-family hybrid algorithms must not be labeled as standard FCI+.",
+        "A complete structured per-query and per-orientation audit schema was not established."
+      ]
+    }
+  ]
+}
