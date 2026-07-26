@@ -105,3 +105,46 @@ def test_large_sample_latent_sem_recovers_figure4_pag() -> None:
 
     assert shape_from_pag(result.graph) == expected
     assert result.sepset_sources[("X", "Y")] == "fci_plus_dsep"
+
+
+def test_fci_plus_paper_profile_orients_selection_bias_cycle_with_r5() -> None:
+    mag = MAGSpec(
+        nodes=("A", "B", "C", "D"),
+        undirected_edges=[
+            ("A", "B"),
+            ("B", "D"),
+            ("D", "C"),
+            ("C", "A"),
+        ],
+    )
+
+    result = fci_plus(
+        mag.dummy_data(),
+        profile="paper",
+        k=2,
+        ci_test=mag.oracle_ci_test(),
+    )
+
+    assert all(result.graph.is_undirected_edge(x, y) for x, y in result.graph.edges())
+    assert "R5" in {event.rule for event in result.orientation_trace}
+
+
+def test_spirtes_paper_profile_stops_before_selection_bias_tail_completion() -> None:
+    mag = MAGSpec(
+        nodes=("A", "B", "C", "D"),
+        undirected_edges=[
+            ("A", "B"),
+            ("B", "D"),
+            ("D", "C"),
+            ("C", "A"),
+        ],
+    )
+
+    result = fci(
+        mag.dummy_data(),
+        profile="paper",
+        ci_test=mag.oracle_ci_test(),
+    )
+
+    assert all(result.graph.is_circle_edge(x, y) for x, y in result.graph.edges())
+    assert "R5" not in {event.rule for event in result.orientation_trace}

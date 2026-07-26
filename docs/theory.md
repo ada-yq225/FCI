@@ -75,8 +75,9 @@ candidate set, and triangle steps reject definite noncollider tails.
 ## Orientation Rules
 
 After skeleton discovery, FCI orients unshielded colliders using separating
-sets. It then follows the complete-rule schedule: close R1-R4, apply R5, close
-R6-R7, and finally close R8-R10.
+sets. The Spirtes 2000 paper profile closes the original R1-R4 arrowhead phase
+and stops. The standard and FCI+ paper schedules continue with Zhang's complete
+rules: apply R5, close R6-R7, and finally close R8-R10.
 
 The standard discriminating path rule is included. The orientation rule suite is
 kept readable and tested against small reference shapes, including an optional

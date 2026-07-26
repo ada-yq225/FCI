@@ -165,8 +165,8 @@ class PAG:
         """Return whether ``x`` can still be an ancestor of ``y``.
 
         This follows possibly directed paths: when traversing an edge from
-        ``current`` to ``next``, an arrowhead at ``current`` blocks that
-        traversal.
+        ``current`` to ``next``, an arrowhead at ``current`` or a tail at
+        ``next`` blocks that traversal.
         """
 
         self._validate_node(x)
@@ -181,7 +181,10 @@ class PAG:
             for next_node in self.neighbors(current):
                 if next_node in visited:
                     continue
-                if self.has_arrowhead(next_node, current):
+                if self.has_arrowhead(next_node, current) or self.has_tail(
+                    current,
+                    next_node,
+                ):
                     continue
                 if next_node == y:
                     return True

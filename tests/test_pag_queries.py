@@ -22,6 +22,14 @@ def test_possible_ancestor_follows_possibly_directed_paths() -> None:
     assert not pag.is_possible_ancestor("Y", "X")
 
 
+def test_possible_ancestor_rejects_tail_at_next_node() -> None:
+    pag = PAG(["X", "Y"])
+    pag.add_edge("X", "Y", Endpoint.CIRCLE, Endpoint.TAIL)
+
+    assert not pag.is_possible_ancestor("X", "Y")
+    assert pag.is_possible_ancestor("Y", "X")
+
+
 def test_definite_ancestor_uses_only_directed_edges() -> None:
     pag = PAG(["X", "Y", "Z", "W"])
     pag.add_edge("X", "Y", Endpoint.TAIL, Endpoint.ARROW)

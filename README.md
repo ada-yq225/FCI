@@ -75,7 +75,7 @@ A  <-> B
 | Entry point | Best use case |
 | --- | --- |
 | `fci(data)` | Stable finite-sample FCI defaults with explicit alpha `0.05`. |
-| `fci(data, profile="paper")` | Spirtes et al. adjacency and Possible-D-SEP search schedule. |
+| `fci(data, profile="paper")` | Spirtes et al. adjacency, Possible-D-SEP, and original R0-R4 orientation schedule. |
 | `fci_plus(data, profile="practical")` | Bounded conservative FCI+ profile; validate it for the dataset at hand. |
 | `FCI(config).fit(data)` | Estimator-style usage with explicit configuration and reusable objects. |
 | `FCIPlus.practical(...).fit(data)` | Reusable bounded FCI+ estimator with conservative finite-sample options. |
@@ -571,9 +571,10 @@ Spirtes, Glymour, and Scheines:
    removed.
 
 The 2000 book proves that this returns a partially oriented inducing-path graph
-and explicitly notes that completeness was then unknown. To return the complete
-PAG expected by the 2013 FCI+ paper, this package uses the later complete
-R1-R10 orientation schedule: close R1-R4, apply R5, close R6-R7, then close
+and explicitly notes that completeness was then unknown. Accordingly, the FCI
+paper profile stops after the original R0-R4 arrowhead-rule closure. The
+ordinary ``standard`` strategy and the FCI+ paper profile use Zhang's later
+complete R1-R10 schedule: close R1-R4, apply R5, close R6-R7, then close
 R8-R10.
 
 ### FCI+ Algorithm 2 mapping

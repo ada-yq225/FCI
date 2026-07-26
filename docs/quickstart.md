@@ -107,7 +107,7 @@ clear leaf effects.
 Set `orientation_strategy="robust"` to also enable conservative collider
 checks, which reduces endpoint conflicts in finite-sample settings.
 
-For the Spirtes et al. search schedule, use the paper profile:
+For the Spirtes et al. algorithm schedule, use the paper profile:
 
 ```python
 paper_result = fci(data, profile="paper", alpha=0.01)
@@ -115,7 +115,8 @@ paper_result = fci(data, profile="paper", alpha=0.01)
 
 It uses immediate PC adjacency updates, first-found separating sets, unbounded
 conditioning/path search, a fixed initially oriented graph for directional
-Possible-D-SEP pools, and the package's complete PAG orientation stage.
+Possible-D-SEP pools, and the original R0-R4 orientation stage. Use the
+standard strategy or FCI+ paper profile when a Zhang-complete PAG is required.
 
 ## Missing Values
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from fci_engine import FCIPlus, FCIPlusConfig, fci, fci_plus
 from fci_engine.ci import CITest, CITestResult, MissingValueFisherZTest
@@ -315,6 +316,11 @@ def test_fci_plus_paper_profile_sets_algorithm2_limits() -> None:
     assert config.orientation_strategy == "standard"
 
 
+def test_fci_plus_paper_profile_requires_explicit_sparsity_bound() -> None:
+    with pytest.raises(ValueError, match="requires an explicit sparsity bound k"):
+        FCIPlusConfig.paper()
+
+
 def test_fci_plus_function_accepts_named_profile() -> None:
     data = np.random.default_rng(128).normal(size=(160, 4))
 
@@ -403,6 +409,60 @@ def test_fci_plus_result_records_dsep_diagnostics() -> None:
     assert diagnostics.ci_tests >= 1
     assert diagnostics.edges_removed == 1
     assert diagnostics.max_conditioning_size == 3
+
+
+def test_fci_plus_revisits_failed_candidate_after_dsep_removal() -> None:
+    nodes = [
+        "X",
+        "Y",
+        "P",
+        "Q",
+        "U",
+        "V",
+        "R",
+        "S",
+        "A",
+        "B",
+        "C",
+        "D",
+    ]
+    graph = PAG(nodes)
+    for x, y in [
+        ("U", "X"),
+        ("X", "Y"),
+        ("Y", "V"),
+        ("R", "P"),
+        ("P", "Q"),
+        ("Q", "S"),
+    ]:
+        graph.add_edge(x, y, Endpoint.ARROW, Endpoint.ARROW)
+    for x, y in [("U", "Y"), ("V", "X"), ("R", "Q"), ("S", "P")]:
+        graph.add_edge(x, y, Endpoint.CIRCLE, Endpoint.ARROW)
+    for x, y in [("X", "A"), ("Y", "B"), ("P", "C"), ("Q", "D")]:
+        graph.add_circle_edge(x, y)
+
+    oracle = OracleCITest(
+        nodes,
+        {
+            _oracle_key("P", "Q", frozenset({"C", "D"})),
+        },
+    )
+
+    from fci_engine.diagnostics import DSEPDiagnostics
+
+    diagnostics = DSEPDiagnostics()
+    refined, _ = refine_skeleton_with_fci_plus_dsep(
+        np.zeros((20, len(nodes))),
+        graph,
+        {},
+        oracle,
+        max_degree=1,
+        diagnostics=diagnostics,
+    )
+
+    assert refined.is_adjacent("X", "Y")
+    assert not refined.is_adjacent("P", "Q")
+    assert diagnostics.candidate_revisits >= 1
 
 
 def test_fci_plus_accepts_missing_values_with_missing_value_ci_test() -> None:

@@ -37,7 +37,7 @@ ORIENTATION_RULE_REFERENCE: dict[str, str] = {
 def apply_orientation_rules(
     graph: PAG,
     sepsets: SepsetMap,
-    max_iter: int = 1000,
+    max_iter: Optional[int] = None,
     max_path_length: Optional[int] = None,
     verbose: bool = False,
     trace: Optional[list[OrientationEvent]] = None,
@@ -48,19 +48,25 @@ def apply_orientation_rules(
     """Apply the complete FCI orientation rules.
 
     The ``standard`` strategy follows Zhang's rule schedule: close R1--R4,
-    apply R5, close R6--R7, then close R8--R10. The other strategies are
-    deliberately conservative finite-sample profiles and do not claim the
-    oracle completeness of the standard schedule.
+    apply R5, close R6--R7, then close R8--R10. ``spirtes_2000`` stops after
+    the R1--R4 arrowhead phase used by the original FCI formulation. The other
+    strategies are deliberately conservative finite-sample profiles.
     """
 
-    if max_iter < 0:
+    if max_iter is not None and max_iter < 0:
         raise ValueError("max_iter must be non-negative.")
     if max_path_length is not None and max_path_length < 0:
         raise ValueError("max_path_length must be non-negative.")
-    if orientation_strategy not in {"standard", "conservative", "leaf", "robust"}:
+    if orientation_strategy not in {
+        "standard",
+        "spirtes_2000",
+        "conservative",
+        "leaf",
+        "robust",
+    }:
         raise ValueError(
-            "orientation_strategy must be 'standard', 'conservative', "
-            "'leaf', or 'robust'."
+            "orientation_strategy must be 'standard', 'spirtes_2000', "
+            "'conservative', 'leaf', or 'robust'."
         )
     if conservative_orientation and orientation_strategy == "standard":
         orientation_strategy = "conservative"
@@ -70,7 +76,7 @@ def apply_orientation_rules(
     if max_iter == 0:
         return graph
 
-    if orientation_strategy == "standard":
+    if orientation_strategy in {"standard", "spirtes_2000"}:
         iteration = _close_r1_to_r4(
             graph,
             sepsets,
@@ -81,6 +87,8 @@ def apply_orientation_rules(
             ambiguous_triples=ambiguous_triples,
             start_iteration=0,
         )
+        if orientation_strategy == "spirtes_2000":
+            return graph
         _run_rule(
             rule_uncovered_circle_path_selection_bias,
             graph,
@@ -122,7 +130,8 @@ def apply_orientation_rules(
     # Conservative/leaf profiles retain only sound arrowhead propagation and,
     # for leaf mode, the deliberately restricted R1 tail orientation.
     leaf_only = orientation_strategy == "leaf"
-    for iteration in range(max_iter):
+    iteration = 0
+    while max_iter is None or iteration < max_iter:
         changed = False
         if leaf_only:
             changed = (
@@ -161,13 +170,14 @@ def apply_orientation_rules(
         )
         if not changed:
             break
+        iteration += 1
     return graph
 
 
 def _close_r1_to_r4(
     graph: PAG,
     sepsets: SepsetMap,
-    max_iter: int,
+    max_iter: Optional[int],
     max_path_length: Optional[int],
     verbose: bool,
     trace: Optional[list[OrientationEvent]],
@@ -175,7 +185,8 @@ def _close_r1_to_r4(
     start_iteration: int,
 ) -> int:
     iteration = start_iteration
-    for _ in range(max_iter):
+    phase_iterations = 0
+    while max_iter is None or phase_iterations < max_iter:
         changed = rule_avoid_new_unshielded_colliders(
             graph,
             sepsets,
@@ -206,6 +217,7 @@ def _close_r1_to_r4(
             or changed
         )
         iteration += 1
+        phase_iterations += 1
         if not changed:
             break
     return iteration
@@ -215,13 +227,14 @@ def _close_simple_rule_phase(
     graph: PAG,
     sepsets: SepsetMap,
     rules: tuple[OrientationRule, ...],
-    max_iter: int,
+    max_iter: Optional[int],
     start_iteration: int,
     verbose: bool,
     trace: Optional[list[OrientationEvent]],
 ) -> int:
     iteration = start_iteration
-    for _ in range(max_iter):
+    phase_iterations = 0
+    while max_iter is None or phase_iterations < max_iter:
         changed = False
         for rule in rules:
             changed = (
@@ -236,6 +249,7 @@ def _close_simple_rule_phase(
                 or changed
             )
         iteration += 1
+        phase_iterations += 1
         if not changed:
             break
     return iteration
@@ -245,14 +259,15 @@ def _close_path_rule_phase(
     graph: PAG,
     sepsets: SepsetMap,
     rules: tuple[OrientationRule, ...],
-    max_iter: int,
+    max_iter: Optional[int],
     max_path_length: Optional[int],
     start_iteration: int,
     verbose: bool,
     trace: Optional[list[OrientationEvent]],
 ) -> int:
     iteration = start_iteration
-    for _ in range(max_iter):
+    phase_iterations = 0
+    while max_iter is None or phase_iterations < max_iter:
         changed = False
         for rule in rules:
             changed = (
@@ -268,6 +283,7 @@ def _close_path_rule_phase(
                 or changed
             )
         iteration += 1
+        phase_iterations += 1
         if not changed:
             break
     return iteration
@@ -897,10 +913,11 @@ def _apply_r8_for_order(
             continue
         if not graph.is_adjacent(a, b) or not graph.is_directed_edge(b, c):
             continue
-        if not graph.has_arrowhead(a, b):
-            continue
         endpoint_at_a = graph.get_endpoint(b, a)
-        if endpoint_at_a not in (Endpoint.TAIL, Endpoint.CIRCLE):
+        endpoint_at_b = graph.get_endpoint(a, b)
+        if endpoint_at_a is not Endpoint.TAIL:
+            continue
+        if endpoint_at_b not in (Endpoint.ARROW, Endpoint.CIRCLE):
             continue
         return _orient_tail_if_circle(
             graph,
@@ -909,7 +926,7 @@ def _apply_r8_for_order(
             trace=trace,
             rule="R8",
             iteration=iteration,
-            reason=f"{a!r} *-> {b!r} --> {c!r}",
+            reason=f"{a!r} ->/-o {b!r} --> {c!r}",
         )
     return False
 
@@ -1014,8 +1031,16 @@ def _find_uncovered_circle_paths(
         return []
 
     paths: list[tuple[str, ...]] = []
-    queue: deque[tuple[str, ...]] = deque([(source,)])
-    seen: set[tuple[str, ...]] = {(source,)}
+    queue: deque[tuple[str, ...]] = deque()
+    seen_states: set[tuple[str, str, str]] = set()
+
+    for neighbor in graph.neighbors(source):
+        if neighbor == target or not graph.is_circle_edge(source, neighbor):
+            continue
+        initial_path = (source, neighbor)
+        state = (neighbor, source, neighbor)
+        seen_states.add(state)
+        queue.append(initial_path)
 
     while queue:
         path = queue.popleft()
@@ -1037,9 +1062,10 @@ def _find_uncovered_circle_paths(
                 next_path[-1],
             ):
                 continue
-            if next_path in seen:
+            state = (path[1], current, neighbor)
+            if state in seen_states:
                 continue
-            seen.add(next_path)
+            seen_states.add(state)
             if neighbor == target:
                 paths.append(next_path)
             else:
@@ -1059,16 +1085,26 @@ def _find_uncovered_possibly_directed_paths(
 
     excluded = frozenset(excluded_edge) if excluded_edge is not None else None
     paths: list[tuple[str, ...]] = []
-    queue: deque[tuple[str, ...]] = deque([(source,)])
-    seen: set[tuple[str, ...]] = {(source,)}
+    queue: deque[tuple[str, ...]] = deque()
+    seen_states: set[tuple[str, str, str]] = set()
+
+    for neighbor in graph.neighbors(source):
+        if excluded is not None and frozenset((source, neighbor)) == excluded:
+            continue
+        if not _is_possibly_directed_step(graph, source, neighbor):
+            continue
+        initial_path = (source, neighbor)
+        state = (neighbor, source, neighbor)
+        seen_states.add(state)
+        if neighbor == target:
+            paths.append(initial_path)
+        else:
+            queue.append(initial_path)
 
     while queue:
         path = queue.popleft()
         current = path[-1]
         path_length = len(path) - 1
-        if current == target:
-            paths.append(path)
-            continue
         if max_path_length is not None and path_length >= max_path_length:
             continue
 
@@ -1085,10 +1121,14 @@ def _find_uncovered_possibly_directed_paths(
                 next_path[-1],
             ):
                 continue
-            if next_path in seen:
+            state = (path[1], current, neighbor)
+            if state in seen_states:
                 continue
-            seen.add(next_path)
-            queue.append(next_path)
+            seen_states.add(state)
+            if neighbor == target:
+                paths.append(next_path)
+            else:
+                queue.append(next_path)
     return paths
 
 
@@ -1101,7 +1141,10 @@ def _is_possibly_directed_step(
     current: str,
     next_node: str,
 ) -> bool:
-    return not graph.has_arrowhead(next_node, current)
+    return not graph.has_arrowhead(next_node, current) and not graph.has_tail(
+        current,
+        next_node,
+    )
 
 
 def _orient_undirected_if_circles(
@@ -1270,6 +1313,7 @@ def _search_discriminating_paths_from_suffix(
     a, b, c = suffix
     paths: list[tuple[str, ...]] = []
     queue: deque[tuple[str, ...]] = deque([(a, b, c)])
+    seen_states: set[tuple[str, str]] = {(a, b)}
 
     while queue:
         suffix_path = queue.popleft()
@@ -1288,6 +1332,10 @@ def _search_discriminating_paths_from_suffix(
                 continue
 
             path = (candidate, *suffix_path)
+            state = (candidate, left)
+            if state in seen_states:
+                continue
+            seen_states.add(state)
             if not graph.is_adjacent(candidate, c):
                 paths.append(path)
                 continue

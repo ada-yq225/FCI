@@ -1,3 +1,5 @@
+from inspect import signature
+
 from fci_engine.discovery.orientation import (
     definite_noncollider,
     has_directed_path,
@@ -158,6 +160,12 @@ def test_apply_orientation_rules_converges_iteratively() -> None:
     assert graph.edge_repr("A", "C") == "A --> C"
 
 
+def test_orientation_rules_default_has_no_fixed_iteration_cap() -> None:
+    parameter = signature(apply_orientation_rules).parameters["max_iter"]
+
+    assert parameter.default is None
+
+
 def test_standard_schedule_does_not_use_nonstandard_global_path_heuristic() -> None:
     graph = PAG(["A", "B", "C", "D"])
     graph.add_edge("A", "B", Endpoint.TAIL, Endpoint.ARROW)
@@ -170,6 +178,17 @@ def test_standard_schedule_does_not_use_nonstandard_global_path_heuristic() -> N
     apply_orientation_rules(graph, {})
 
     assert graph.edge_repr("A", "D") == "A o-o D"
+
+
+def test_spirtes_2000_schedule_stops_before_tail_completion_rules() -> None:
+    graph = PAG(["A", "B", "C"])
+    graph.add_edge("A", "B", Endpoint.TAIL, Endpoint.ARROW)
+    graph.add_edge("B", "C", Endpoint.TAIL, Endpoint.ARROW)
+    graph.add_edge("A", "C", Endpoint.CIRCLE, Endpoint.ARROW)
+
+    apply_orientation_rules(graph, {}, orientation_strategy="spirtes_2000")
+
+    assert graph.edge_repr("A", "C") == "A o-> C"
 
 
 def test_apply_orientation_rules_respects_ambiguous_triples_in_r1() -> None:
@@ -362,5 +381,5 @@ def test_apply_orientation_rules_passes_max_path_length_to_r4() -> None:
 
     apply_orientation_rules(graph, {("D", "C"): {"B"}}, max_path_length=2, trace=trace)
 
-    assert graph.edge_repr("B", "C") == "B --> C"
+    assert graph.edge_repr("B", "C") == "B o-> C"
     assert "R4" not in {event.rule for event in trace}

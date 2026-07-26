@@ -15,7 +15,13 @@ from fci_engine.knowledge import BackgroundKnowledge
 
 Alpha = Union[float, Literal["auto"]]
 SepsetSelection = Literal["first", "max_pvalue"]
-OrientationStrategy = Literal["standard", "conservative", "leaf", "robust"]
+OrientationStrategy = Literal[
+    "standard",
+    "spirtes_2000",
+    "conservative",
+    "leaf",
+    "robust",
+]
 
 
 class FCIOptions(TypedDict, total=False):
@@ -38,7 +44,7 @@ class FCIOptions(TypedDict, total=False):
 
 
 class FCIPaperOptions(TypedDict, total=False):
-    """Overrides that preserve the Spirtes et al. FCI search schedule."""
+    """Overrides that preserve the Spirtes et al. FCI paper profile."""
 
     alpha: float
     ci_test: Optional[CITest]
@@ -84,7 +90,8 @@ class FCIConfig:
             rules after collider orientation. This favors keeping circle
             endpoints over aggressive finite-sample orientation.
         orientation_strategy: Controls collider and tail-producing orientation
-            rules: "standard" applies all implemented PAG rules,
+            rules: "standard" applies Zhang's complete PAG rules,
+            "spirtes_2000" stops after the original FCI arrowhead-rule phase,
             "conservative" keeps arrowhead rules only, "leaf" applies
             arrowhead rules plus R1 when the newly directed endpoint is a leaf
             in the current PAG, and "robust" combines conservative collider
@@ -148,13 +155,14 @@ class FCIConfig:
             raise ValueError("sepset_selection must be 'first' or 'max_pvalue'.")
         if self.orientation_strategy not in {
             "standard",
+            "spirtes_2000",
             "conservative",
             "leaf",
             "robust",
         }:
             raise ValueError(
-                "orientation_strategy must be 'standard', 'conservative', "
-                "'leaf', or 'robust'."
+                "orientation_strategy must be 'standard', 'spirtes_2000', "
+                "'conservative', 'leaf', or 'robust'."
             )
 
     @classmethod
@@ -180,8 +188,8 @@ class FCIConfig:
         separating sets. The PC stage updates immediately; Possible-D-SEP
         candidates are computed from the initially oriented graph for that
         stage, matching the book's ``F``/``F'`` construction. The final
-        orientation phase uses the complete PAG rule schedule implemented by
-        this package.
+        orientation phase stops after the original FCI arrowhead-rule closure
+        rather than applying Zhang's later tail-completion rules R5--R10.
         """
 
         values: dict[str, Any] = {
@@ -194,7 +202,7 @@ class FCIConfig:
             "sepset_selection": "first",
             "conservative_colliders": False,
             "conservative_orientation": False,
-            "orientation_strategy": "standard",
+            "orientation_strategy": "spirtes_2000",
         }
         values.update(overrides)
         return cls(**values)
@@ -260,10 +268,15 @@ class FCIPlusConfig(FCIConfig):
         """Return Claassen et al.'s literal Algorithm 2 search profile."""
 
         values_override: dict[str, Any] = dict(overrides)
-        k = values_override.pop("k", 3)
+        if "k" not in values_override:
+            raise ValueError(
+                "The FCI+ paper profile requires an explicit sparsity bound k."
+            )
+        k_value = values_override.pop("k")
+        _validate_optional_nonnegative_integer("k", k_value)
+        assert k_value is not None
+        k = int(k_value)
         alpha = values_override.pop("alpha", 0.05)
-        if k < 0:
-            raise ValueError("k must be non-negative.")
         values: dict[str, Any] = {
             "alpha": alpha,
             "max_cond_set_size": k,

@@ -12,10 +12,11 @@ result = fci(data, alpha=0.05, do_pdsep=True)
 
 Runs standard FCI and returns an `FCIResult`.
 
-Use `fci(data, profile="paper", alpha=...)` for the Spirtes et al. adjacency and
-Possible-D-SEP search schedule. It uses immediate PC updates, first-found
-minimal sepsets, unbounded search, a fixed initial graph for the PDS stage, and separate
-`Possible-D-SEP(A,B)` / `Possible-D-SEP(B,A)` candidate pools.
+Use `fci(data, profile="paper", alpha=...)` for the Spirtes et al. adjacency,
+Possible-D-SEP, and original R0-R4 orientation schedule. It uses immediate PC
+updates, first-found minimal sepsets, unbounded search, a fixed initial graph
+for the PDS stage, and separate `Possible-D-SEP(A,B)` /
+`Possible-D-SEP(B,A)` candidate pools.
 
 Accepted input:
 
@@ -79,8 +80,9 @@ Configuration options:
 - `conservative_orientation`: keep arrowhead-producing orientation rules but
   skip tail-producing propagation rules; useful when audits prefer a less
   committed PAG over possible over-orientation
-- `orientation_strategy`: `"standard"` applies all implemented PAG orientation
-  rules, `"conservative"` keeps arrowhead rules only, and `"leaf"` keeps the
+- `orientation_strategy`: `"standard"` applies Zhang's complete R1-R10 PAG
+  rules, `"spirtes_2000"` stops after the original R0-R4 arrowhead phase,
+  `"conservative"` keeps arrowhead rules only, and `"leaf"` keeps the
   conservative behavior in dense graph regions while still allowing R1 to
   direct leaf endpoints. `"robust"` combines Conservative-FCI-style collider
   checks with the leaf-tail rule profile.

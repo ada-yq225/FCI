@@ -61,7 +61,7 @@ def test_r7_propagates_tail_from_unshielded_noncollider() -> None:
 
 def test_r8_orients_tail_along_directed_chain() -> None:
     graph = PAG(["A", "B", "C"])
-    graph.add_edge("A", "B", Endpoint.CIRCLE, Endpoint.ARROW)
+    graph.add_edge("A", "B", Endpoint.TAIL, Endpoint.ARROW)
     graph.add_edge("B", "C", Endpoint.TAIL, Endpoint.ARROW)
     graph.add_edge("A", "C", Endpoint.CIRCLE, Endpoint.ARROW)
 
@@ -69,6 +69,30 @@ def test_r8_orients_tail_along_directed_chain() -> None:
 
     assert changed
     assert graph.edge_repr("A", "C") == "A --> C"
+
+
+def test_r8_orients_tail_from_tail_circle_chain() -> None:
+    graph = PAG(["A", "B", "C"])
+    graph.add_edge("A", "B", Endpoint.TAIL, Endpoint.CIRCLE)
+    graph.add_edge("B", "C", Endpoint.TAIL, Endpoint.ARROW)
+    graph.add_edge("A", "C", Endpoint.CIRCLE, Endpoint.ARROW)
+
+    changed = rule_orient_tail_along_directed_chain(graph, {})
+
+    assert changed
+    assert graph.edge_repr("A", "C") == "A --> C"
+
+
+def test_r8_rejects_circle_arrow_chain_not_in_paper_rule() -> None:
+    graph = PAG(["A", "B", "C"])
+    graph.add_edge("A", "B", Endpoint.CIRCLE, Endpoint.ARROW)
+    graph.add_edge("B", "C", Endpoint.TAIL, Endpoint.ARROW)
+    graph.add_edge("A", "C", Endpoint.CIRCLE, Endpoint.ARROW)
+
+    changed = rule_orient_tail_along_directed_chain(graph, {})
+
+    assert not changed
+    assert graph.edge_repr("A", "C") == "A o-> C"
 
 
 def test_r9_orients_tail_from_uncovered_possibly_directed_path() -> None:
@@ -82,6 +106,19 @@ def test_r9_orients_tail_from_uncovered_possibly_directed_path() -> None:
 
     assert changed
     assert graph.edge_repr("A", "C") == "A --> C"
+
+
+def test_r9_rejects_path_with_tail_at_next_node() -> None:
+    graph = PAG(["A", "B", "D", "C"])
+    graph.add_edge("A", "C", Endpoint.CIRCLE, Endpoint.ARROW)
+    graph.add_circle_edge("A", "B")
+    graph.add_edge("B", "D", Endpoint.CIRCLE, Endpoint.TAIL)
+    graph.add_edge("D", "C", Endpoint.CIRCLE, Endpoint.ARROW)
+
+    changed = rule_orient_tail_along_uncovered_pd_path(graph, {})
+
+    assert changed
+    assert graph.edge_repr("A", "C") == "A o-> C"
 
 
 def test_r10_orients_tail_from_two_parent_paths() -> None:
@@ -98,3 +135,19 @@ def test_r10_orients_tail_from_two_parent_paths() -> None:
 
     assert changed
     assert graph.edge_repr("A", "C") == "A --> C"
+
+
+def test_r10_rejects_parent_path_with_tail_at_next_node() -> None:
+    graph = PAG(["A", "M", "N", "B", "D", "C"])
+    graph.add_edge("A", "C", Endpoint.CIRCLE, Endpoint.ARROW)
+    graph.add_circle_edge("A", "M")
+    graph.add_edge("M", "B", Endpoint.CIRCLE, Endpoint.TAIL)
+    graph.add_circle_edge("A", "N")
+    graph.add_circle_edge("N", "D")
+    graph.add_edge("B", "C", Endpoint.TAIL, Endpoint.ARROW)
+    graph.add_edge("D", "C", Endpoint.TAIL, Endpoint.ARROW)
+
+    changed = rule_orient_tail_with_two_directed_parents(graph, {})
+
+    assert not changed
+    assert graph.edge_repr("A", "C") == "A o-> C"

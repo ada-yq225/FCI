@@ -35,6 +35,14 @@ def test_mypy_toolchain_remains_compatible_with_python_39() -> None:
     assert typed_marker.exists()
 
 
+def test_ruff_policy_is_stable_across_minor_releases() -> None:
+    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+
+    assert '"ruff>=0.16,<0.17"' in pyproject
+    assert 'required-version = ">=0.16,<0.17"' in pyproject
+    assert 'select = ["E4", "E7", "E9", "F"]' in pyproject
+
+
 def test_package_uses_spdx_license_metadata() -> None:
     pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
 

@@ -54,7 +54,7 @@ def test_fci_paper_profile_matches_spirtes_search_schedule() -> None:
     assert config.skeleton_stable is False
     assert config.pdsep_stable is True
     assert config.sepset_selection == "first"
-    assert config.orientation_strategy == "standard"
+    assert config.orientation_strategy == "spirtes_2000"
 
 
 def test_function_api_accepts_fci_paper_profile() -> None:
