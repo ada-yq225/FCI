@@ -384,6 +384,9 @@ Student/Teacher Achievement Ratio randomized class-size experiment:
 - [machine-readable result summary](case_studies/tennessee_star/output/star_case_study_summary.json)
 - [complete FCI+ and Tennessee STAR PDF report](output/pdf/fci_plus_star_report.pdf)
 - [LaTeX report source](reports/fci_plus_star_report.tex)
+- [editable English advisor presentation](output/ppt/fci_plus_star_advisor_presentation.pptx)
+- [advisor-presentation PDF handout](output/ppt/fci_plus_star_advisor_presentation.pdf)
+- [English presenter notes](output/ppt/fci_plus_star_advisor_presentation_notes.md)
 
 The application is intentionally outside `src/fci_engine`: STAR-specific data
 coding, cohort selection, school-cluster bootstrap, visualizations, and

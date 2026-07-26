@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" data-pptx-page-role="content">
+  <rect id="page-background-08" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#F7F5EF" />
+  <g id="header-08" data-pptx-bounds="56 34 1168 88">
+    <text x="56" y="72" font-family="Georgia, Times New Roman, serif" font-size="40" font-weight="700" fill="#183153">Known Truth Separates Logic from Sample Error</text>
+    <text x="1224" y="56" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="18" fill="#5F6875">VALIDATION</text>
+    <line x1="56" y1="106" x2="1224" y2="106" stroke="#CBD2DC" stroke-width="1.5" />
+  </g>
+  <g id="figure4-panel-08" data-pptx-bounds="56 140 474 422">
+    <rect x="56" y="140" width="474" height="422" rx="14" fill="#FFFFFF" stroke="#CBD2DC" stroke-width="1.5" />
+    <text x="82" y="174" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#E58A2B">CLAASSEN FIGURE 4(b) FIXTURE</text>
+    <text x="82" y="208" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#183153">A non-local separator removes X—Y</text>
+    <circle cx="150" cy="324" r="31" fill="#FFF3E3" stroke="#E58A2B" stroke-width="3" />
+    <text x="150" y="332" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#183153">U</text>
+    <circle cx="280" cy="263" r="31" fill="#FFFFFF" stroke="#183153" stroke-width="3" />
+    <text x="280" y="271" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#183153">X</text>
+    <circle cx="410" cy="324" r="31" fill="#FFFFFF" stroke="#183153" stroke-width="3" />
+    <text x="410" y="332" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#183153">Y</text>
+    <circle cx="280" cy="389" r="31" fill="#FFF3E3" stroke="#E58A2B" stroke-width="3" />
+    <text x="280" y="397" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#183153">V</text>
+    <circle cx="410" cy="450" r="31" fill="#FFF3E3" stroke="#E58A2B" stroke-width="3" />
+    <text x="410" y="458" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#183153">Z</text>
+    <line x1="177" y1="310" x2="252" y2="278" stroke="#183153" stroke-width="3" />
+    <line x1="308" y1="278" x2="382" y2="309" stroke="#183153" stroke-width="3" />
+    <line x1="308" y1="373" x2="382" y2="338" stroke="#183153" stroke-width="3" />
+    <line x1="307" y1="404" x2="383" y2="438" stroke="#183153" stroke-width="3" />
+    <line x1="311" y1="270" x2="379" y2="309" stroke="#B45F4A" stroke-width="4" stroke-dasharray="8 7" />
+    <line x1="328" y1="262" x2="365" y2="335" stroke="#B45F4A" stroke-width="4" />
+    <line x1="365" y1="262" x2="328" y2="335" stroke="#B45F4A" stroke-width="4" />
+    <rect x="82" y="495" width="422" height="42" rx="8" fill="#FFF3E3" />
+    <text x="293" y="522" text-anchor="middle" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#E58A2B">Exhibited separator: {U, V, Z}</text>
+  </g>
+  <g id="metrics-panel-08" data-pptx-bounds="558 140 666 422">
+    <rect x="558" y="140" width="666" height="422" rx="14" fill="#183153" />
+    <text x="586" y="174" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#E9EDF5">TWO LEVELS OF KNOWN-TRUTH EVIDENCE</text>
+    <g id="chartArea">
+      <line x1="610" y1="294" x2="1172" y2="294" stroke="#5C7190" stroke-width="1.5" />
+      <line x1="610" y1="486" x2="1172" y2="486" stroke="#5C7190" stroke-width="1.5" />
+
+      <rect x="610" y="220" width="442" height="34" rx="6" fill="#2F6BFF" />
+      <rect x="610" y="260" width="273" height="34" rx="6" fill="#E58A2B" />
+      <rect x="610" y="390" width="300" height="22" rx="5" fill="#E58A2B" />
+      <rect x="610" y="426" width="394" height="22" rx="5" fill="#1C9A8A" />
+    </g>
+    <text x="586" y="210" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">Exact oracle · Figure 4(b) logical CI queries</text>
+    <text x="1070" y="245" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#FFFFFF">FCI 102</text>
+    <text x="901" y="285" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#FFFFFF">FCI+ 63</text>
+    <text x="586" y="345" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">Fixed-α regression · α = .001 for both · 5 families × 3 seeds</text>
+    <text x="586" y="377" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#E9EDF5">Endpoint-sensitive exact-edge F1</text>
+    <text x="926" y="407" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#FFC77E">paper .536</text>
+    <text x="1020" y="443" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#A7E8DF">robust .703</text>
+    <text fill="#E9EDF5" font-size="18" font-family="Arial, Helvetica, sans-serif" x="586" y="511">Skeleton F1: .979 for both profiles</text><text fill="#E9EDF5" font-size="18" font-family="Arial, Helvetica, sans-serif" x="586" y="539">Mean CI calls: 197.1 → 380.7 · N = 2,500</text></g>
+  <g id="caveat-08" data-pptx-bounds="56 585 1168 55">
+    <text x="56" y="611" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#B45F4A">Fewer oracle queries ≠ finite-sample superiority.</text>
+    <text fill="#5F6875" font-size="16" font-family="Arial, Helvetica, sans-serif" x="665" y="590">The source prints a MAG;</text><text fill="#5F6875" font-size="16" font-family="Arial, Helvetica, sans-serif" x="665" y="612">the repository derives the PAG target independently.</text></g>
+  <g id="footer-08" data-pptx-bounds="56 651 1168 37">
+    <text x="56" y="676" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">Exact-oracle fixtures · committed finite-sample validation · Claassen et al. (2013), Figure 4(b)</text>
+    <text x="1224" y="676" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="16" fill="#5F6875">08 / 15</text>
+  </g>
+</svg>

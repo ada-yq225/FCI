@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" data-pptx-page-role="content">
+  <rect id="page-background-07" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#F7F5EF"/>
+  <g id="header-07" data-pptx-bounds="56 38 1168 84">
+    <text x="56" y="76" font-family="Georgia, Times New Roman, serif" font-size="40" font-weight="700" fill="#183153">Paper and Robust Profiles Stay Separate</text>
+    <text x="1224" y="58" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="18" fill="#5F6875">PROFILE POLICY</text>
+    <line x1="56" y1="106" x2="1224" y2="106" stroke="#CBD2DC" stroke-width="1.5"/>
+  </g>
+  <g id="paper-profile-07" data-pptx-bounds="56 151 506 356">
+    <text x="56" y="178" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#E58A2B">PAPER FCI+ PROFILE</text>
+    <text x="56" y="230" font-family="Georgia, Times New Roman, serif" font-size="32" font-weight="700" fill="#183153">Source schedule</text>
+    <line x1="56" y1="270" x2="526" y2="270" stroke="#E58A2B" stroke-width="4"/>
+    <text x="56" y="310" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1A2433">• Explicit degree bound k</text>
+    <text x="56" y="350" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1A2433">• First separating set</text>
+    <text x="56" y="390" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1A2433">• Non-stable skeleton schedule</text>
+    <text x="56" y="430" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1A2433">• Zhang-rule orientation schedule</text>
+    <text x="56" y="480" font-family="Consolas, Courier New, monospace" font-size="18" fill="#E58A2B">FCIPlusConfig.paper(k=...)</text>
+  </g>
+  <g id="profile-divider-07" data-pptx-bounds="610 151 60 356">
+    <line x1="640" y1="151" x2="640" y2="507" stroke="#CBD2DC" stroke-width="2"/>
+    <circle cx="640" cy="329" r="24" fill="#F7F5EF" stroke="#CBD2DC" stroke-width="2"/>
+    <text x="640" y="336" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#5F6875">VS</text>
+  </g>
+  <g id="robust-profile-07" data-pptx-bounds="718 151 506 356">
+    <text x="718" y="178" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#1C9A8A">ROBUST APPLICATION PROFILE</text>
+    <text x="718" y="224" font-family="Georgia, Times New Roman, serif" font-size="32" font-weight="700" fill="#183153">Finite-sample policy</text>
+    <line x1="718" y1="270" x2="1188" y2="270" stroke="#1C9A8A" stroke-width="4"/>
+    <text x="718" y="310" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1A2433">• Stable skeleton + max-p sepsets</text>
+    <text x="718" y="350" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1A2433">• Conservative collider decisions</text>
+    <text x="718" y="390" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1A2433">• Restricted tail orientation</text>
+    <text x="718" y="430" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1A2433">• Order and bootstrap diagnostics</text>
+    <text x="718" y="480" font-family="Consolas, Courier New, monospace" font-size="18" fill="#1C9A8A">FCIPlusConfig.practical(...)</text>
+  </g>
+  <g id="tradeoff-07" data-pptx-bounds="56 545 1168 89">
+    <rect x="56" y="545" width="1168" height="89" rx="12" fill="#183153"/>
+    <text x="82" y="578" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#A7E8DF">PREDECLARED TRADE-OFF</text>
+    <text x="82" y="612" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#FFFFFF">More CI work + more circle endpoints</text>
+    <text x="570" y="612" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#E9EDF5">in exchange for</text>
+    <text x="738" y="612" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#A7E8DF">stable skeletons + conservative marks</text>
+  </g>
+  <g id="footer-07" data-pptx-bounds="56 654 1168 34">
+    <text x="56" y="677" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#B45F4A">Engineering extension—not a new correctness, completeness, or universal-accuracy theorem.</text>
+    <text x="1224" y="677" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="16" fill="#5F6875">07 / 15</text>
+  </g>
+</svg>

@@ -1,0 +1,9 @@
+[Timing: 1:20]
+
+This matched benchmark executes five labeled configurations on five synthetic graph families, with three repeats and two thousand five hundred samples per case. All seventy-five requested runs completed. The dots show semantic edge F1 and endpoint accuracy on a common scale, while the right column reports CI calls where the API exposes them. The local paper FCI-plus profile uses about one hundred ninety-seven calls on average, compared with about four hundred fifty for historical FCI, and its recovery is close to the causal-learn and pcalg reference executions after normalization. The robust workflow reaches semantic F1 about zero point nine eight five and endpoint accuracy about zero point eight four, but it uses about four hundred two CI calls. The critical qualification is that robust uses the package’s automatic alpha, which equals zero point zero one at this sample size, whereas the paper and reference rows use zero point zero zero one. This is therefore evidence for a complete practical workflow, not an isolated claim that one algorithm definition dominates. Pcalg timing also includes R process startup, so wall-clock values are recorded for reproducibility rather than treated as a cross-language speed contest.
+
+[Sources]
+- `reports/data/software_benchmark_summary.csv`, all five algorithm rows; columns `n_requested`, `n_completed`, `mean_semantic_edge_f1`, `mean_endpoint_accuracy`, `mean_ci_test_count`, `alpha_policy`, and `effective_alpha`.
+- `reports/data/software_benchmark_cases.csv`, 75 executed case rows.
+- `reports/generate_software_comparison.py::build_algorithm_specs` and `::summarize_rows`.
+[/Sources]

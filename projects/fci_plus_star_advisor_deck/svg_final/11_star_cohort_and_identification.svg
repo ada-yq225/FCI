@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" data-pptx-page-role="content">
+  <rect id="page-background-11" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#F7F5EF" />
+  <g id="header-11" data-pptx-bounds="56 34 1168 88">
+    <text x="56" y="72" font-family="Georgia, Times New Roman, serif" font-size="40" font-weight="700" fill="#183153">STAR Supplies Randomization—and Selection Risk</text>
+    <text x="1224" y="104" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="18" fill="#1C9A8A">APPLICATION BOUNDARY</text>
+    <line x1="56" y1="120" x2="1224" y2="120" stroke="#CBD2DC" stroke-width="1.5" />
+  </g>
+  <g id="evidence-legend-11" data-pptx-bounds="56 122 1168 34">
+    <rect x="56" y="122" width="16" height="16" rx="3" fill="#2E7D5B" />
+    <text x="82" y="137" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" fill="#2E7D5B">DESIGN-BASED EVIDENCE</text>
+    <rect x="305" y="122" width="16" height="16" rx="3" fill="#2F6BFF" />
+    <text x="331" y="137" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" fill="#2F6BFF">EXPLORATORY PAG EVIDENCE</text>
+  </g>
+  <g id="cohort-funnel-11" data-pptx-bounds="56 170 720 400">
+    <text x="56" y="194" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#5F6875">COHORT CONSTRUCTION</text>
+    <g id="chartArea">
+      <line x1="72" y1="544" x2="744" y2="544" stroke="#CBD2DC" stroke-width="1.5" />
+
+      <polygon points="72,214 744,214 591,302 225,302" fill="#E9EDF5" stroke="#CBD2DC" stroke-width="1.5" />
+      <rect x="225" y="316" width="366" height="88" rx="12" fill="#DDF3EF" stroke="#1C9A8A" stroke-width="2" />
+      <rect x="72" y="438" width="208" height="98" rx="12" fill="#E8F0FF" stroke="#2F6BFF" stroke-width="2" />
+      <rect x="304" y="438" width="208" height="98" rx="12" fill="#E8F0FF" stroke="#2F6BFF" stroke-width="2" />
+      <rect x="536" y="438" width="208" height="98" rx="12" fill="#E8F0FF" stroke="#2F6BFF" stroke-width="2" />
+    </g>
+    <text x="408" y="253" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#183153">Official record · 11,601 students</text>
+    <text x="408" y="348" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#1C9A8A">Kindergarten assignment cohort</text>
+    <text x="408" y="379" text-anchor="middle" font-family="Consolas, Courier New, monospace" font-size="20" fill="#183153">6,325 students · 79 schools</text>
+    <text x="176" y="472" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#2F6BFF">Attrition</text>
+    <text x="176" y="507" text-anchor="middle" font-family="Consolas, Courier New, monospace" font-size="20" fill="#183153">5,744 · 9 nodes</text>
+    <text x="408" y="472" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#2F6BFF">Longitudinal</text>
+    <text x="408" y="507" text-anchor="middle" font-family="Consolas, Courier New, monospace" font-size="20" fill="#183153">2,787 · 9 nodes</text>
+    <text x="640" y="472" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#2F6BFF">Focused</text>
+    <text x="640" y="507" text-anchor="middle" font-family="Consolas, Courier New, monospace" font-size="20" fill="#183153">2,976 · 8 nodes</text>
+  </g>
+  <g id="identification-box-11" data-pptx-bounds="820 170 404 400">
+    <rect x="820" y="170" width="404" height="400" rx="16" fill="#183153" />
+    <text x="850" y="207" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#A7E8DF">IDENTIFICATION BOUNDARY</text>
+    <text x="850" y="252" font-family="Georgia, Times New Roman, serif" font-size="30" font-weight="700" fill="#FFFFFF">Experiment first</text>
+    <text fill="#E9EDF5" font-size="20" font-family="Arial, Helvetica, sans-serif" x="850" y="289">Kindergarten arm assignment supplies</text><text fill="#E9EDF5" font-size="20" font-family="Arial, Helvetica, sans-serif" x="850" y="316">the strongest design basis.</text><line x1="850" y1="348" x2="1194" y2="348" stroke="#5C7190" stroke-width="1.5" />
+    <text x="850" y="385" font-family="Georgia, Times New Roman, serif" font-size="30" font-weight="700" fill="#FFFFFF">PAG second</text>
+    <text fill="#E9EDF5" font-size="20" font-family="Arial, Helvetica, sans-serif" x="850" y="422">Later complete-case panels may encode</text><text fill="#E9EDF5" font-size="20" font-family="Arial, Helvetica, sans-serif" x="850" y="449">attrition and conditioning effects.</text><rect x="850" y="490" width="344" height="54" rx="10" fill="#B45F4A" />
+    <text fill="#FFFFFF" font-size="18" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle" x="1022" y="513">No temporal constraints supplied</text><text fill="#FFFFFF" font-size="18" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle" x="1022" y="535">to the discovery algorithms</text></g>
+  <g id="bootstrap-note-11" data-pptx-bounds="56 596 1168 42">
+    <text x="56" y="622" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1A2433"><tspan font-weight="700" fill="#2E7D5B">1,000 school-cluster resamples</tspan> for arm contrasts · <tspan font-weight="700" fill="#2F6BFF">12 school resamples</tspan> for coarse PAG stability only</text>
+  </g>
+  <g id="footer-11" data-pptx-bounds="56 651 1168 37">
+    <text x="56" y="676" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">Tennessee STAR DOI 10.7910/DVN/SIWH9F · committed cohort and preprocessing provenance</text>
+    <text x="1224" y="676" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="16" fill="#5F6875">11 / 15</text>
+  </g>
+</svg>

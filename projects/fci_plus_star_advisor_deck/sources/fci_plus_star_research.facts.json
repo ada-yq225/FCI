@@ -1,0 +1,86 @@
+{
+  "schema": "ppt-master.fact-provenance.v1",
+  "topic": "FCI, FCI+, software comparison, and Tennessee STAR",
+  "facts": [
+    {
+      "fact_id": "F001",
+      "claim": "The standard FCI schedule uses an initial adjacency search, collider orientation, Possible-D-SEP refinement, endpoint reset, and a final orientation phase.",
+      "source_title": "Causation, Prediction, and Search, second edition",
+      "source_url": "https://www.cs.cmu.edu/afs/cs.cmu.edu/project/learn-43/lib/photoz/.g/web/.g/group/group2/g/scottd/fullbook.pdf",
+      "classification": "external",
+      "retrieved_at": "2026-07-26"
+    },
+    {
+      "fact_id": "F002",
+      "claim": "The 2000 FCI result assumes Faithfulness and correct conditional-independence decisions, and the source leaves maximal informativeness of the original orientation schedule unresolved.",
+      "source_title": "Causation, Prediction, and Search, second edition, Chapter 6",
+      "source_url": "https://www.cs.cmu.edu/afs/cs.cmu.edu/project/learn-43/lib/photoz/.g/web/.g/group/group2/g/scottd/fullbook.pdf",
+      "classification": "external",
+      "retrieved_at": "2026-07-26"
+    },
+    {
+      "fact_id": "F003",
+      "claim": "Zhang's later orientation rules provide completeness for modern PAG representations under latent confounding and selection bias.",
+      "source_title": "On the completeness of orientation rules for causal discovery in the presence of latent confounders and selection bias",
+      "source_url": "https://doi.org/10.1016/j.artint.2008.08.001",
+      "classification": "external",
+      "retrieved_at": "2026-07-26"
+    },
+    {
+      "fact_id": "F004",
+      "claim": "FCI+ uses augmented-skeleton, candidate D-SEP-link, and recursive hierarchy logic to replace standard FCI's broad Possible-D-SEP search.",
+      "source_title": "Learning Sparse Causal Models is not NP-hard",
+      "source_url": "https://www.auai.org/uai2013/prints/papers/121.pdf",
+      "classification": "external",
+      "retrieved_at": "2026-07-26"
+    },
+    {
+      "fact_id": "F005",
+      "claim": "For fixed observed-MAG degree bound k, Faithfulness, and a constant-time exact conditional-independence oracle, FCI+ has worst-case query order O(N^(2(k+2))).",
+      "source_title": "Learning Sparse Causal Models is not NP-hard and proof supplement",
+      "source_url": "https://arxiv.org/abs/1411.1557v1",
+      "classification": "external",
+      "retrieved_at": "2026-07-26"
+    },
+    {
+      "fact_id": "F006",
+      "claim": "Figure 4(b) of the FCI+ paper is a MAG example exhibiting separator {U,V,Z}, not a printed completed PAG.",
+      "source_title": "Learning Sparse Causal Models is not NP-hard",
+      "source_url": "https://www.auai.org/uai2013/prints/papers/121.pdf",
+      "classification": "external",
+      "retrieved_at": "2026-07-26"
+    },
+    {
+      "fact_id": "F007",
+      "claim": "CRAN pcalg version 2.7-12 exposes standard FCI and fciPlus.",
+      "source_title": "CRAN pcalg package record and reference manual",
+      "source_url": "https://cran.r-project.org/package=pcalg",
+      "classification": "external",
+      "retrieved_at": "2026-07-26"
+    },
+    {
+      "fact_id": "F008",
+      "claim": "The inspected causal-learn API documents standard FCI and named CI methods, but no public FCI+ entry point was identified.",
+      "source_title": "causal-learn FCI documentation",
+      "source_url": "https://causal-learn.readthedocs.io/en/latest/search_methods_index/Constraint-based%20causal%20discovery%20methods/FCI.html",
+      "classification": "external",
+      "retrieved_at": "2026-07-26"
+    },
+    {
+      "fact_id": "F009",
+      "claim": "Tetrad 7.6.10 documents standard FCI and distinct FCI-family algorithms; it was documentation-only in this project.",
+      "source_title": "CMU Tetrad official releases and source",
+      "source_url": "https://github.com/cmu-phil/tetrad/releases/latest",
+      "classification": "external",
+      "retrieved_at": "2026-07-26"
+    },
+    {
+      "fact_id": "F010",
+      "claim": "The official Tennessee STAR data record contains 11,601 student records.",
+      "source_title": "Tennessee's Student Teacher Achievement Ratio (STAR) project",
+      "source_url": "https://doi.org/10.7910/DVN/SIWH9F",
+      "classification": "external",
+      "retrieved_at": "2026-07-26"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" data-pptx-page-role="content">
+  <defs>
+    <marker id="arrow-04" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#183153" /></marker>
+  </defs>
+  <rect id="page-background-04" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#F7F5EF" />
+  <g id="header-04" data-pptx-bounds="56 36 1168 86">
+    <text x="56" y="74" font-family="Georgia, Times New Roman, serif" font-size="42" font-weight="700" fill="#183153">Original FCI Closes Non-Local Separations</text>
+    <text x="1224" y="57" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="18" fill="#2F6BFF">SPIRTES ET AL. 2000</text>
+    <line x1="56" y1="106" x2="1224" y2="106" stroke="#CBD2DC" stroke-width="1.5" />
+  </g>
+  <g id="pipeline-04" data-pptx-bounds="56 140 1168 252">
+    <text x="56" y="163" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#2F6BFF">HISTORICAL SIX-STAGE SCHEDULE</text>
+    <rect x="56" y="188" width="158" height="112" rx="12" fill="#FFFFFF" stroke="#2F6BFF" stroke-width="2" />
+    <text x="135" y="222" text-anchor="middle" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#2F6BFF">01</text>
+    <text fill="#1A2433" font-size="22" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle" x="135" y="253">Complete</text><text fill="#1A2433" font-size="22" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle" x="135" y="280">graph</text><line x1="214" y1="244" x2="244" y2="244" stroke="#183153" stroke-width="2.5" marker-end="url(#arrow-04)" />
+    <rect x="254" y="188" width="158" height="112" rx="12" fill="#FFFFFF" stroke="#2F6BFF" stroke-width="2" />
+    <text x="333" y="222" text-anchor="middle" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#2F6BFF">02</text>
+    <text fill="#1A2433" font-size="22" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle" x="333" y="253">Adjacency</text><text fill="#1A2433" font-size="22" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle" x="333" y="280">+ sepsets</text><line x1="412" y1="244" x2="442" y2="244" stroke="#183153" stroke-width="2.5" marker-end="url(#arrow-04)" />
+    <rect x="452" y="188" width="158" height="112" rx="12" fill="#FFFFFF" stroke="#2F6BFF" stroke-width="2" />
+    <text x="531" y="222" text-anchor="middle" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#2F6BFF">03</text>
+    <text fill="#1A2433" font-size="20" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle" x="531" y="253">Unshielded</text><text fill="#1A2433" font-size="20" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle" x="531" y="280">colliders</text><line x1="610" y1="244" x2="640" y2="244" stroke="#183153" stroke-width="2.5" marker-end="url(#arrow-04)" />
+    <rect x="650" y="176" width="178" height="136" rx="12" fill="#E8F0FF" stroke="#2F6BFF" stroke-width="3" />
+    <text x="739" y="214" text-anchor="middle" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#2F6BFF">04</text>
+    <text fill="#183153" font-size="24" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle" x="739" y="248">Possible-D-SEP</text><text fill="#183153" font-size="24" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle" x="739" y="277">both orders</text><line x1="828" y1="244" x2="858" y2="244" stroke="#183153" stroke-width="2.5" marker-end="url(#arrow-04)" />
+    <rect x="868" y="188" width="158" height="112" rx="12" fill="#FFFFFF" stroke="#2F6BFF" stroke-width="2" />
+    <text x="947" y="222" text-anchor="middle" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#2F6BFF">05</text>
+    <text fill="#1A2433" font-size="22" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle" x="947" y="253">Remove +</text><text fill="#1A2433" font-size="22" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle" x="947" y="280">reset marks</text><line x1="1026" y1="244" x2="1056" y2="244" stroke="#183153" stroke-width="2.5" marker-end="url(#arrow-04)" />
+    <rect x="1066" y="188" width="158" height="112" rx="12" fill="#FFFFFF" stroke="#2F6BFF" stroke-width="2" />
+    <text x="1145" y="222" text-anchor="middle" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#2F6BFF">06</text>
+    <text fill="#1A2433" font-size="22" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle" x="1145" y="253">Orientation</text><text fill="#1A2433" font-size="22" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle" x="1145" y="280">closure</text><text fill="#183153" font-size="22" font-family="Arial, Helvetica, sans-serif" font-weight="700" x="56" y="344">Local adjacency search can miss a separating set</text><text fill="#183153" font-size="22" font-family="Arial, Helvetica, sans-serif" font-weight="700" x="56" y="371">that lies outside current neighborhoods.</text></g>
+  <g id="pdsep-condition-04" data-pptx-bounds="56 416 692 166">
+    <rect x="56" y="416" width="692" height="166" rx="14" fill="#183153" />
+    <text x="84" y="451" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#AFC7FF">POSSIBLE-D-SEP PATH CONDITION</text>
+    <text x="84" y="493" font-family="Georgia, Times New Roman, serif" font-size="30" font-weight="700" fill="#FFFFFF">Every intermediate triple is either</text>
+    <text x="84" y="536" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#FFFFFF">a collider on the current path, or part of a triangle.</text>
+    <text x="84" y="566" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#E9EDF5">This computable superset makes non-local separator search possible.</text>
+  </g>
+  <g id="theorem-scope-04" data-pptx-bounds="776 416 448 184">
+    <rect x="776" y="416" width="448" height="166" rx="14" fill="#FFFFFF" stroke="#CBD2DC" stroke-width="1.5" />
+    <text x="804" y="451" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#B45F4A">THEOREM 6.4 — ORACLE SCOPE</text>
+    <text x="804" y="488" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#1A2433">Faithfulness + correct CI answers</text>
+    <text fill="#5F6875" font-size="18" font-family="Arial, Helvetica, sans-serif" x="804" y="524">Sound partially oriented</text><text fill="#5F6875" font-size="18" font-family="Arial, Helvetica, sans-serif" x="804" y="547">inducing-path graph.</text><text x="804" y="574" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#B45F4A">Maximal informativeness not proved there.</text>
+  </g>
+  <g id="footer-04" data-pptx-bounds="56 620 1168 68">
+    <text fill="#5F6875" font-size="16" font-family="Arial, Helvetica, sans-serif" x="56" y="647">Spirtes, Glymour &amp; Scheines (2000), §6.7, printed pp. 144–145 · Possible-D-SEP p. 144 · Theorem 6.4 p. 145</text><text fill="#5F6875" font-size="16" font-family="Arial, Helvetica, sans-serif" x="56" y="674">Modern PAG orientation uses Zhang’s later rule set.</text><text x="1224" y="674" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="16" fill="#5F6875">04 / 15</text>
+  </g>
+</svg>

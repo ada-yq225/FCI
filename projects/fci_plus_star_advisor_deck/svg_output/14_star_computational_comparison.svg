@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" data-pptx-page-role="content">
+  <rect id="page-background-14" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#F7F5EF"/>
+  <g id="header-14" data-pptx-bounds="56 34 1168 88">
+    <text x="56" y="72" font-family="Georgia, Times New Roman, serif" font-size="40" font-weight="700" fill="#183153">FCI+ Reduces CI Work, Not Causal Uncertainty</text>
+    <text x="1224" y="56" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="18" fill="#E58A2B">STAR COMPUTATION</text>
+    <line x1="56" y1="106" x2="1224" y2="106" stroke="#CBD2DC" stroke-width="1.5"/>
+  </g>
+  <g id="ci-call-chart-14" data-pptx-bounds="56 142 1168 408">
+    <rect x="56" y="142" width="1168" height="408" rx="14" fill="#FFFFFF" stroke="#CBD2DC" stroke-width="1.5"/>
+    <text x="82" y="176" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#5F6875">CI TEST COUNTS · FULL-DATA RUNS</text>
+    <text x="300" y="207" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">0</text>
+    <text x="520" y="207" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">500</text>
+    <text x="740" y="207" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">1,000</text>
+    <text x="960" y="207" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">1,500</text>
+    <text x="1180" y="207" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">2,000</text>
+    <g id="chartArea">
+      <line x1="300" y1="218" x2="1180" y2="218" stroke="#CBD2DC" stroke-width="1.5"/>
+      <line x1="300" y1="218" x2="300" y2="548" stroke="#CBD2DC" stroke-width="1.5"/>
+      <line x1="520" y1="218" x2="520" y2="548" stroke="#E9EDF5" stroke-width="1.5"/>
+      <line x1="740" y1="218" x2="740" y2="548" stroke="#E9EDF5" stroke-width="1.5"/>
+      <line x1="960" y1="218" x2="960" y2="548" stroke="#E9EDF5" stroke-width="1.5"/>
+      <line x1="1180" y1="218" x2="1180" y2="548" stroke="#CBD2DC" stroke-width="1.5"/>
+      <!-- chart-plot-area: 300,218,1180,548 -->
+      <rect x="300" y="244" width="750" height="18" rx="4" fill="#2F6BFF"/>
+      <rect x="300" y="268" width="349" height="18" rx="4" fill="#E58A2B"/>
+      <rect x="300" y="292" width="574" height="18" rx="4" fill="#1C9A8A"/>
+      <rect x="300" y="316" width="524" height="18" rx="4" fill="#7562A8"/>
+      <rect x="300" y="372" width="422" height="18" rx="4" fill="#2F6BFF"/>
+      <rect x="300" y="396" width="147" height="18" rx="4" fill="#E58A2B"/>
+      <rect x="300" y="420" width="272" height="18" rx="4" fill="#1C9A8A"/>
+      <rect x="300" y="444" width="209" height="18" rx="4" fill="#7562A8"/>
+      <rect x="300" y="458" width="128" height="18" rx="4" fill="#2F6BFF"/>
+      <rect x="300" y="482" width="81" height="18" rx="4" fill="#E58A2B"/>
+      <rect x="300" y="506" width="147" height="18" rx="4" fill="#1C9A8A"/>
+      <rect x="300" y="530" width="113" height="18" rx="4" fill="#7562A8"/>
+    </g>
+    <text x="82" y="279" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#183153">Attrition</text>
+    <text x="82" y="407" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#183153">Longitudinal</text>
+    <text x="82" y="499" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#183153">Focused</text>
+    <text x="1060" y="257" font-family="Consolas, Courier New, monospace" font-size="18" fill="#2F6BFF">FCI 1,705</text>
+    <text x="660" y="281" font-family="Consolas, Courier New, monospace" font-size="18" fill="#E58A2B">paper 793</text>
+    <text x="882" y="305" font-family="Consolas, Courier New, monospace" font-size="18" fill="#1C9A8A">robust 1,304</text>
+    <text x="832" y="329" font-family="Consolas, Courier New, monospace" font-size="18" fill="#7562A8">R 1,191</text>
+    <text x="730" y="385" font-family="Consolas, Courier New, monospace" font-size="18" fill="#2F6BFF">960</text>
+    <text x="455" y="409" font-family="Consolas, Courier New, monospace" font-size="18" fill="#E58A2B">335</text>
+    <text x="580" y="433" font-family="Consolas, Courier New, monospace" font-size="18" fill="#1C9A8A">619</text>
+    <text x="517" y="457" font-family="Consolas, Courier New, monospace" font-size="18" fill="#7562A8">475</text>
+    <text x="438" y="473" font-family="Consolas, Courier New, monospace" font-size="16" fill="#2F6BFF">291</text>
+    <text x="391" y="497" font-family="Consolas, Courier New, monospace" font-size="16" fill="#E58A2B">185</text>
+    <text x="457" y="521" font-family="Consolas, Courier New, monospace" font-size="16" fill="#1C9A8A">334</text>
+    <text x="423" y="545" font-family="Consolas, Courier New, monospace" font-size="16" fill="#7562A8">256</text>
+  </g>
+  <g id="ratios-14" data-pptx-bounds="56 566 1168 72">
+    <rect x="56" y="566" width="1168" height="72" rx="12" fill="#FFF3E3"/>
+    <text x="80" y="590" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#E58A2B">Paper FCI+ / FCI CI work:</text>
+    <text x="368" y="590" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#183153">47% attrition · 35% longitudinal · 64% focused</text>
+    <text x="80" y="620" font-family="Consolas, Courier New, monospace" font-size="16" fill="#5F6875">Median seconds [FCI / paper / robust / R] — A: 5.44/1.79/2.84/10.39 · L: 2.15/.34/.56/1.65 · F: .32/.16/.25/.88</text>
+  </g>
+  <g id="footer-14" data-pptx-bounds="56 649 1168 39">
+    <text x="56" y="674" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#5F6875">star_benchmark.csv · three-run timing is not a cross-language speed contest · efficiency does not identify a causal effect</text>
+    <text x="1224" y="674" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="16" fill="#5F6875">14 / 15</text>
+  </g>
+</svg>

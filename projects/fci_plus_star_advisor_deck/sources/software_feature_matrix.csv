@@ -1,0 +1,5 @@
+tool,language,standard_fci,fci_plus,latent_confounding,selection_bias,custom_ci,order_audit,bootstrap_workflow,orientation_trace,sepset_provenance,artifact_export,executed_here,evidence_date
+fci_engine,Python,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,yes,2026-07-26
+pcalg,R,yes,yes,yes,yes,yes,partial,not_established,not_established,partial,no,yes,2026-07-26
+causal-learn,Python,yes,no,yes,yes,no,not_established,not_established,not_exported,not_exported,no,yes,2026-07-26
+Tetrad,Java,yes,no,yes,yes,yes,partial,broader_workflow,logger_only,yes,no,no,2026-07-26

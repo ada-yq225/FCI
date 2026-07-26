@@ -1,0 +1,3212 @@
+\documentclass[11pt,a4paper,oneside]{report}
+
+\usepackage[margin=25mm,headheight=15pt]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{newtxtext,newtxmath}
+\usepackage{microtype}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage[round,authoryear]{natbib}
+\usepackage[hidelinks]{hyperref}
+\usepackage[nameinlink,noabbrev]{cleveref}
+
+\graphicspath{{figures/}{reports/figures/}}
+\setstretch{1.10}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\setlength{\tabcolsep}{5pt}
+\setlength{\emergencystretch}{2em}
+\renewcommand{\arraystretch}{1.16}
+
+\definecolor{ReportNavy}{HTML}{172033}
+\definecolor{ReportBlue}{HTML}{2563EB}
+\definecolor{ReportGreen}{HTML}{047857}
+\definecolor{ReportOrange}{HTML}{B45309}
+\definecolor{ReportRed}{HTML}{B42318}
+\definecolor{ReportGrey}{HTML}{667085}
+\definecolor{ReportLight}{HTML}{F2F4F7}
+\definecolor{ReportLine}{HTML}{D0D5DD}
+
+\hypersetup{
+  pdftitle={Causal Structure Discovery via a Self-Implemented FCI+ Algorithm: A Tennessee STAR Case Study},
+  pdfauthor={Yicheng Qi},
+  pdfsubject={FCI, FCI+, PAG learning, Tennessee STAR, causal discovery},
+  pdfkeywords={causal discovery, FCI, FCI+, PAG, latent confounding, Tennessee STAR}
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textcolor{ReportGrey}{FCI+ and Tennessee STAR}}
+\fancyhead[R]{\small\textcolor{ReportGrey}{Yicheng Qi}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\titleformat{\chapter}[display]
+  {\normalfont\bfseries\color{ReportNavy}}
+  {\filleft\Large\chaptertitlename\ \thechapter}
+  {1ex}
+  {\titlerule\vspace{1.2ex}\Huge}
+  [\vspace{0.7ex}\titlerule]
+
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{ReportNavy}}
+  {\thesection}{0.7em}{}
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{ReportNavy}}
+  {\thesubsection}{0.7em}{}
+
+\captionsetup{
+  font=small,
+  labelfont={bf,color=ReportNavy},
+  textfont={color=ReportGrey},
+  justification=justified,
+  singlelinecheck=false
+}
+
+\lstdefinestyle{python}{
+  language=Python,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{ReportBlue}\bfseries,
+  commentstyle=\color{ReportGreen},
+  stringstyle=\color{ReportOrange},
+  backgroundcolor=\color{ReportLight},
+  frame=single,
+  rulecolor=\color{ReportLine},
+  framerule=0.4pt,
+  breaklines=true,
+  showstringspaces=false,
+  columns=fullflexible,
+  keepspaces=true,
+  xleftmargin=0.6em,
+  xrightmargin=0.6em,
+  aboveskip=0.8em,
+  belowskip=0.8em
+}
+
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcommand{\FCIplus}{FCI\textsuperscript{+}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\hash}[2]{%
+  \begin{tabular}{@{}l@{}}
+  \texttt{\footnotesize #1}\\[-0.2em]
+  \texttt{\footnotesize #2}
+  \end{tabular}}
+\newcommand{\keyresult}[1]{%
+  \begin{center}
+  \fcolorbox{ReportGreen}{ReportLight}{%
+    \begin{minipage}{0.92\textwidth}
+    \textbf{\textcolor{ReportGreen}{Key result.}} #1
+    \end{minipage}}
+  \end{center}}
+\newcommand{\cautionbox}[1]{%
+  \begin{center}
+  \fcolorbox{ReportOrange}{ReportLight}{%
+    \begin{minipage}{0.92\textwidth}
+    \textbf{\textcolor{ReportOrange}{Interpretation caution.}} #1
+    \end{minipage}}
+  \end{center}}
+\newcommand{\limitationbox}[1]{%
+  \begin{center}
+  \fcolorbox{ReportRed}{ReportLight}{%
+    \begin{minipage}{0.92\textwidth}
+    \textbf{\textcolor{ReportRed}{Limitation.}} #1
+    \end{minipage}}
+\end{center}}
+
+\begin{document}
+
+\hypersetup{pageanchor=false}
+\begin{titlepage}
+  \centering
+  \vspace*{1.4cm}
+  {\Large MSc Individual Research Project\par}
+  \vspace{1.2cm}
+  {\Huge\bfseries\color{ReportNavy}
+  Causal Structure Discovery via a Self-Implemented \FCIplus{} Algorithm\par}
+  \vspace{0.45cm}
+  {\LARGE\bfseries\color{ReportGreen}
+  A Case Study on the Tennessee STAR Project\par}
+  \vspace{1.5cm}
+  \rule{0.82\textwidth}{0.8pt}
+  \vspace{1.1cm}
+
+  {\Large\textbf{Yicheng Qi}\par}
+  \vspace{0.25cm}
+  {\large Project code: p-anli-051\par}
+  \vspace{1.1cm}
+
+  \begin{tabular}{rl}
+    \textbf{Main supervisor:} & Ang Li, Florida State University \\
+    \textbf{Second supervisor:} & Adriana Paluszny, Imperial College London \\
+    \textbf{Report version:} & Source-audited algorithm and application report \\
+    \textbf{Date:} & July 2026
+  \end{tabular}
+
+  \vfill
+  {\small
+  Algorithm implementation: \code{src/fci\_engine}\par
+  Applied case study: \code{case\_studies/tennessee\_star}\par
+  Reproducible analysis build: 26 July 2026\par}
+\end{titlepage}
+
+\hypersetup{pageanchor=true}
+\pagenumbering{roman}
+
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+This project independently implements paper-aligned FCI and FCI+, validates
+them against exact graphical oracles and established software, and separates
+algorithm fidelity from a robust finite-sample application workflow.
+
+The scientific difficulty is that latent common causes and selection can make
+local adjacency conditioning insufficient, while standard FCI's
+Possible-D-SEP search can be expensive and sample conditional-independence
+errors can propagate into PAG endpoints.  The implementation therefore
+provides both the historical search schedule of \citet{spirtes2000causation}
+and Algorithm~2 of \citet{claassen2013learning}, whose
+\(O(N^{2(k+2)})\) result is a conditional-independence query bound under a
+fixed true observed-MAG degree bound \(k\), faithfulness, and an exact
+constant-time oracle.
+
+Validation proceeds in layers: unit and property tests; exact MAG
+m-separation fixtures; the published Figure~4(b) MAG and exhibited separator
+\(\{U,V,Z\}\); a 15-run, five-scenario known-truth benchmark; executed
+differential comparisons with causal-learn~0.1.4.7 and
+\code{pcalg}~2.7-12; and finite-sample order, bootstrap, sensitivity, and
+chronology audits.  The endpoint-complete oracle targets are independently
+specified repository fixtures rather than all being PAGs printed in the
+sources.
+
+On the committed known-truth benchmark, robust FCI+ has mean skeleton F1
+0.985, semantic-edge F1 0.985, and endpoint accuracy 0.840, compared with
+0.977, 0.943, and 0.737 for paper-profile FCI; its mean logical CI count is
+402 rather than 450.  Paper-profile FCI+ and the two executed external
+references have mean semantic-edge F1 0.951 under the recorded settings.
+These results describe the tested cases and policies; they do not establish
+general statistical dominance.
+
+The separate Tennessee STAR application analyses 6,325 kindergarten-cohort
+students from the official 11,601-record dataset.  Its strongest application
+evidence is the design-supported observed-arm contrast: small-class assignment
+has 13.90 points higher observed kindergarten achievement than regular-class
+assignment (school-cluster 95\% interval 5.21 to 22.07), whereas the
+regular-with-aide contrast is near zero.  Because this outcome subset is
+post-assignment selected and the original randomization blocks and compliance
+histories were not reconstructed, the contrast is consistent with a
+beneficial early effect rather than an identified selected-subset causal
+effect.  Later grade-3 contrasts are complete-case results and weaker
+evidence.  Across discovery methods, skeleton agreement is more defensible
+than several order-, threshold-, or chronology-sensitive endpoint marks; no
+PAG in this report identifies a unique DAG or estimates a treatment effect.
+
+\chapter*{Executive Summary}
+\addcontentsline{toc}{chapter}{Executive Summary}
+\small
+
+\textbf{Contribution.} This project independently implements paper-aligned
+FCI and FCI+, validates them against exact graphical oracles and established
+software, and separates algorithm fidelity from a robust finite-sample
+application workflow.  The reusable package and the STAR analysis remain
+separate layers: the former contains domain-neutral algorithms, while the
+latter supplies design, coding, selection, and interpretation decisions.
+
+\textbf{Source fidelity.} Standard FCI is mapped to the 2000 book's initial
+adjacency search, collider phase, two ordered Possible-D-SEP searches, reset,
+and historical orientation closure.  Its theorem establishes a correct
+partially oriented inducing-path representation under correct CI information,
+but explicitly did not establish maximal informativeness.  Complete modern
+PAG orientation is therefore attributed separately to
+\citet{zhang2008completeness}.  FCI+ is mapped to the augmented skeleton,
+candidate D-sep-link recognition, recursive hierarchy, minimal separator, and
+candidate-revisit stages of \citet[Algorithm~2, p.~178]
+{claassen2013learning}.
+
+\textbf{Validation outcome.} Exact-oracle tests establish recovery of the
+independently specified targets on the encoded fixtures.  For the published
+Figure~4(b) MAG, the source-verifiable claim is narrower: the false
+\(X-Y\) link is removed with the exhibited separator \(\{U,V,Z\}\) and
+FCI+ D-SEP provenance.  On that run, FCI+ uses 63 logical CI queries compared
+with 102 for FCI.  The endpoint-complete target is repository derived, and
+passing fixtures are not a proof for every faithful MAG.
+
+\textbf{Established-software outcome.} A matched 15-run benchmark executes
+local paper FCI, local paper FCI+, local robust FCI+,
+causal-learn~0.1.4.7 FCI, and \code{pcalg}~2.7-12
+\code{fciPlus}.  Robust FCI+ improves the mean endpoint-oriented metrics on
+this benchmark at a higher query cost than paper FCI+, while paper FCI+,
+causal-learn, and \code{pcalg} agree in their aggregate semantic metrics under
+the recorded settings.  Tetrad~7.6.10 is a documentation-only comparison
+because it was not executed.  The local improvement claim is integrated
+auditability---paper-profile control, CI/orientation traces, separator-source
+provenance, D-SEP diagnostics, per-edge explanations, stability audits, and
+bundled artifacts---not universal superiority.
+
+\textbf{Independent implementation outcome.} CRAN \code{pcalg} 2.7-12 under
+R 4.5.3 was run on the same encoded panels with a Python-equivalent G-square
+test. It is treated as a differential reference, not ground truth. The focused
+PAG is exactly identical across all three algorithms. In the attrition and
+longitudinal panels, pairwise skeleton Jaccard values range from 0.765 to
+0.929, but exact endpoint agreement on shared edges is lower. Cyclic variable
+orders preserve every \code{pcalg} skeleton yet reproduce the original PAG
+endpoints in only 67--78\% of orders.
+
+\textbf{Robust application outcome.} The paper implementations remain
+unchanged for fidelity testing. A separate practical profile is used for
+empirical interpretation. Across all 26 cyclic column shifts it reproduces
+exact graph equality for every tested cyclic order within each panel, retains
+the main target adjacencies in every order, and replaces
+chronology-conflicting definite arrows with unresolved circle endpoints. This
+improves stability without claiming new causal identification.
+
+\textbf{STAR outcome.} The official data were converted into three independent
+application panels:
+
+\begin{enumerate}[leftmargin=2em]
+  \item an attrition panel containing 5,744 students and a grade-3 observation
+        indicator;
+  \item a longitudinal panel containing 2,787 complete cases and both
+        kindergarten and grade-3 achievement;
+  \item a focused complete-case panel containing 2,976 students, excluding
+        kindergarten achievement from the discovery node set.
+\end{enumerate}
+
+The strongest result does not come from a PAG endpoint. It is a
+design-supported observed-arm contrast: small classes have higher observed
+kindergarten scores than regular classes, whereas adding an aide to a regular
+class does not show a comparable advantage. The positive interval is
+consistent with a beneficial early effect, but post-assignment outcome
+selection prevents interpreting it as an identified effect for the selected
+subset. The later grade-3 contrast is also positive among observed students
+and requires still stronger missing-outcome qualifications.
+
+\textbf{Causal interpretation.}
+
+\begin{itemize}[leftmargin=2em]
+  \item The randomized design, together with the positive school-cluster
+        interval, provides a design-supported observed-arm contrast consistent
+        with a beneficial early effect. It does not by itself identify a
+        causal effect within the post-assignment observed-outcome subset.
+  \item There is no corresponding evidence that a regular class with an aide
+        improves achievement relative to a regular class.
+  \item Kindergarten achievement is one of the most consistently retained
+        structural correlates of grade-3 achievement and grade-3 observation.
+  \item The focused bidirected treatment-outcome edge is replicated exactly by
+        all three algorithms, but is threshold-sensitive and cannot override
+        knowledge of randomization.
+  \item Cross-implementation skeleton consensus is more credible than endpoint
+        marks that conflict with chronology or change under variable order.
+  \item The robust application profile supports the same main adjacencies but
+        leaves their directions unresolved; this is the preferred
+        finite-sample reading of the discovery output.
+  \item PAG endpoints should be read as equivalence-class constraints, not
+        regression coefficients or direct effects.
+\end{itemize}
+
+\textbf{Bottom line.} The case study demonstrates practical use of the
+algorithm and reveals where selection and modelling choices matter. It does
+not convert exploratory causal discovery into a substitute for design-based
+effect estimation.
+
+\normalsize
+\tableofcontents
+\listoffigures
+\listoftables
+
+\chapter*{Abbreviations and Notation}
+\addcontentsline{toc}{chapter}{Abbreviations and Notation}
+
+\begin{longtable}{>{\bfseries}p{0.19\textwidth}p{0.73\textwidth}}
+CI & Conditional independence. \\
+DAG & Directed acyclic graph. \\
+MAG & Maximal ancestral graph, representing observed-variable relations after
+      latent variables or selection variables have been marginalised or
+      conditioned upon. \\
+PAG & Partial Ancestral Graph, representing the invariant features of a Markov
+      equivalence class of MAGs. \\
+FCI & Fast Causal Inference. \\
+\FCIplus{} & Sparse FCI extension based on a logical characterisation of D-SEP
+             links and hierarchical separating sets. \\
+D-SEP & Claassen et al.'s named separator construct in a MAG/m-separation
+        setting; it is distinct from informal lowercase d-separation in a DAG. \\
+Logical CI query & One request made by search control flow. A cache hit is
+                   still a logical request but need not execute the underlying
+                   statistical calculation again. \\
+Historical FCI output & The 2000 book's partially oriented inducing-path graph;
+                        a modern maximally informative PAG additionally uses
+                        later ancestral-graph and orientation-completeness
+                        results. \\
+STAR & Tennessee Student/Teacher Achievement Ratio experiment. \\
+\(X \perp Y \mid S\) & \(X\) and \(Y\) are conditionally independent given
+                       conditioning set \(S\). \\
+\(X\circ\!\!-\!\!\circ Y\) & Neither PAG endpoint is identified. \\
+\(X\circ\!\!\to Y\) & \(Y\) is not an ancestor of \(X\), while the endpoint at
+                      \(X\) remains unresolved. \\
+\(X\leftrightarrow Y\) & Arrowheads at both endpoints; compatible with latent
+                         confounding but not proof of one specific hidden cause. \\
+\(X\to Y\) & An invariant ancestral relation in the PAG; not necessarily a
+             direct causal effect. \\
+\end{longtable}
+
+\clearpage
+\pagenumbering{arabic}
+
+\part{Algorithm, Implementation, and Validation}
+
+\chapter{Introduction}
+
+\section{Motivation}
+
+Many empirical studies ask causal questions in settings where not every common
+cause has been measured. Family background, institutional selection, health,
+motivation, and administrative recording processes may all generate
+dependence that cannot be represented honestly by a causally sufficient DAG
+over the recorded columns. Fitting a directed graph while silently assuming
+causal sufficiency can turn uncertainty into unjustified arrows.
+
+FCI was designed for this problem. Under causal Markov, faithfulness, and
+appropriate sampling assumptions, it uses conditional-independence
+information to learn a PAG that remains valid when latent confounders and
+selection variables may exist \citep{spirtes2000causation,
+richardson2002ancestral}. The price of this broader model class is additional
+search and greater endpoint ambiguity. In particular, standard FCI's
+Possible-D-SEP refinement may test many separating sets that are not contained
+in local adjacency neighbourhoods.
+
+\FCIplus{} addresses the search problem for sparse causal graphs.
+\citet{claassen2013learning} provide a logical characterisation of D-SEP links
+and a hierarchical procedure for finding the relevant separating sets. For a
+fixed maximum degree \(k\), their result yields a polynomial worst-case bound
+in the number \(N\) of observed variables, commonly written
+\[
+  O\!\left(N^{2(k+2)}\right).
+\]
+This is a sparsity-dependent guarantee, not a statement that every finite
+dataset will be easy or statistically well behaved.
+
+\section{Project contributions}
+
+The central contribution is stated as one auditable proposition:
+
+\keyresult{This project independently implements paper-aligned FCI and FCI+,
+validates them against exact graphical oracles and established software, and
+separates algorithm fidelity from a robust finite-sample application
+workflow.}
+
+That proposition contains two distinct layers.
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Algorithm contribution.} A self-contained Python implementation
+        of FCI and \FCIplus{}, with multiple CI tests, explicit PAG endpoint
+        operations, paper-aligned profiles, practical finite-sample profiles,
+        diagnostics, stability selection, type annotations, and release
+        validation.
+  \item \textbf{Application contribution.} A separate Tennessee STAR case
+        study that applies the public algorithm API without importing
+        STAR-specific assumptions into the package. It uses randomized-arm
+        contrasts as an external design-based reference and PAG learning as a
+        structural sensitivity analysis.
+\end{enumerate}
+
+This separation is central to the research design. An algorithm should remain
+reusable and domain-neutral; an application must state its own coding,
+selection, measurement, clustering, and interpretation decisions.
+
+\section{Research questions}
+
+The report addresses five questions:
+
+\begin{enumerate}[leftmargin=2em,label=\textbf{RQ\arabic*.}]
+  \item How do the original FCI and FCI+ sources define their targets,
+        assumptions, search stages, and guarantee boundaries?
+  \item Does the implementation map those stages to explicit code, public
+        profiles, and tests?
+  \item What is recovered under exact-oracle and finite-sample known-truth
+        conditions?
+  \item How does the package compare fairly with established FCI software in
+        executed benchmarks and documented capabilities?
+  \item Which STAR conclusions are design based, robust at the skeleton level,
+        unresolved at the endpoint level, or merely exploratory?
+\end{enumerate}
+
+Chapters~\ref{chap:standard-fci-source}--\ref{chap:implementation} address
+theory and implementation; the validation and software chapters assess
+controlled evidence; and the later chapters form a separate STAR
+application.  This ordering prevents a real-data pattern from being used as
+evidence that the algorithm matches its sources.
+
+\chapter{Causal-Graphical Background}
+
+\section{Conditional independence and graphical assumptions}
+
+Let \(V\) be the set of observed variables, \(L\) latent variables, and \(S\)
+selection variables. Constraint-based discovery begins from statements of the
+form
+\[
+  X \perp Y \mid Z,
+\]
+where \(Z\subseteq V\setminus\{X,Y\}\). A causal graph and probability
+distribution are linked by two central assumptions.
+
+\textbf{Causal Markov condition.} Graphical separation implies probabilistic
+conditional independence.
+
+\textbf{Faithfulness.} Probabilistic conditional independences arise from
+graphical separation rather than exact cancellation of causal effects.
+
+Under causal sufficiency these assumptions support DAG-based methods such as
+PC. When latent or selection variables are present, the appropriate
+observed-variable object is an ancestral graph or MAG
+\citep{richardson2002ancestral}. Different MAGs may encode the same
+conditional-independence model, so the identifiable output is a PAG rather
+than one unique graph.
+
+\subsection{DAG, latent projection, MAG, and PAG targets}
+
+A DAG is a causal representation over a specified variable set.  Marginalizing
+latent variables and conditioning on selection variables can induce directed,
+bidirected, and undirected relations among the observed nodes.  An ancestral
+graph represents those relations without explicitly drawing the hidden or
+selection nodes; a maximal ancestral graph (MAG) makes every missing edge
+correspond to an m-separation.  A PAG then records exactly the endpoint
+features shared by the MAGs in one observational Markov equivalence class
+\citep{richardson2002ancestral,zhang2008completeness}.
+
+M-separation generalizes d-separation to mixed ancestral graphs.  It is the
+criterion used by the exact graphical oracle in this project.  A sample
+Fisher-Z or G-square test, by contrast, is an error-prone statistical decision
+about a distribution.  Oracle recovery evidence therefore isolates graph
+logic; it cannot be transferred directly to finite-sample accuracy.
+
+\subsection{Adjacency, ancestry, and intervention are different claims}
+
+An adjacency says that the measured variables were not separated by the
+tested sets under the recorded policy.  A tail or arrowhead can constrain
+ancestry across the represented equivalence class.  Neither fact alone
+identifies a direct structural coefficient, an adjustment set, or an
+interventional contrast.  Selection variables can also induce undirected
+marks.  These distinctions determine the evidence hierarchy used in the STAR
+application.
+
+\section{Meaning of PAG endpoints}
+
+\begin{table}[H]
+\centering
+\caption{Interpretation of common PAG edge marks.}
+\label{tab:pag-marks}
+\begin{tabularx}{\textwidth}{>{\ttfamily}p{0.18\textwidth}Y}
+\toprule
+Mark & Interpretation \\
+\midrule
+X o-o Y & The adjacency is retained, but neither ancestral endpoint is
+identified. \\
+X o-> Y & The arrowhead at \(Y\) excludes \(Y\) as an ancestor of \(X\);
+the endpoint at \(X\) remains unresolved. \\
+X --> Y & The tail-arrowhead pattern supports \(X\) as an ancestor of \(Y\)
+through some path in every represented MAG. It does not assert that the edge
+is a direct structural coefficient. \\
+X <-> Y & Both endpoints are arrowheads. The pattern is compatible with latent
+confounding, but it does not identify a unique latent variable and can be
+distorted by selection or CI-test error. \\
+X --- Y & An undirected ancestral-graph edge, often associated with selection
+structure. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The distinction between ancestry and direct effect is especially important.
+FCI-family algorithms identify equivalence-class features. They do not
+estimate causal effect magnitudes, adjustment sets, or intervention
+distributions without additional analysis.
+
+\chapter{Standard FCI in Spirtes et al. (2000)}
+\label{chap:standard-fci-source}
+
+\section{Historical target and assumptions}
+
+The Fast Causal Inference algorithm was developed for a problem that is
+strictly broader than causal discovery under causal sufficiency.  Let \(O\)
+denote the measured variables and let the full acyclic causal graph also
+contain variables that are not in \(O\).  FCI reasons from conditional
+independences in the marginal distribution over \(O\); it does not require
+that all common causes of measured variables are themselves measured
+\citep[Chapter~6, \S\S6.3 and 6.7, pp.~129--130 and 139]
+{spirtes2000causation}.
+
+The population argument rests on two assumptions about the full causal system.
+The Causal Markov condition links graphical separation to probabilistic
+independence, while Faithfulness excludes additional independences created by
+special parameter cancellations
+\citep[Chapter~3, \S\S3.4.1 and 3.4.3, pp.~29--31]
+{spirtes2000causation}.  The algorithmic theorem additionally presumes that
+the conditional-independence decisions supplied to the search are correct.
+These premises matter operationally.  A sample Fisher-Z or G-square decision
+is an estimate of the oracle answer; it is not the oracle assumed by the
+theorem.
+
+The terminology also has a historical boundary.  The second edition states
+its output as a \emph{partially oriented inducing path graph}.  The modern
+ancestral-graph and MAG/PAG formulation was developed subsequently
+\citep{richardson2002ancestral}.  This report uses PAG notation because it is
+the natural representation in the implementation, but it does not retroactively
+attribute every modern PAG result to the 2000 book.  In particular, complete
+orientation of all invariant marks depends on the later rule set of
+\citet{zhang2008completeness}.
+
+\cautionbox{In this chapter, ``book-aligned FCI'' means the search and
+orientation schedule in \citet[Chapter~6, especially pp.~139--145]
+{spirtes2000causation}.  ``Completed PAG'' refers to the later MAG/PAG
+formalism and completeness results.  The two descriptions are related, but
+they are not historically interchangeable.}
+
+\section{Why adjacency-only conditioning is insufficient}
+
+A PC-style adjacency search removes \(X-Y\) when it finds a set \(S\) among
+the current local neighbours such that \(X\perp Y\mid S\).  Under causal
+sufficiency, this local strategy has a strong justification.  With latent
+variables, however, a pair may remain adjacent after local search even though
+it is separable over the observed variables.  A necessary separator can
+contain a node that is no longer adjacent to either endpoint by the time the
+search reaches the relevant conditioning depth.
+
+The book introduces D-SEP to characterize where an observed separator can
+reside in the underlying inducing-path structure
+\citep[Chapter~6, \S6.7, p.~141]{spirtes2000causation}.  D-SEP itself is not
+directly available from the partially learned graph.  FCI therefore constructs
+the observable superset Possible-D-SEP and performs a second, non-local
+separation search.  This second search is the central difference between
+standard FCI and a purely adjacency-based constraint procedure.
+
+The cost is deliberate.  Enlarging the candidate set protects against a false
+retained adjacency, but it can require many high-order CI queries.  Thus FCI's
+latent-variable protection and its computational burden arise from the same
+mechanism.
+
+\section{Source-located algorithm schedule}
+
+\Cref{tab:fci-source-stages} separates the stages actually described in the
+book from later implementation choices.  Page numbers are printed book pages,
+not PDF-image indices.
+
+\begin{table}[H]
+\centering
+\caption{Standard FCI stages and their primary-source locations.}
+\label{tab:fci-source-stages}
+\begin{tabularx}{\textwidth}{p{0.07\textwidth}p{0.23\textwidth}Yp{0.19\textwidth}}
+\toprule
+Stage & Operation & Evidence carried forward & Source locator \\
+\midrule
+1 & Complete graph and PC-style adjacency search &
+Remove locally separable pairs and store
+\(\operatorname{Sepset}(X,Y)\). &
+Chapter~6, narrative pp.~142--143; FCI steps A--B, pp.~144--145. \\
+2 & Initial collider/arrowhead phase &
+For each unshielded \(A-B-C\), orient arrowheads at \(B\) when
+\(B\notin\operatorname{Sepset}(A,C)\). &
+Causal Inference Algorithm step C, p.~139; reused by FCI, p.~145. \\
+3 & Possible-D-SEP construction &
+Build, separately from each ordered endpoint, a computable superset of
+possible non-local separator nodes. &
+Definition immediately before the Fast Causal Inference Algorithm, p.~144. \\
+4 & Non-local CI refinement &
+Search subsets from both ordered Possible-D-SEP pools; remove a remaining
+edge when a separating set is found and update the sepset record. &
+FCI step D, pp.~144--145. \\
+5 & Endpoint reset and collider reconstruction &
+Return retained edges to unresolved marks and reconstruct colliders from the
+final separator information. &
+FCI continuation, p.~145. \\
+6 & Orientation closure &
+Apply the original propagation and discriminating-path clauses repeatedly
+until no additional mark can be oriented. &
+Causal Inference Algorithm step D, pp.~139--140; invoked by FCI, p.~145. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The corresponding control flow can be expressed without importing later
+finite-sample policies:
+
+\begin{lstlisting}[style=python,
+caption={Source-faithful control-flow summary of standard FCI.}]
+def fci_2000(observed_variables, independence_oracle):
+    graph = complete_circle_graph(observed_variables)
+    graph, sepsets = pc_adjacency_search(graph, independence_oracle)
+
+    orient_unshielded_colliders(graph, sepsets)
+    search_graph = graph.copy()
+
+    for x, y in search_graph.edges():
+        pools = (
+            possible_dsep(search_graph, x, y),
+            possible_dsep(search_graph, y, x),
+        )
+        for pool in pools:                 # ordered directions stay separate
+            separator = first_subset_separating(x, y, pool)
+            if separator is not None:
+                graph.remove_edge(x, y)
+                sepsets[x, y] = separator
+                break
+
+    reset_endpoint_marks(graph)
+    orient_unshielded_colliders(graph, sepsets)
+    apply_original_orientation_closure(graph, sepsets)
+    return graph
+\end{lstlisting}
+
+This listing is a report-level decomposition, not a quotation of the printed
+pseudocode.  Its purpose is to make three easily missed obligations explicit:
+both endpoint orders are searched; the two candidate pools are not silently
+merged; and the final orientation phase is reconstructed after the additional
+edge removals.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fci_fci_plus_workflow.pdf}
+\caption{Source-located control-flow comparison. Standard FCI performs a
+non-local Possible-D-SEP refinement; FCI+ instead iterates augmented-skeleton,
+candidate D-sep-link, hierarchy, and minimal-separator stages before invoking
+final orientation. The robust application profile changes finite-sample
+policy, not the definition of Algorithm~2.}
+\label{fig:fci-fci-plus-workflow}
+\end{figure}
+
+\section{Possible-D-SEP}
+
+For an ordered pair \((A,B)\), a node \(V\ne A\) belongs to
+\(\operatorname{Possible\text{-}D\text{-}SEP}(A,B)\) when there is a path from
+\(A\) to \(V\) such that every internal triple on the path satisfies at least
+one of two conditions:
+
+\begin{enumerate}[leftmargin=2em]
+  \item the middle node is a collider on that path; or
+  \item the middle node is not a definite noncollider and the two outer nodes
+        are adjacent, so the triple forms a triangle.
+\end{enumerate}
+
+This is the definition immediately preceding the Fast Causal Inference
+Algorithm in \citet[Chapter~6, \S6.7, p.~144]{spirtes2000causation}.  The
+triangle clause is not a claim that the middle node is a true collider.  It
+retains a node when the current partial marks do not yet justify excluding
+it.  Possible-D-SEP is therefore intentionally permissive: it is a
+search-safe superset, not an estimate of a unique causal neighbourhood.
+
+The asymmetry is also substantive.  The source requires candidate search from
+the \(A\)-side and from the \(B\)-side.  A valid separator may be available
+from one ordered construction but not the other.  An implementation that uses
+only one direction, or that creates conditioning sets by mixing arbitrary
+members of the two pools, is no longer executing the same search contract.
+
+In the repository, \path{discovery/pdsep.py::possible_dsep} traverses ordered
+edge states and applies the collider-or-triangle predicate in
+\path{_is_pds_step_allowed}.  The traversal may conservatively include a node
+reachable by a qualifying walk even when a simple-path implementation would
+encounter it differently.  Such over-inclusion spends additional CI queries
+but preserves the intended superset role.  The corresponding regression suite
+checks endpoint exclusion, blocked paths, cycles, path limits, definite
+noncollider tails, both ordered directions, and the rule that the two pools
+must not be mixed.
+
+\section{Collider and discriminating-path information}
+
+For an unshielded triple \(A-B-C\), separator membership distinguishes the
+collider and noncollider cases.  If
+\[
+  B\notin\operatorname{Sepset}(A,C),
+\]
+the book's Causal Inference Algorithm orients arrowheads into \(B\)
+\citep[step C, p.~139]{spirtes2000causation}.  FCI applies this decision once
+before Possible-D-SEP construction and again after the final skeleton is
+known.  The second application is necessary because the non-local search can
+change both the skeleton and the stored separator evidence.
+
+The later orientation phase also uses definite discriminating paths.  For a
+discriminated triple, inclusion of the middle node in the relevant separator
+supports a noncollider conclusion, while exclusion supports a collider
+conclusion
+\citep[definition and Figure~6.14, pp.~138--140]
+{spirtes2000causation}.  The source repeats the orientation clauses to closure.
+The modern labels R1--R10 should not be projected wholesale onto this passage:
+the original book supplies the historical arrowhead and discriminating-path
+phase, whereas later work supplies a complete PAG rule schedule.
+
+\section{Theorem scope and the historical completeness boundary}
+
+Theorem~6.4 states that, under Faithfulness and correct population-level
+independence decisions, FCI returns a partially oriented inducing path graph
+for the observed margin
+\citep[p.~145]{spirtes2000causation}.  This is a correctness result for the
+historical target.  It supports the following bounded statement:
+
+\keyresult{Under the book's graphical assumptions and correct CI decisions,
+the original FCI schedule returns a correct partially oriented inducing-path
+representation for the observed variables.}
+
+The sentence immediately following the theorem is equally important: the
+authors state that they did not know whether the output was always maximally
+informative.  Therefore Theorem~6.4 does \emph{not} prove orientation
+completeness for a modern completed PAG.  The repository preserves this
+distinction with two orientation strategies:
+
+\begin{itemize}[leftmargin=2em]
+  \item \code{orientation\_strategy="spirtes\_2000"} stops after the
+        book-aligned historical closure; and
+  \item \code{orientation\_strategy="standard"} additionally applies the later
+        Zhang-style tail-completion rules required for a complete modern PAG
+        \citep{zhang2008completeness}.
+\end{itemize}
+
+The distinction is not cosmetic.  A graph with more circles can be correct
+but less informative.  Conversely, describing a later, more extensively
+oriented graph as the literal output theorem of the 2000 source overstates
+what that source established.
+
+\section{What is not established by the 2000 source}
+\label{sec:fci-not-established}
+
+The following propositions are outside the theorem and algorithm statements
+in \citet{spirtes2000causation}:
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{No finite-sample recovery guarantee.}  The source guarantee is
+        conditional on correct CI decisions.  It does not prove that Fisher-Z,
+        G-square, kernel CI, or a missing-data test will recover the oracle
+        decisions at a given \(N\).
+  \item \textbf{No universal tractability claim.}  Possible-D-SEP may be large,
+        and its subset search can remain expensive.  The book discusses
+        favourable sparse structures; it does not give the fixed-degree
+        polynomial query bound later proved for \FCIplus{}.
+  \item \textbf{No 2000 proof of maximal orientation.}  Maximal
+        informativeness is explicitly left open after Theorem~6.4.
+  \item \textbf{No unique DAG.}  The output represents observationally
+        indistinguishable causal structures under the assumptions.
+  \item \textbf{No direct-effect or treatment-effect estimate.}  A retained
+        adjacency is not automatically a direct structural coefficient, and
+        the algorithm does not estimate an intervention contrast.
+  \item \textbf{No identified latent variable from one edge mark.}  A
+        bidirected endpoint pattern is compatible with relevant ancestry
+        restrictions, but it does not name, count, or measure a hidden cause.
+  \item \textbf{No guarantee under truncated search.}  Finite conditioning or
+        path limits, or disabling Possible-D-SEP, may leave a false adjacency
+        and are not covered by the unbounded source schedule.
+\end{enumerate}
+
+
+\chapter{FCI+ in Claassen et al. (2013)}
+\label{chap:fci-plus-source}
+
+\section{Problem statement and restricted complexity result}
+
+\citet{claassen2013learning} ask whether causal structure discovery remains
+intrinsically exponential when the observed causal structure is sparse but
+latent variables and selection bias may be present.  Their formal
+\code{C-LEARN} task assumes:
+
+\begin{enumerate}[leftmargin=2em]
+  \item an independence oracle that answers any
+        \(X\perp Y\mid Z\) query exactly and in constant time;
+  \item a distribution faithful to an underlying causal DAG;
+  \item an observed-variable MAG whose maximum node degree is bounded by a
+        constant \(k\); and
+  \item a completed PAG as the output target.
+\end{enumerate}
+
+These assumptions appear in Definition~1 and the \code{C-LEARN} statement on
+p.~173, the input to Algorithm~2 on p.~178, and the complexity analysis on
+p.~179 of the UAI paper.  Under them, the authors establish the worst-case
+conditional-independence query bound
+\[
+  O\!\left(N^{2(k+2)}\right),
+\]
+where \(N\) is the number of observed variables and \(k\) is treated as a
+constant.
+
+The claim is deliberately narrower than the paper's memorable title.  It is a
+polynomial query-complexity result for a sparse, faithful oracle problem.
+It neither solves an arbitrary NP-hard structure-learning problem nor makes a
+finite-sample statistical test exact or constant-time.  The paper itself
+states that the result does not contradict known hardness results
+\citep[abstract and introduction, pp.~172--173]{claassen2013learning}.
+
+\section{D-separated pairs, D-sep nodes, and D-sep links}
+
+After a bounded PC adjacency search, some nonadjacent pairs in the true MAG
+can remain falsely connected because every useful separator requires a node
+outside the current endpoint-adjacency union.  Definition~2 on p.~176 names
+such a pair D-separated and calls the surviving false adjacency a D-sep link
+\citep{claassen2013learning}.  A required nonadjacent member of the separator
+is a D-sep node.
+
+The capitalization matters.  D-SEP is the authors' named search construct in
+a MAG setting.  The paper's surrounding preliminaries use m-separation for
+mixed ancestral graphs even though Definition~2 uses the phrase
+``d-separated.''  This report therefore uses \emph{D-sep link} for the named
+algorithmic object and \emph{m-separation} for the exact graphical oracle.
+
+Figure~4(b), pp.~175--176, gives the canonical five-node example.  Its MAG has
+the six edges
+\[
+  Z\to U,\quad Z\to V,\quad
+  U\leftrightarrow X,\quad V\to X,\quad
+  U\to Y,\quad V\leftrightarrow Y.
+\]
+The initial adjacency search retains a false \(X-Y\) link, while
+\[
+  X\perp Y\mid\{U,V,Z\}
+\]
+and \(Z\) is not adjacent to either endpoint.  The source exhibits this
+separator and identifies \(Z\) as the D-sep node.  It does not print the
+repository's completed-PAG endpoint target, and it does not state that the
+exhibited separator is uniquely minimal.
+
+\section{The temporary augmented skeleton}
+
+FCI+ does not search every subset of standard FCI's potentially large
+Possible-D-SEP pool.  It first extracts additional invariant non-ancestry
+information into an \emph{augmented skeleton} \(G^+\).  The construction uses
+a single-node minimal-dependence test.  If a known minimal independence
+\[
+  X\perp Y\mid S
+\]
+becomes a dependence when a suitable adjacent node \(A\) is added,
+\[
+  X\not\!\perp Y\mid S\cup\{A\},
+\]
+Lemma~2(1) supports an invariant arrowhead at \(A\) on the relevant incident
+edges.  Definition~3 and the following paragraph on p.~176 define the
+augmentation; Algorithm~2 rebuilds it at lines 2 and 16
+\citep{claassen2013learning}.
+
+The arrowheads in \(G^+\) are search marks.  They help recognize candidate
+D-sep links; they are not automatically final PAG orientations.  The
+repository mirrors this distinction by copying the current skeleton in
+\path{build_augmented_skeleton}, using the copy during the hierarchical
+search, and resetting the surviving output skeleton before final collider and
+PAG orientation.
+
+\section{Recognizing candidate D-sep links}
+
+Lemma~4 on p.~176 supplies the characteristic augmented-skeleton pattern.
+Subject to the hierarchy condition developed in the paper, a D-sep link
+\(X-Y\) appears as the middle edge of
+\[
+  U\leftrightarrow X\leftrightarrow Y\leftrightarrow V,
+\]
+where \(U\) and \(V\) are nonadjacent and the required cross-direction paths
+do not run against an arrowhead.  The Appendix~A proof sketch on p.~180
+explains why the local marks expose the otherwise non-local separator
+\citep{claassen2013learning}.
+
+This pattern only proposes a candidate.  It is not itself a CI decision.
+FCI+ must still build a hierarchy-derived conditioning set and query the
+oracle.  The distinction protects the soundness of the removal stage:
+arrowhead patterns identify where to search; independence evidence determines
+whether the edge is deleted.
+
+The implementation keeps the pattern literal.  The middle and witness edges
+must be bidirected in the augmented graph; unresolved circle marks are not
+accepted as substitutes for invariant arrowheads.
+\path{_has_dsep_link_witness} also checks witness nonadjacency and the two
+not-against-arrowhead reachability conditions.  The associated tests include
+positive witnesses, missing cross paths, missing target arrowheads, and
+circle-only negative cases.
+
+\section{Recursive hierarchy and removal order}
+
+Definitions~4--5 and Lemmas~6--7 on p.~177 define the hierarchy
+\(\operatorname{HIE}(X,I)\).  Starting from a seed set, it repeatedly adds
+every node that occurs in a recorded minimal separator between a pair of
+nodes already in the hierarchy.  In fixed-point form,
+\[
+\begin{split}
+  H_0 &= X,\\
+  H_{t+1}
+    &= H_t\ \cup\
+       \bigcup_{\substack{A,B\in H_t\\A\ne B}}
+       \operatorname{Sepset}_{I}(A,B),\\
+  \operatorname{HIE}(X,I) &= H_t
+       \quad\text{when }H_{t+1}=H_t.
+\end{split}
+\]
+Here \(I\) is the paper's collection of minimal independence statements.
+Lemma~6 explains why a required D-sep node appears in another relevant
+minimal separator, while Lemma~7 shows how the hierarchy seeded by suitable
+adjacent ancestors contains a separator for the target D-sep link
+\citep[pp.~177--178]{claassen2013learning}.
+
+Candidate D-sep links can depend on one another.  Lemma~5 gives an acyclic
+ordering argument: removal of one ancestral D-sep link may reveal the
+information required to remove another, but the dependencies need not be
+solved simultaneously.  Section~4.3 and Algorithm~2 implement this reasoning
+by rebuilding the augmented skeleton and reconsidering candidates after each
+successful deletion.
+
+The repository function \path{hierarchy} performs this fixed-point expansion
+and explicitly excludes the target pair's own separator from recursive
+lookup.  The D-SEP refinement caches expansions by both the seed set and the
+excluded target pair.  That cache is an engineering optimization; the
+hierarchy definition and candidate-revisit logic are the paper mechanisms.
+
+\section{Algorithm 2}
+
+\Cref{tab:fciplus-source-stages} maps the printed lines of Algorithm~2 to
+their logical role.  The source location is
+\citet[\S5, pp.~178--179]{claassen2013learning}.
+
+\begin{table}[H]
+\centering
+\caption{\FCIplus{} Algorithm~2: source-located stages.}
+\label{tab:fciplus-source-stages}
+\begin{tabularx}{\textwidth}{p{0.13\textwidth}p{0.24\textwidth}Y}
+\toprule
+Algorithm~2 lines & Stage & Function in the proof and search \\
+\midrule
+1 & Bounded PC adjacency search &
+Construct the initial skeleton \(G\) and minimal-independence set \(I\) using
+conditioning depth bounded by \(k\). \\
+2--3 & Augment and propose &
+Construct \(G^+\) from single-node dependencies and obtain candidate D-sep
+links from its invariant arrowhead patterns. \\
+4--12 & Enumerate sparse bases &
+For a candidate \(X-Y\), enumerate at most \(k\)-node endpoint bases and seed
+the recursive hierarchy from \(\{X,Y\}\) and the selected bases. \\
+13--15 & Test and minimize &
+Query whether the hierarchy separates \(X\) and \(Y\); if so, remove redundant
+members and add a minimal separator to \(I\). \\
+16--18 & Rebuild and revisit &
+Remove the confirmed D-sep link, rebuild \(G^+\), and reconsider candidate
+links using the expanded independence information. \\
+23--24 & Complete orientation &
+Orient unshielded colliders and invoke the complete FCI/PAG rule machinery to
+return the completed PAG. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+A compact implementation-neutral transcription is:
+
+\begin{lstlisting}[style=python,
+caption={Control-flow summary of Claassen et al.'s Algorithm 2.}]
+def fci_plus(observed_variables, independence_oracle, k):
+    graph, independence_set = pc_adjacency_search(
+        observed_variables, independence_oracle, depth=k
+    )
+    augmented = augment(graph, independence_set, independence_oracle)
+    candidates = possible_dsep_links(augmented)
+
+    while candidates:
+        x, y = candidates.pop()
+        for zx in endpoint_bases(augmented, x, exclude=y, max_size=k):
+            for zy in endpoint_bases(augmented, y, exclude=x, max_size=k):
+                seed = {x, y, *zx, *zy}
+                h = hierarchy(seed, independence_set, exclude_pair=(x, y))
+                if independence_oracle.independent(x, y, h - {x, y}):
+                    separator = minimize(h - {x, y})
+                    graph.remove_edge(x, y)
+                    independence_set[x, y] = separator
+                    augmented = augment(
+                        graph, independence_set, independence_oracle
+                    )
+                    candidates = possible_dsep_links(augmented)
+                    break
+
+    reset_endpoint_marks(graph)
+    orient_colliders(graph, independence_set)
+    apply_complete_pag_orientation(graph, independence_set)
+    return graph
+\end{lstlisting}
+
+The listing emphasizes two properties sometimes lost in simplified
+descriptions.  First, \(k\) bounds the endpoint bases because it is assumed to
+bound the true observed-MAG degree; it is not merely a convenient runtime
+knob.  Second, a successful edge removal changes the independence information
+and therefore requires augmentation and candidate detection to be repeated.
+
+\section{Query-complexity accounting}
+
+The main paper's p.~179 accounting separates the stages:
+
+\begin{itemize}[leftmargin=2em]
+  \item the bounded PC adjacency search uses
+        \(O(N^{k+2})\) CI queries;
+  \item construction of the augmented skeleton uses \(O(N^3)\) queries;
+  \item at most \(O(N^2)\) false-edge candidates are considered;
+  \item the paired endpoint bases contribute \(O(N^{2k})\) choices for a
+        candidate;
+  \item separator minimization is separately bounded by \(O(N^2)\) queries,
+        while repeated candidate reconsideration supplies an additional
+        \(O(N^2)\) factor in the worst-case dominant accounting; and
+  \item final graph orientation uses no additional CI queries, although it has
+        its own graph-operation cost.
+\end{itemize}
+
+Consequently the dominant CI-query count is
+\[
+  O(N^2)\,O(N^{2k})\,O(N^2)
+    = O\!\left(N^{2(k+2)}\right).
+\]
+This is the theorem/body value used throughout the report.  The arXiv proof
+supplement's abstract states \(N^{2(k+1)}\), but its Theorem~1, proof, and
+concluding sentence agree with the main UAI paper on \(N^{2(k+2)}\).  The
+discrepancy is recorded rather than silently harmonized.
+
+Logical query count must be distinguished from elapsed time.  The theorem
+treats each oracle answer as a constant-time operation.  A sample CI test may
+fit regressions, form contingency tables, perform matrix operations, or run
+permutations; its cost can depend on sample size and conditioning-set
+dimension.  Likewise, repository caching can reduce underlying test
+executions without changing how often algorithmic control flow requests a
+query.
+
+\section{Orientation completeness is a dependency}
+
+FCI+'s novel contribution is the sparse recovery of the correct skeleton and
+separating information.  Algorithm~2 line 23 then invokes complete FCI
+orientation.  The UAI paper does not rederive the full orientation-completeness
+proof; it relies on established PAG orientation results and cites
+\citet{zhang2008completeness}.  Therefore the complete-output claim requires
+all of the following:
+
+\begin{enumerate}[leftmargin=2em]
+  \item correct CI decisions and separators;
+  \item correct identification and removal of every D-sep link;
+  \item sound collider decisions; and
+  \item a complete invariant-mark orientation schedule.
+\end{enumerate}
+
+In the repository, the paper profile selects
+\code{orientation\_strategy="standard"}, which applies the later complete
+schedule.  The historical \code{"spirtes\_2000"} schedule and the
+\code{"conservative"}, \code{"leaf"}, and \code{"robust"} engineering
+strategies intentionally have different orientation scopes and must not
+inherit the complete-PAG theorem by label alone.
+
+\section{What is not established by the 2013 source}
+\label{sec:fciplus-not-established}
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{No finite-sample superiority theorem.}  The paper does not
+        prove that FCI+ is more accurate than standard FCI for a fixed sample,
+        CI test, or significance threshold.
+  \item \textbf{No empirical constant-time oracle.}  A statistical CI test is
+        neither exact nor necessarily constant-time.
+  \item \textbf{No polynomial guarantee for growing or wrong \(k\).}  The
+        theorem assumes a constant bound on the true observed-MAG degree.  A
+        user-entered \code{sparsity\_bound} is not evidence that the assumption
+        is true.
+  \item \textbf{No unrestricted complexity-class conclusion.}  The result is
+        for the restricted sparse oracle problem, not every causal discovery
+        formulation.
+  \item \textbf{No wall-clock dominance.}  Query complexity does not rank
+        programming languages, CI implementations, memory use, or practical
+        runtimes.
+  \item \textbf{No claim that every hierarchy is statistically efficient.}
+        The discussion on p.~179 warns that hierarchy-derived conditioning
+        sets may be large and may reduce finite-sample power.
+  \item \textbf{No unique causal graph or effect estimate.}  The target is a
+        completed PAG equivalence class, not a unique DAG or an intervention
+        distribution.
+  \item \textbf{No published completed PAG in Figure~4(b).}  The paper prints
+        the MAG example and an exhibited separator.  A completed endpoint
+        target must be derived and validated separately.
+\end{enumerate}
+
+
+\chapter{Independent Python Implementation}
+\label{chap:implementation}
+
+\section{Design objective and package boundary}
+
+The implementation objective is not to relabel a generic constraint-based
+search as FCI+.  It is to expose the algorithmic obligations identified in
+\Cref{chap:standard-fci-source,chap:fci-plus-source} as inspectable Python
+components, and to keep them separate from finite-sample application policy.
+The primary contribution can be stated in one sentence:
+
+\keyresult{The repository independently implements paper-aligned standard FCI
+and FCI+ search profiles, connects each major source concept to a named code
+symbol and regression test, and adds a separately labelled auditability and
+finite-sample robustness layer.}
+
+The reusable code resides in \path{src/fci_engine}; the Tennessee STAR workflow
+resides in \path{case_studies/tennessee_star}.  No STAR variable, temporal
+constraint, discretization choice, or substantive conclusion is embedded in
+the estimator package.  This boundary makes the case study an application of
+the public API rather than an implicit modification of the algorithm.
+
+\begin{table}[H]
+\centering
+\caption{Implementation layers and responsibilities.}
+\label{tab:implementation-layers}
+\begin{tabularx}{\textwidth}{p{0.25\textwidth}Yp{0.22\textwidth}}
+\toprule
+Layer & Responsibility & Principal location \\
+\midrule
+Graph representation &
+Store one endpoint mark at each side of every adjacency; validate mutation,
+query ancestry, and serialize semantic edge records. &
+\path{graph/endpoint.py}; \path{graph/pag.py} \\
+CI abstraction &
+Provide one test protocol, concrete continuous/discrete/missing/nonlinear
+tests, canonical query caching, and event-level provenance. &
+\path{ci/} \\
+Shared discovery lifecycle &
+Validate data, resolve profiles, build the initial skeleton, orient, apply
+background knowledge, and assemble results consistently. &
+\path{discovery/base.py} \\
+Standard FCI &
+Run the initial skeleton, first collider phase, ordered Possible-D-SEP
+refinement, reset, and historical or modern orientation closure. &
+\path{discovery/fci.py}; \path{discovery/pdsep.py} \\
+\FCIplus{} &
+Run bounded adjacency search, augmented-skeleton candidate discovery,
+hierarchical D-SEP removal, reset, and complete or conservative orientation. &
+\path{discovery/fci_plus.py}; \path{discovery/dsep.py} \\
+Validation and audit &
+Supply exact MAG m-separation fixtures, endpoint metrics, stability wrappers,
+reference comparisons, explanations, and artifact export. &
+\path{simulation/}; \path{metrics/}; \path{result.py} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Public API and configuration}
+
+The top-level functions keep standard FCI and FCI+ as separate entry points.
+Paper profiles are explicit because a default optimized for finite samples
+should not silently stand in for the source algorithm.
+
+\begin{lstlisting}[style=python,
+caption={Paper-aligned entry points remain distinct.}]
+from fci_engine import fci, fci_plus
+from fci_engine.config import FCIConfig, FCIPlusConfig
+
+fci_result = fci(
+    data,
+    config=FCIConfig.paper(),
+)
+
+fci_plus_result = fci_plus(
+    data,
+    config=FCIPlusConfig.paper(k=3),
+)
+\end{lstlisting}
+
+\code{FCIConfig.paper()} fixes the unbounded book-aligned search choices:
+immediate skeleton updates, first-found separators, enabled
+Possible-D-SEP, no conditioning or path cap, nonconservative collider
+orientation, and \code{orientation\_strategy="spirtes\_2000"}.
+\code{FCIPlusConfig.paper(k=...)} requires an explicit \(k\), assigns that
+same value to initial conditioning depth and the endpoint-base sparsity bound,
+disables ordinary Possible-D-SEP, uses immediate deletion and first-found
+separators, and selects the later complete \code{"standard"} orientation
+schedule required by Algorithm~2's output claim.
+
+The profiles constrain execution; they do not validate theorem assumptions.
+Supplying \(k=3\) does not prove that the unknown true MAG has degree at most
+three.  Likewise, using a paper profile with the default Fisher-Z test
+reproduces the search schedule but does not create the constant-time exact
+oracle assumed in the theory.
+
+\section{PAG endpoint representation and mutation invariants}
+
+The \code{PAG} class in \path{graph/pag.py} stores endpoints for ordered node
+pairs while exposing each adjacency once.  Its endpoint accessor returns the
+mark at \(y\) on edge \(x-y\).  This convention permits explicit
+representation of tails, arrowheads, circles, and absence without flattening
+a PAG into a directed graph.
+
+Mutation operations validate both nodes, reject a one-sided or
+\code{NONE}-marked edge, and require edge deletion through
+\code{remove\_edge}.  Query methods distinguish adjacency,
+possibly-directed ancestry, and directed-path ancestry.  These invariants
+matter because an endpoint error can change both Possible-D-SEP reachability
+and later orientation rules.
+
+Tests in \path{tests/test_pag.py} exercise construction, node validation,
+edge addition/removal, endpoint mutation, edge rendering, and copy
+independence.  \path{tests/test_pag_queries.py} separately tests possible- and
+definite-ancestor semantics.  The implementation therefore treats graph
+storage as a tested algorithmic substrate, not a plotting-only convenience.
+
+\section{Conditional-independence protocol, caching, and provenance}
+
+Every search uses the abstract \code{CITest.test(data, x, y, cond\_set)}
+contract and receives a structured \code{CITestResult}.  The built-in tests
+cover Fisher-Z, missing-value Fisher-Z, chi-square, G-square, and kernel CI.
+A custom test can implement the same protocol, which keeps search logic
+independent of a particular data type.
+
+\path{CITestCache} canonicalizes the unordered endpoint pair and conditioning
+set.  Every request increments the logical query count and emits a
+\code{CITraceEvent}; a repeated request also records that the result was a
+cache hit.  Thus the result distinguishes:
+
+\begin{itemize}[leftmargin=2em]
+  \item the number of logical CI requests made by algorithmic control flow;
+  \item the subset answered from the cache; and
+  \item the underlying statistical test results, including method, statistic,
+        \(p\)-value, effective sample size, and conditioning set.
+\end{itemize}
+
+This distinction is important when connecting measurements to the FCI+
+theorem.  The theorem counts oracle queries.  Repository elapsed time includes
+data preparation, graph operations, and the cost of uncached sample tests.
+Neither count should be silently substituted for the other.
+
+\section{Standard FCI pipeline}
+
+\path{discovery.fci.FCI.fit} exposes the source stage ordering directly:
+
+\begin{enumerate}[leftmargin=2em]
+  \item \path{_learn_initial_skeleton} creates a complete circle graph and
+        calls \path{learn_initial_skeleton};
+  \item \path{_orient_colliders} applies separator-based unshielded-collider
+        decisions;
+  \item \path{refine_skeleton_with_pdsep} searches subsets from the two ordered
+        Possible-D-SEP pools and records removals with source
+        \code{"pdsep"};
+  \item \path{_orient_colliders(..., reset=True)} clears provisional endpoint
+        marks and reconstructs collider information from the final sepsets;
+        and
+  \item \path{_apply_orientation_rules} runs the configured historical,
+        complete, or conservative closure.
+\end{enumerate}
+
+The Possible-D-SEP traversal uses ordered edge states rather than enumerating
+all complete simple paths.  Its step predicate accepts a collider or a
+triangle whose center is not proven a noncollider by a tail.  The compact
+representation does not separately encode the book's underlined-noncollider
+notation.  It may conservatively over-include walk-reachable nodes; this is
+compatible with the superset role but can increase CI work.  Dedicated tests
+retain coverage of path blocking, cycles, tail-proven noncolliders, ordered
+endpoint pools, and stable versus immediate update schedules.
+
+\section{FCI+ pipeline}
+
+\path{discovery.fci_plus.FCIPlus.fit} deliberately does not call standard
+FCI's Possible-D-SEP refinement.  It passes the initial skeleton and
+separating sets to
+\path{refine_skeleton_with_fci_plus_dsep}, which implements the Algorithm~2
+search:
+
+\begin{enumerate}[leftmargin=2em]
+  \item \path{build_augmented_skeleton} copies the skeleton and adds
+        single-node-dependence arrowheads;
+  \item \path{possible_dsep_links} recognizes literal bidirected witness
+        patterns and cross-direction paths;
+  \item \path{_algorithm2_base_sizes} and
+        \path{_base_combinations_for_sizes} enumerate the paired endpoint
+        bases;
+  \item \path{hierarchy} expands each seed through recorded separators to a
+        fixed point;
+  \item the CI interface tests the resulting conditioning set;
+  \item \path{minimal_dsep} removes redundant separator members;
+  \item the edge and augmented copy are updated, the source
+        \code{"fci\_plus\_dsep"} is recorded, and candidates are rebuilt; and
+  \item the final estimator resets the temporary marks and applies collider
+        plus configured PAG orientation.
+\end{enumerate}
+
+\path{DSEPDiagnostics} records candidate sightings and revisits, hierarchy
+queries and cache hits, duplicate conditioning-set skips, D-SEP-stage CI
+requests, removed edges, and the maximum tested conditioning size.  These
+counters make an Algorithm~2 run inspectable.  They are empirical accounting,
+not a mechanized proof of the asymptotic bound.
+
+The Figure~4(b) regression has a narrow source-grounded target.  The
+repository encodes the six published MAG edges, verifies by exact m-separation
+that \(\{U,V,Z\}\) separates \(X\) and \(Y\), and checks that the end-to-end
+FCI+ run removes the false adjacency in the hierarchical stage with the
+\code{"fci\_plus\_dsep"} provenance tag.  The completed endpoint fixture is
+repository-derived and is not described as a PAG printed in the paper.
+
+\section{Orientation engine and strategy separation}
+
+\path{discovery.rules.apply_orientation_rules} provides one dispatcher with
+explicit schedules.  The separation is part of the scientific interface:
+
+\begin{table}[H]
+\centering
+\caption{Orientation strategies and the claims they can support.}
+\label{tab:orientation-strategies}
+\begin{tabularx}{\textwidth}{p{0.21\textwidth}p{0.29\textwidth}Y}
+\toprule
+Strategy & Intended role & Claim boundary \\
+\midrule
+\code{spirtes\_2000} &
+Original arrowhead and discriminating-path closure used by the standard-FCI
+paper profile. &
+Historically aligned; not claimed maximally informative. \\
+\code{standard} &
+Modern R1--R10-style complete schedule, including later tail-completion
+rules. &
+Appropriate completeness dependency for the FCI+ paper profile under its
+oracle assumptions. \\
+\code{conservative} &
+Retain arrowhead conclusions while suppressing tail-producing propagation. &
+Finite-sample engineering policy; no completed-PAG claim. \\
+\code{leaf} &
+Permit a restricted R1 tail when the newly directed endpoint is a leaf. &
+Engineering compromise between informativeness and aggressive propagation. \\
+\code{robust} &
+Combine conservative collider decisions with the leaf-tail schedule. &
+Application profile for the specified stability audits, not a paper
+algorithm. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Rule-level tests cover the original propagation and discriminating-path
+patterns, closure behavior, contradiction avoidance, and the later R5--R10
+tail rules.  A separate published-reference regression verifies that the
+\code{spirtes\_2000} paper profile stops before a selection-bias tail
+completion that the later \code{standard} schedule can orient.  This test
+makes the historical completeness boundary executable rather than merely
+descriptive.
+
+\section{Paper profiles and finite-sample engineering profiles}
+\label{sec:paper-versus-engineering}
+
+The repository separates algorithm fidelity from application robustness.
+The distinction is summarized in \Cref{tab:profile-contracts}.
+
+\begin{table}[H]
+\centering
+\caption{Search profiles: source contracts versus engineering policy.}
+\label{tab:profile-contracts}
+\begin{tabularx}{\textwidth}{p{0.22\textwidth}p{0.29\textwidth}YY}
+\toprule
+Profile & Search choices & Orientation & Permitted interpretation \\
+\midrule
+FCI paper &
+Unbounded depth/path; immediate skeleton deletion; first separator; ordered
+Possible-D-SEP search. &
+\code{spirtes\_2000} &
+Closest executable mapping to the 2000 schedule; historical target is not
+claimed maximally informative. \\
+\FCIplus{} paper &
+Explicit shared \(k\); immediate deletion; first separator; hierarchical
+D-SEP; no standard Possible-D-SEP. &
+\code{standard} &
+Closest mapping to Algorithm~2; theorem wording requires exact CI,
+faithfulness, and correct true-degree bound. \\
+FCI practical/default &
+Stable skeleton and Possible-D-SEP; max-\(p\) separator selection; optional
+bounds. &
+\code{standard} unless overridden &
+Finite-sample implementation policy; any caps weaken source guarantees. \\
+\FCIplus{} practical &
+Automatic-\(\alpha\) heuristic; default depth and sparsity bounds of three;
+stable skeleton; max-\(p\) separators; no standard Possible-D-SEP. &
+\code{robust} with conservative colliders &
+Engineering extension assessed by finite-sample, order, bootstrap, and
+chronology audits; not Algorithm~2 verbatim. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The practical profile does not claim that uncertainty has been eliminated.
+Stable deletion reduces one source of variable-order dependence.  Max-\(p\)
+separator selection spends more CI queries to retain stronger sample
+independence evidence at a fixed depth.  Conservative collider and tail
+policies preserve circles where sample evidence is ambiguous.  Automatic
+\(\alpha\) is a documented sample-size heuristic.  Each choice can improve a
+predefined robustness metric on a given benchmark while weakening
+informativeness or increasing computation.
+
+The committed known-truth evaluation and STAR order audit therefore compare
+profiles under their actual names.  ``Paper FCI+'' is the fidelity and sparse
+query-search subject.  ``Robust FCI+'' is the preferred engineering policy for
+the reported finite-sample application because it meets the stated audit
+criteria while returning less-specific endpoints.  That preference is local
+to the evidence and criteria in this project; it is not a universal accuracy
+ranking.
+
+\section{Result object, explanations, and reproducible artifacts}
+
+\path{FCIResult} binds the final graph to the evidence that produced it.  It
+stores the resolved configuration, sample and node counts, separating sets
+and their stage sources, logical CI count, cache hits, named CI event trace,
+orientation event trace, ambiguous triples, D-SEP diagnostics, elapsed time,
+and optional bootstrap adjacency frequencies.
+
+\path{explain_edge(x,y)} returns a pair-specific record containing the final
+endpoint marks when present, the separator and its provenance when removed,
+all direct CI events for the pair, and orientation events attached to that
+edge.  \path{save_artifacts} exports structured JSON, a semantic endpoint CSV,
+and standalone HTML.  This design prevents a plotted arrow from becoming
+detached from the profile, CI test, threshold, or orientation decision that
+created it.
+
+The package is typed and includes \path{py.typed}.  The repository's quality
+workflow runs Pytest, Ruff, strict MyPy, wheel construction, installation, and
+an import smoke test.  These checks establish interface and packaging
+consistency.  They do not validate faithfulness, true sparsity, CI-test model
+assumptions, or an empirical causal conclusion.
+
+\section{Source-to-code-to-test traceability}
+
+\Cref{tab:source-code-test-map} is the core audit table.  A classification of
+``paper mechanism'' means that the symbol implements the stated source
+operation when invoked through the corresponding paper profile.  It does not
+mean that the source proves every line of Python correct.
+
+\small
+\begin{longtable}{p{0.17\textwidth}p{0.27\textwidth}p{0.29\textwidth}p{0.13\textwidth}}
+\caption{Published concept to repository symbol and validation mapping.}
+\label{tab:source-code-test-map}\\
+\toprule
+Published concept & Repository symbol & Principal validation & Classification \\
+\midrule
+\endfirsthead
+\toprule
+Published concept & Repository symbol & Principal validation & Classification \\
+\midrule
+\endhead
+Complete start and PC-style adjacency search &
+\path{discovery.skeleton.create_complete_pag};
+\path{learn_initial_skeleton} &
+skeleton tests; profile and published-reference integration tests &
+Shared paper mechanism \\
+
+Standard FCI stage ordering &
+\path{discovery.fci.FCI.fit} &
+\path{tests/test_published_reference_graphs.py} &
+Spirtes-aligned \\
+
+Possible-D-SEP path criterion &
+\path{discovery.pdsep.possible_dsep};
+\path{_is_pds_step_allowed} &
+\path{tests/test_pdsep.py}: collider/triangle, tail blocking, cycles, and path
+bounds &
+Spirtes-aligned \\
+
+Ordered Possible-D-SEP separator search &
+\path{discovery.pdsep.refine_skeleton_with_pdsep} &
+both-direction and no-mixed-pool tests in \path{test_pdsep.py} &
+Spirtes-aligned \\
+
+Reset and second collider phase &
+\path{FCI.fit};
+\path{orientation.reset_endpoint_marks} &
+endpoint-reset unit test and published-reference regression &
+Spirtes-aligned \\
+
+Original orientation closure &
+\path{rules.apply_orientation_rules(..., "spirtes_2000")} &
+orientation-rule tests; historical stopping regression &
+2000-aligned, incomplete by source \\
+
+Complete modern orientation &
+\path{rules.apply_orientation_rules(..., "standard")} &
+\path{tests/test_oracle_pag_rules.py}; schedule tests &
+Later Zhang dependency \\
+
+Augmented skeleton &
+\path{dsep.build_augmented_skeleton};
+\path{_augment_with_single_node_dependencies} &
+single-node-dependence and existing-edge tests in
+\path{tests/test_fci_plus.py} &
+Claassen Algorithm~2 \\
+
+Candidate D-sep pattern &
+\path{dsep.possible_dsep_links};
+\path{_has_dsep_link_witness} &
+bidirected witness, cross-path, target-arrowhead, and circle-rejection tests &
+Claassen Algorithm~2 \\
+
+Recursive hierarchy &
+\path{dsep.hierarchy};
+\path{_hierarchy_cache_key} &
+fixed-point expansion and excluded-pair cache-key tests &
+Claassen Algorithm~2 \\
+
+Paired endpoint bases bounded by \(k\) &
+\path{_algorithm2_base_sizes};
+\path{_base_combinations_for_sizes} &
+separate-base and literal nested-order tests &
+Claassen Algorithm~2 \\
+
+Separator minimization and candidate revisit &
+\path{minimal_dsep};
+\path{refine_skeleton_with_fci_plus_dsep} &
+fixed-point minimization, D-SEP removal, and failed-candidate revisit tests &
+Claassen Algorithm~2 \\
+
+Figure~4(b) false-link removal &
+\path{simulation.mag_oracle.canonical_dsep_mag};
+\path{MAGOracleCITest} &
+direct \(\{U,V,Z\}\) m-separation and
+\code{fci\_plus\_dsep} provenance regression &
+Source MAG plus repository-derived target \\
+
+Exact MAG m-separation oracle &
+\path{simulation.mag_oracle.MAGSpec};
+\path{MAGOracleCITest} &
+\path{tests/test_oracle_graphs.py};
+\path{test_published_reference_graphs.py} &
+Validation apparatus \\
+
+Stable deletion and max-\(p\) separators &
+\path{FCIConfig.practical};
+\path{FCIPlusConfig.practical} &
+configuration, order, and finite-sample benchmark tests &
+Engineering extension \\
+
+Conservative and robust orientation &
+\path{apply_orientation_rules};
+\path{orientation_strategy} &
+\path{tests/test_orientation_rules.py};
+\path{test_robust_application_profile.py} &
+Engineering extension \\
+
+Structured trace and exports &
+\path{result.FCIResult};
+\path{diagnostics.py} &
+\path{tests/test_result_exports.py} &
+Engineering extension \\
+\bottomrule
+\end{longtable}
+\normalsize
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{source_implementation_map.pdf}
+\caption{Audit chain from the two primary sources to concrete repository
+symbols and executable validation. ``Later completeness'' is separated from
+the 2000 schedule, and practical robustness controls are labelled as
+engineering extensions.}
+\label{fig:source-implementation-map}
+\end{figure}
+
+\section{Position relative to checked established software}
+
+The dated software audit distinguishes locally executed interfaces from
+documentation-only inspection.  Local \code{fci\_engine} FCI and FCI+,
+\code{pcalg}~2.7-12 FCI and \code{fciPlus}, and causal-learn~0.1.4.7 FCI
+completed small local smoke calls.  Tetrad~7.6.10 was inspected in official
+source and release documentation but was not executed because a working Java
+runtime was unavailable.
+
+The comparison supports an integration claim, not an accuracy ranking.
+\code{pcalg} exposes both FCI and FCI+, accepts user-defined CI tests, and its
+standard FCI result contains separator information.  Its inspected
+\code{fciPlus} public result has materially less final separator provenance.
+Causal-learn exposes standard FCI and several named CI methods, but no public
+Claassen FCI+ entry point was identified in the inspected interface.  Tetrad
+provides standard FCI and several distinct FCI-family and hybrid searches, an
+\code{IndependenceTest} interface, separator access, and broader GUI
+workflows; no drop-in Claassen FCI+ class was established.
+
+The local package's distinctive contribution is that paper-profile control,
+structured CI and orientation traces, separator-source provenance, D-SEP
+diagnostics, per-edge explanations, stability auditing, and JSON/CSV/HTML
+artifacts are available in one Python workflow.  This is an auditability and
+integration improvement.  It does not show that the local algorithm is
+universally faster or more accurate than those systems.  Matched empirical
+comparisons must normalize endpoints semantically, hold data and CI settings
+as constant as possible, and separate standard FCI from FCI+ and from other
+FCI-family hybrids.
+
+\section{What implementation evidence does not establish}
+\label{sec:implementation-not-established}
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Tests are not a general proof.}  Passing unit tests and exact
+        encoded fixtures establishes behavior on those cases, not correctness
+        for every faithful MAG.
+  \item \textbf{A hand-authored target is not an independent oracle.}  The
+        Figure~4(b) MAG and exhibited separator are source based; the complete
+        endpoint target is repository derived and requires independent
+        equivalence-class validation before being called a published PAG.
+  \item \textbf{A paper profile is not an assumption checker.}  It cannot
+        verify faithfulness, causal acyclicity, exact CI information, or the
+        true maximum MAG degree.
+  \item \textbf{Robustness is benchmark bounded.}  Improved endpoint metrics
+        or order stability on committed seeds and tested permutations do not
+        imply universal finite-sample dominance.
+  \item \textbf{Auditability is not causal validity.}  A complete trace can
+        explain how a mark was produced while the underlying CI decision is
+        still wrong.
+  \item \textbf{External agreement is not ground truth.}  Agreement with
+        \code{pcalg} or causal-learn is differential evidence about
+        implementations, not proof of the causal graph.
+  \item \textbf{A PAG is not a treatment-effect analysis.}  The output neither
+        identifies one DAG nor estimates an adjustment set, intervention
+        effect, mediation effect, or latent-variable value without additional
+        assumptions and methods.
+\end{enumerate}
+
+These limitations motivate the report's separation between algorithm
+validation and the Tennessee STAR application.  Exact graphical oracles test
+paper-aligned logic under known independence information; finite-sample
+benchmarks test empirical behavior under known simulated truth; established
+software supplies differential evidence; and the STAR experiment supplies a
+separate design-based basis for its strongest application inference.
+
+\chapter{Algorithm Validation}
+
+\section{Exact oracle tests}
+
+The strongest algorithm tests replace sample-based CI decisions with exact
+m-separation in a known MAG. This isolates graph-search correctness from
+sampling error. The regression suite contains three independently specified
+targets based on published structures:
+
+\begin{enumerate}[leftmargin=2em]
+  \item the canonical Figure 4(b) D-SEP example from
+        \citet{claassen2013learning};
+  \item a latent-variable reference graph derived from the FCI literature
+        \citep{spirtes2000causation};
+  \item an orientation-rule reference graph associated with completeness
+        results in \citet{zhang2008completeness}.
+\end{enumerate}
+
+Both FCI and \FCIplus{} recover the independently specified target PAGs on all
+three encoded fixtures. Figure~4(b) is additionally tested under four
+variable orders. The paper prints the Figure~4(b) MAG and exhibits
+\(\{U,V,Z\}\) as a separator; it does not print the endpoint-complete target
+used by the repository.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figure4_validation.pdf}
+\caption{Exact-oracle validation on the central Figure~4(b) example. The
+source-grounded facts are the six MAG edges and the exhibited separator; the
+endpoint-complete comparison target is independently derived in the
+repository.}
+\label{fig:figure4-validation}
+\end{figure}
+
+The initial adjacency stage retains the \(X-Y\) link. \FCIplus{} identifies it
+as a D-SEP candidate and removes it using \(\{U,V,Z\}\). Standard FCI reaches
+the same final PAG through Possible-D-SEP. The measured query counts on this
+fixture are:
+
+\begin{table}[H]
+\centering
+\caption{Paper-aligned Figure 4(b) oracle comparison.}
+\label{tab:figure4-results}
+\begin{tabular}{lrrl}
+\toprule
+Algorithm & CI queries & Difference & Final PAG \\
+\midrule
+Standard FCI & 102 & reference & Exact \\
+\FCIplus{} & 63 & \(-39\) (\(-38.2\%\)) & Exact \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+These executed values are frozen in
+\path{reports/data/oracle_validation_summary.csv}.  The artifact records the
+target PAG hash,
+\hash{fa03c98d7851a4ba6327dcd136bc2}
+     {076450451ff30cf312eeee6dbb2b71df7ea},
+the exact-oracle profile, query counts, separator provenance, endpoint
+metrics, and execution status.  It is generated programmatically from the
+repository's MAG fixture; ``completed'' records successful execution, while
+\code{exact\_target\_recovered} separately records the scientific outcome.
+
+\section{Finite-sample integration test}
+
+Exact CI answers are necessary for testing the algorithm, but real data
+replace them with noisy statistical decisions. A seeded latent linear SEM
+based on the same reference graph provides the following integration result:
+
+\begin{table}[H]
+\centering
+\caption{Seeded finite-sample recovery on the Figure 4(b) SEM.}
+\label{tab:finite-sample}
+\begin{tabularx}{\textwidth}{p{0.16\textwidth}p{0.32\textwidth}p{0.26\textwidth}Y}
+\toprule
+Sample size & \FCIplus{} & Standard FCI & Interpretation \\
+\midrule
+\(N=5{,}000\) & Extra \(X\leftrightarrow Y\); exact F1 \(=0.923\) &
+Exact PAG; exact F1 \(=1.000\) &
+The sample CI decisions do not expose the \FCIplus{} D-SEP candidate. \\
+\(N=50{,}000\) & Exact PAG; exact F1 \(=1.000\) &
+Exact PAG; exact F1 \(=1.000\) &
+Both algorithms recover this seeded fixture; this is not a universal sample
+threshold. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The same frozen artifact records these seeded runs with Fisher--Z,
+\(\alpha=0.001\), seed 1, conditioning and sparsity bounds of 3, and an
+unbounded path length.  It includes all recovery metrics and logical CI-query
+counts: 102 and 52 at \(N=5{,}000\), and 102 and 63 at \(N=50{,}000\), for FCI
+and \FCIplus{} respectively.
+
+\subsection{Multi-seed robustness regression}
+
+The application safeguard was also tested on 15 deterministic latent-SEM
+cases: five realistic graph families, three random seeds each, and 2,500
+observations per case. The oracle PAG is known for every case. This test
+compares the unchanged paper profile with the practical profile used in the
+STAR application.
+
+\begin{table}[H]
+\centering
+\caption{Mean recovery across 15 finite-sample oracle cases.}
+\label{tab:robust-finite-sample}
+\begin{tabular}{lrrrrr}
+\toprule
+Profile & Skeleton F1 & Exact F1 & Semantic F1 & Endpoint acc. & CI calls \\
+\midrule
+Paper FCI+ & 0.979 & 0.536 & 0.951 & 0.744 & 197.1 \\
+Robust FCI+ & 0.985 & 0.730 & 0.985 & 0.840 & 401.9 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The robust profile improves the mean skeleton and endpoint-oriented scores on
+these 15 runs. It uses about 2.04 times as many CI calls as paper FCI+.
+This does not prove universal dominance, but it provides a known-truth
+regression check that the STAR stability gain is not achieved by simply
+discarding useful structure.
+
+This result is a useful warning against claiming that fewer CI tests imply
+uniformly better finite-sample accuracy. FCI and \FCIplus{} can make different
+errors because they use different logical search routes after the initial
+skeleton.
+
+\section{Reference software}
+
+The STAR analysis runs CRAN \code{pcalg} 2.7-12 under R 4.5.3 as an independent
+reference implementation \citep{kalisch2012pcalg}. The runner calls
+\code{pcalg::fciPlus} with selection-bias orientations enabled. It supplies a
+custom G-square test that exactly mirrors the Python compact-table rule:
+zero-marginal rows and columns are removed separately within each observed
+conditioning stratum, and the resulting likelihood-ratio statistics and
+degrees of freedom are summed. This avoids \code{disCItest}'s default
+minimum-cell shortcut, which would otherwise change the CI decisions rather
+than merely change the implementation.
+
+The R output is treated as a differential reference, not ground truth. In
+particular, \code{pcalg::fciPlus} does not expose the local implementation's
+explicit \(k=3\) sparsity-bound parameter. Comparisons therefore report
+skeleton overlap, exact endpoint agreement, target-edge marks, runtime, CI
+calls, and cyclic-order sensitivity instead of awarding correctness by package
+name.
+
+\medskip
+\keyresult{The oracle tests support the correctness of the implemented FCI and
+\FCIplus{} search-and-orientation pipeline under exact conditional-independence
+information. The finite-sample tests simultaneously show that empirical
+results remain limited by CI-test error and tuning choices.}
+
+\chapter{Comparison with Established Software}
+\label{chap:software-comparison}
+
+\section{Two evidence layers}
+
+The comparison deliberately separates execution from interface inspection.
+The executed layer asks what happened on identical committed datasets under
+recorded settings.  The capability layer asks what each public interface or
+official documentation exposes.  Tetrad~7.6.10 \citep{tetrad2026} appears only in the latter as
+a \emph{documentation-only comparison}: no empirical row or runtime is
+attributed to it because a working Java runtime was not available in the
+recorded environment.
+
+All claims in this chapter are dated 26 July 2026.  A named external package
+is a differential reference, not ground truth.  Agreement can reveal
+translation or implementation errors; disagreement can reveal differences in
+CI semantics, search schedules, endpoint conventions, or finite-sample
+policies without identifying which output is causally true.
+
+\section{Executed known-truth benchmark}
+
+The benchmark contains five realistic latent-SEM scenarios, three
+deterministic repetitions per scenario, and 2,500 observations per run.
+Each method receives the same numeric matrix and variable order.  The fixed
+paper/reference rows use Fisher-Z at \(\alpha=0.001\); robust FCI+ uses its
+documented sample-size rule, which resolves to \(\alpha=0.01\) here.  The
+alpha mismatch is intentional because the row evaluates the public robust
+policy, not a literal Algorithm~2 reproduction.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Executed known-truth comparison: means over 15 completed runs.}
+\label{tab:executed-software-benchmark}
+\begin{tabularx}{\textwidth}{p{0.23\textwidth}rrrrrY}
+\toprule
+Method (version) & Skeleton F1 & Exact F1 & Semantic F1 &
+Endpoint acc. & Seconds & Logical CI \\
+\midrule
+Local FCI paper (0.1.0) &
+0.977 & 0.532 & 0.943 & 0.737 & 0.020 & 449.7 \\
+Local FCI+ paper (0.1.0) &
+0.979 & 0.536 & 0.951 & 0.744 & 0.009 & 197.1 \\
+Local FCI+ robust (0.1.0) &
+0.985 & 0.730 & 0.985 & 0.840 & 0.018 & 401.9 \\
+causal-learn FCI (0.1.4.7) &
+0.979 & 0.536 & 0.951 & 0.744 & 0.009 & not exposed \\
+\code{pcalg::fciPlus} (2.7-12) &
+0.979 & 0.536 & 0.951 & 0.744 & 0.500 & not exposed \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Exact F1 requires both endpoint marks to match.  Semantic F1 additionally
+credits endpoint patterns compatible with the target ancestral constraints,
+while endpoint accuracy scores individual marks.  The common conversion
+represents each PAG edge as an unordered node pair plus the two semantic
+endpoint marks; it never interprets raw package matrices as generic directed
+edges.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{software_benchmark_comparison.pdf}
+\caption{Matched known-truth comparison. The robust profile improves the
+reported endpoint-oriented means on these scenarios while retaining a similar
+skeleton score and spending more logical CI queries than paper FCI+.}
+\label{fig:software-benchmark-comparison}
+\end{figure}
+
+The equality of the aggregate local paper-FCI+, causal-learn, and
+\code{pcalg} scores is useful differential evidence on these fixtures.  It is
+not an equivalence proof.  Local and causal-learn times cover in-process
+algorithm calls, whereas the R timing includes process startup.
+\code{pcalg::fciPlus} and the local paper profile also do not expose identical
+controls for the true-degree bound \(k\).  Consequently, the table is not a
+language-neutral speed contest.
+
+\section{Capabilities and public audit surface}
+
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{Dated public-interface comparison. ``Partial'' means that some
+information can be obtained, but not through the same integrated result
+contract.}
+\label{tab:software-feature-comparison}
+\begin{tabularx}{\textwidth}{p{0.15\textwidth}p{0.08\textwidth}p{0.09\textwidth}
+p{0.10\textwidth}p{0.13\textwidth}p{0.13\textwidth}Y}
+\toprule
+Tool & FCI & FCI+ & Custom CI & Sepset provenance & Order/bootstrap &
+Structured audit/export \\
+\midrule
+\code{fci\_engine} 0.1.0 &
+yes & yes & yes & yes, stage named & both &
+CI and orientation traces; D-SEP diagnostics; edge explanations;
+JSON/CSV/HTML \\
+\code{pcalg} 2.7-12 &
+yes & yes & yes & partial & order partial &
+standard-FCI sepsets; no equivalent bundled export established \\
+causal-learn 0.1.4.7 &
+yes & no public FCI+ found & named tests & not exported &
+not established & graph return; no equivalent structured trace established \\
+Tetrad 7.6.10 &
+yes & no Claassen FCI+ established & yes & yes &
+partial/broader workflow & logger and GUI facilities; not executed here \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{software_feature_comparison.pdf}
+\caption{Executed status and checked capability surface. Tetrad is kept
+visually distinct because the comparison is documentation-only.}
+\label{fig:software-feature-comparison}
+\end{figure}
+
+The checked interfaces support the bounded statement that the local package
+integrates paper-profile control, structured CI and orientation traces,
+separator-source provenance, D-SEP diagnostics, per-edge explanations,
+stability auditing, and artifact exports in one Python workflow.
+\code{pcalg} exposes both FCI and FCI+, accepts user-defined CI tests, and
+standard FCI exposes separator information.  Causal-learn exposes standard
+FCI and named CI methods \citep{causallearn2026}, but no inspected public
+Claassen FCI+ entry point.
+Tetrad provides FCI and several different FCI-family or hybrid algorithms;
+none was treated as a drop-in Claassen FCI+ implementation.
+
+\section{Fairness constraints and bounded improvement claim}
+
+Every comparison obeys five rules.  First, circles, tails, and arrowheads are
+preserved in semantic normalization.  Second, data, order, alpha, CI
+semantics, and search caps are held fixed where interfaces allow and every
+mismatch is disclosed.  Third, standard FCI, Claassen FCI+, and other
+FCI-family hybrids are not relabelled as one algorithm.  Fourth, logical
+queries, cache hits, executed statistical tests, and wall time remain
+different quantities.  Fifth, smoke-call success establishes callability,
+not scientific validity.
+
+\keyresult{The local package integrates traceability and robustness tooling
+that was not found as one public workflow in the checked interfaces. This is
+an auditability and integration improvement, not a universal accuracy or
+speed superiority claim.}
+
+The robust profile's higher mean endpoint scores are therefore stated only
+``on this benchmark.''  Its automatic alpha, stable deletion, max-\(p\)
+separator choice, conservative collider policy, and cautious tail orientation
+are engineering policies.  They can trade endpoint specificity and query cost
+against tested stability; they are not revisions to the definition or theorem
+of \citet{claassen2013learning}.
+
+\part{Tennessee STAR Application}
+
+\chapter{Study Design and Data}
+
+\section{The Tennessee STAR experiment}
+
+The Tennessee Student/Teacher Achievement Ratio project was a large
+randomized experiment conducted in kindergarten through grade 3. Students and
+teachers were assigned to small classes, regular classes, or regular classes
+with a full-time aide. The official technical report describes small classes
+of approximately 13--17 students and regular classes of approximately 22--25
+students \citep{word1990star}. Subsequent economic analysis has used STAR as a
+central source of evidence on class size and educational production
+\citep{krueger1999experimental}.
+
+The present analysis uses the official Harvard Dataverse release
+\citep{achilles2008star}. The student-level file contains 11,601 records and
+379 variables and is released under CC0 1.0. Data codes were checked against
+the accompanying 146-page user guide.
+
+\section{Why use causal discovery on a randomized experiment?}
+
+Randomization already provides a stronger basis for estimating the class-size
+effect than an unconstrained structure-learning algorithm. The purpose of FCI
+is therefore not to rediscover or replace randomization. It is to examine:
+
+\begin{itemize}[leftmargin=2em]
+  \item whether grade-3 observation is structurally related to early
+        achievement or background variables;
+  \item whether early and later achievement remain adjacent after conditioning
+        on the measured context;
+  \item how the learned PAG changes when an early post-assignment outcome is
+        included or excluded;
+  \item whether FCI and \FCIplus{} agree on skeletons and important
+        adjacencies;
+  \item how much search work \FCIplus{} saves on a real dataset.
+\end{itemize}
+
+This design also provides an unusually useful external audit. If a data-only
+PAG implies an implausible pre-treatment direction or suggests latent
+confounding of a genuinely randomized assignment, the discrepancy should be
+reported rather than accepted literally.
+
+\begin{table}[H]
+\centering
+\caption{Design and observation layers kept separate in the STAR analysis.}
+\label{tab:star-evidence-flow}
+\begin{tabularx}{\textwidth}{p{0.20\textwidth}p{0.27\textwidth}Y}
+\toprule
+Layer & Variables or operation & Inferential role \\
+\midrule
+Assignment & Kindergarten class arm & Randomized design is the basis for the
+early arm contrast; the report does not reconstruct original blocks,
+switching, or compliance. \\
+Pre-treatment context & Sex, ethnicity, age proxies, school context &
+Measured context for descriptive and discovery panels; not a claim that all
+common causes are observed. \\
+Post-treatment outcomes & Kindergarten and grade-3 achievement &
+Kindergarten achievement may lie on a treatment pathway; including it changes
+the question answered by discovery. \\
+Selection & Grade-3 observation indicator & Separate attrition panel examines
+whether later availability is structurally related to early variables. \\
+Complete-case panels & Students with recorded grade-3 outcomes &
+Longitudinal and focused results condition on observation and are weaker than
+the early design-based contrast. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Cohort construction}
+
+The analysis begins with 6,325 students who have a kindergarten STAR class
+assignment, representing 79 kindergarten schools. Three panels are constructed
+for different questions.
+
+\begin{table}[H]
+\centering
+\caption{STAR analysis panels.}
+\label{tab:panels}
+\begin{tabularx}{\textwidth}{p{0.22\textwidth}rrY}
+\toprule
+Panel & Rows & Nodes & Purpose \\
+\midrule
+Attrition / observation & 5,744 & 9 &
+Relate kindergarten assignment, characteristics, context, and achievement to
+whether both grade-3 reading and mathematics scores are observed. \\
+Longitudinal achievement & 2,787 & 9 &
+Study structure between kindergarten and grade-3 achievement among complete
+cases while retaining early achievement. \\
+Focused treatment-outcome & 2,976 & 8 &
+Study the class-assignment/grade-3 relationship without allowing
+kindergarten achievement, an early post-assignment outcome, to serve as a
+separator. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The panels are intentionally not pooled. Each encodes a different statistical
+question, and including or excluding kindergarten achievement changes the
+meaning of separation between assignment and the later outcome.
+
+\section{Variable coding}
+
+\begingroup
+\small
+\renewcommand{\arraystretch}{1.05}
+\begin{longtable}{p{0.23\textwidth}p{0.23\textwidth}p{0.46\textwidth}}
+\caption{Variables supplied to FCI and \FCIplus{}.}
+\label{tab:variables}\\
+\toprule
+Analysis variable & Source fields & Coding \\
+\midrule
+\endfirsthead
+\toprule
+Analysis variable & Source fields & Coding \\
+\midrule
+\endhead
+\code{K\_Class} & \code{gkclasstype} &
+Small, regular, or regular with aide. \\
+\code{Gender} & \code{gender} &
+Male or female, using the official data codes. \\
+\code{Ethnicity} & \code{race} &
+White, Black, or Other; smaller source categories are collapsed to avoid
+extremely sparse contingency cells. \\
+\code{Free\_Lunch} & \code{gkfreelunch} &
+Free/reduced-price lunch versus non-free lunch. \\
+\code{School\_Context} & \code{gksurban} &
+Inner city, suburban, rural, or urban. \\
+\code{Entry\_Age} & \code{birthyear}, \code{birthmonth} &
+Age in months at September 1985, converted to four quantile categories. \\
+\code{Teacher\_Experience} & \code{gktyears} &
+0--5, 6--10, 11--20, or 21+ years. \\
+\code{K\_Achievement} & \code{gktreadss}, \code{gktmathss} &
+Reading plus mathematics scaled score, converted to kindergarten achievement
+quartiles. \\
+\code{Grade3\_Achievement} & \code{g3treadss}, \code{g3tmathss} &
+Reading plus mathematics scaled score, converted to grade-3 achievement
+quartiles among students with both scores. \\
+\code{Grade3\_Observed} & \code{g3treadss}, \code{g3tmathss} &
+Indicator that both grade-3 scores are present. \\
+\bottomrule
+\end{longtable}
+\endgroup
+
+All model inputs are integer-coded discrete categories. The exact numeric
+tables supplied to the algorithms are committed under
+\path{case_studies/tennessee_star/data/processed}.
+
+\chapter{STAR Analysis Methods}
+
+\section{Descriptive randomized-arm reference}
+
+Before causal discovery, the report computes observed means and
+randomized-arm contrasts for:
+
+\begin{enumerate}[leftmargin=2em]
+  \item the sum of kindergarten reading and mathematics scaled scores;
+  \item the sum of grade-3 reading and mathematics scaled scores among
+        students with both scores;
+  \item the probability that both grade-3 scores are observed.
+\end{enumerate}
+
+Uncertainty is estimated with 1,000 bootstrap samples of kindergarten schools.
+Resampling schools rather than individual students preserves the main
+within-school dependence in the descriptive comparison. These contrasts are
+reported separately from FCI output because they use the experiment's
+assignment as the basis for interpretation.
+
+\section{Discrete G-square conditional-independence test}
+
+The application uses the likelihood-ratio G-square test. For variables \(X\)
+and \(Y\), conditioning set \(S\), observed contingency counts \(O\), and
+expected counts \(E\) under \(X\perp Y\mid S\), the statistic is
+\[
+  G^2 = 2\sum_{s}\sum_{x,y}
+        O_{xys}\log\left(\frac{O_{xys}}{E_{xys}}\right),
+\]
+with zero-count contributions omitted. The test is appropriate for the
+discretised panels, but high-order conditioning can create sparse cells. That
+is one reason the \FCIplus{} bound is fixed at \(k=3\) and why sensitivity is
+reported rather than hidden.
+
+\section{Primary discovery configuration}
+
+\begin{table}[H]
+\centering
+\caption{Primary STAR discovery configuration.}
+\label{tab:star-config}
+\begin{tabularx}{\textwidth}{p{0.30\textwidth}Y}
+\toprule
+Setting & Value \\
+\midrule
+CI test & G-square on discretised variables \\
+Significance threshold & \(\alpha=0.05\) \\
+Standard FCI & \code{profile="paper"}; unbounded paper schedule \\
+Paper \FCIplus{} & \code{profile="paper"}; \(k=3\) \\
+Robust application \FCIplus{} &
+\code{profile="practical"}; stable skeleton; strongest separating set;
+conservative colliders; robust orientation; depth and sparsity bound 3 \\
+R reference & \code{pcalg::fciPlus}; selection bias enabled; no exposed
+explicit \(k\) setting \\
+Timing & Three full-data repetitions; median elapsed time reported \\
+PAG stability & 12 kindergarten-school cluster bootstrap fits per algorithm
+and panel for all three self-implemented profiles \\
+Order audit & Every cyclic column shift for all local profiles and the R
+reference \\
+Random seed & Fixed by the application script for reproducibility \\
+Prior temporal constraints & None supplied to discovery; temporal reversals
+are audited after fitting \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Not imposing temporal or randomization constraints allows the analysis to test
+the behaviour of the data-only algorithm. It also means that implausible
+orientations must not be treated as credible causal chronology.
+
+\section{School-cluster PAG stability}
+
+For each panel and algorithm, the 79 kindergarten schools are sampled with
+replacement. All student rows from a selected school are included, including
+repeated copies when a school is sampled more than once. FCI or \FCIplus{} is
+then refitted and the presence of each unordered adjacency is recorded.
+
+With \(B=12\) replicates, the estimated adjacency frequency is
+\[
+  \widehat{\pi}_{XY}
+  = \frac{1}{B}\sum_{b=1}^{B}
+    \mathbf{1}\{X\text{ and }Y\text{ are adjacent in replicate }b\}.
+\]
+This is an exploratory stability diagnostic. Twelve replicates give a coarse
+grid of 8.3 percentage points and are not sufficient for precise tail
+probabilities.
+
+\section{Sensitivity analysis}
+
+\enlargethispage{3\baselineskip}
+
+The focused treatment-outcome analysis is repeated for:
+
+\begin{itemize}[leftmargin=2em]
+  \item \(\alpha\in\{0.01,0.05\}\);
+  \item three versus four quantile bins for age and achievement;
+  \item standard FCI, paper-profile \FCIplus{}, and robust application
+        \FCIplus{}.
+\end{itemize}
+
+The target is whether \code{K\_Class} remains adjacent to
+\code{Grade3\_Achievement}. This directly tests whether the most
+substantively tempting PAG edge is robust to reasonable analysis choices.
+
+\section{Decision rule for robust conclusions}
+
+The application distinguishes a reproducible adjacency from a credible
+direction. A skeleton-level conclusion is promoted only when the target
+adjacency survives every cyclic column shift and has high school-cluster
+bootstrap frequency. A directional conclusion additionally requires invariant
+endpoint marks, no conflict with measurement time or randomization, and no
+material reversal under the alpha/binning sensitivity checks.
+
+Failure of the directional rule does not delete the edge. It downgrades the
+claim to conditional-dependence structure with unresolved direction. This
+pre-specified rule is why the robust profile's circle endpoints are treated as
+a reliability improvement rather than an incomplete result.
+
+\chapter{STAR Results}
+
+\section{Observed randomized-arm outcomes}
+
+\begin{table}[H]
+\centering
+\caption{Observed outcome summaries by kindergarten class arm. Intervals use
+1,000 kindergarten-school bootstrap samples.}
+\label{tab:arm-summary}
+\begin{threeparttable}
+\begin{tabular}{llrrr}
+\toprule
+Outcome & Arm & \(n\) & Estimate & 95\% interval \\
+\midrule
+\multirow{3}{*}{Kindergarten score}
+ & Regular & 2,005 & 918.04 & 908.78 to 927.05 \\
+ & Regular + aide & 2,043 & 918.36 & 908.52 to 927.07 \\
+ & Small & 1,738 & 931.94 & 922.70 to 940.12 \\
+\addlinespace
+\multirow{3}{*}{Grade-3 score}
+ & Regular & 1,047 & 1246.74 & 1238.96 to 1254.01 \\
+ & Regular + aide & 1,019 & 1247.25 & 1238.53 to 1255.48 \\
+ & Small & 936 & 1258.43 & 1250.58 to 1266.17 \\
+\addlinespace
+\multirow{3}{*}{Grade-3 observed}
+ & Regular & 2,194 & 47.72\% & 42.72\% to 52.14\% \\
+ & Regular + aide & 2,231 & 45.67\% & 40.64\% to 50.39\% \\
+ & Small & 1,900 & 49.26\% & 44.46\% to 53.77\% \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}[flushleft]\small
+\item Grade-3 score summaries condition on both reading and mathematics scores
+being observed. Kindergarten score summaries also exclude missing score
+components, so they are design-supported observed-outcome comparisons rather
+than a fully reconstructed intention-to-treat estimand.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{star_descriptive_contrasts.pdf}
+\caption{Contrasts against the regular-class arm. Small classes show positive
+score differences at kindergarten and grade 3 among observed cases; the aide
+arm remains close to zero.}
+\label{fig:descriptive-contrasts}
+\end{figure}
+
+The small-minus-regular kindergarten contrast is \(13.90\) points, with a 95\%
+school-cluster interval from \(5.21\) to \(22.07\). The regular-with-aide
+contrast is \(0.31\) points, with an interval from \(-7.40\) to \(7.38\).
+
+At grade 3 among observed students, the small-class contrast remains positive
+at \(11.69\) points (3.74 to 19.38). The aide contrast is \(0.51\) points
+(\(-5.70\) to \(7.22\)). Observation rates themselves do not show a precise
+class-arm difference: small minus regular is \(+1.54\) percentage points
+(\(-1.73\) to \(4.56\)), while aide minus regular is \(-2.05\) points
+(\(-5.35\) to \(1.41\)).
+
+\keyresult{The observed randomized-arm evidence supports a small-class
+achievement advantage and does not support a comparable advantage from adding
+an aide to a regular class. The grade-3 score contrast is conditional on later
+observation and therefore has a weaker causal interpretation than the early
+outcome comparison.}
+
+\section{Attrition and grade-3 observation}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{pag_attrition.pdf}
+\caption{Three PAGs for the attrition/observation panel: self-implemented FCI,
+self-implemented \FCIplus{}, and R \code{pcalg::fciPlus}. The skeletons
+substantially overlap, while the achievement/observation endpoint differs.}
+\label{fig:pag-attrition}
+\end{figure}
+
+Standard FCI returns 14 edges after 1,705 CI tests; self-implemented
+\FCIplus{} returns 17 edges after 793 tests; and R \code{pcalg::fciPlus}
+returns 13 edges after 1,191 tests. The FCI/self-\FCIplus{},
+FCI/R-\FCIplus{}, and self-/R-\FCIplus{} skeleton Jaccard values are 0.824,
+0.929, and 0.765. All three omit a direct
+\code{K\_Class}--\code{Grade3\_Observed} adjacency. In the self-implementation
+school bootstrap that adjacency appears in only 17\% of FCI fits and 8\% of
+both paper and robust \FCIplus{} fits.
+
+By contrast, \code{K\_Achievement}--
+\code{Grade3\_Observed} is adjacent in 100\% of the bootstrap fits for all
+three local profiles. The corresponding free-lunch/observation adjacency is also stable
+in the targeted audit. These results suggest that later data availability is
+not independent of early achievement and measured socioeconomic or school
+context.
+
+The three endpoint readings are revealing. Standard FCI gives the impossible
+\textit{grade-3 observation} \(\rightarrow\) \textit{kindergarten
+achievement}; self-\FCIplus{} leaves a circle at the later endpoint; and
+R-\FCIplus{} gives the temporally admissible
+\textit{kindergarten achievement} \(\rightarrow\) \textit{grade-3
+observation}. The R result is more plausible on this edge, but package identity
+alone cannot establish that its orientation is statistically correct.
+
+\cautionbox{The attrition PAG does not prove a particular missingness
+mechanism. It shows that the observed conditional-independence structure links
+grade-3 availability to earlier achievement and context. A formal
+missing-data analysis would require an explicit estimand and additional
+assumptions.}
+
+\section{Longitudinal achievement}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{pag_longitudinal.pdf}
+\caption{Three PAGs for the longitudinal complete-case panel. All retain the
+kindergarten/grade-3 achievement adjacency, but the two \FCIplus{}
+implementations orient it against chronology.}
+\label{fig:pag-longitudinal}
+\end{figure}
+
+Standard FCI returns 10 edges and 960 CI tests. Self-\FCIplus{} returns 13
+edges and 335 tests, while R-\FCIplus{} returns 12 edges and 475 tests.
+Pairwise skeleton Jaccard is 0.769 for FCI/self-\FCIplus{}, 0.833 for FCI/R,
+and 0.923 for the two \FCIplus{} implementations.
+
+All three algorithms retain the kindergarten/grade-3 achievement adjacency,
+and it appears in all 12 school-cluster bootstrap samples for all three local
+profiles.
+Neither full-data PAG retains a direct class-assignment/grade-3 achievement
+adjacency once kindergarten achievement is included. That treatment-outcome
+adjacency nevertheless reappears in 50\% of FCI and 67\% of \FCIplus{}
+paper-profile bootstrap fits. It appears in all robust-profile bootstrap fits
+despite being absent from the robust full-data PAG. This discordance is a
+warning that conservative orientation and order invariance do not remove
+school-resampling sensitivity.
+
+Both \FCIplus{} implementations orient grade-3 achievement toward
+kindergarten achievement, which is temporally impossible if read causally.
+Standard FCI leaves the grade-3 endpoint unresolved. The agreement between two
+implementations is therefore not sufficient to override chronology: it may
+replicate the same finite-sample CI pattern and orientation logic under
+complete-case selection.
+
+\section{Focused treatment-outcome panel}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{pag_focused_treatment.pdf}
+\caption{PAGs for the focused complete-case panel. All three algorithms recover
+the exact same 10-edge skeleton and endpoint pattern, including the bidirected
+class-assignment/grade-3 edge.}
+\label{fig:pag-focused}
+\end{figure}
+
+Removing kindergarten achievement from the node set changes the result.
+Standard FCI, self-\FCIplus{}, and R-\FCIplus{} all return the same 10-edge
+PAG, not merely the same skeleton. All three contain
+\[
+  K\_\mathrm{Class}\leftrightarrow
+  Grade3\_\mathrm{Achievement}.
+\]
+The adjacency appears in 92\% of the FCI school bootstraps, 83\% of the
+paper self-\FCIplus{} bootstraps, and 100\% of the robust-profile bootstraps.
+The independent exact PAG replication makes this
+observed conditional-independence pattern more credible, but does not make the
+literal latent-confounding interpretation credible.
+
+A naive reading would call the bidirected edge evidence of latent confounding.
+That reading is not defensible here. Kindergarten class assignment was
+randomized, while the focused panel conditions on grade-3 outcomes being
+observed and omits early post-assignment achievement. Conditioning on
+observation, school-level dependence, omitted post-randomization variables,
+and CI-test approximation can all create an observed independence pattern
+that is represented by arrowheads at both endpoints.
+
+\section{Robust application profile}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{pag_robust_application.pdf}
+\caption{The three STAR PAGs from the separate robust application profile.
+Stable skeleton search and conservative orientation preserve the main
+adjacencies while leaving unsupported directions unresolved.}
+\label{fig:pag-robust-application}
+\end{figure}
+
+The robust profile is not presented as a fourth paper implementation. It is a
+finite-sample decision layer applied after the literal FCI and \FCIplus{}
+comparisons. It returns 17, 12, and 10 edges on the attrition, longitudinal,
+and focused panels, respectively. The target relations are
+\[
+\begin{aligned}
+ K\_\mathrm{Achievement} &\circ\!\!-\!\!\circ
+ Grade3\_\mathrm{Observed},\\
+ K\_\mathrm{Achievement} &\circ\!\!-\!\!\circ
+ Grade3\_\mathrm{Achievement},\\
+ K\_\mathrm{Class} &\circ\!\!-\!\!\circ
+ Grade3\_\mathrm{Achievement}.
+\end{aligned}
+\]
+Thus it retains the relevant skeleton information without repeating the
+paper-profile chronology reversal or the focused-panel bidirected
+over-interpretation.
+
+\begin{table}[H]
+\centering
+\caption{Cyclic-order audit for paper and robust self-\FCIplus{} profiles.}
+\label{tab:robust-order-audit}
+\begin{tabular}{llrrr}
+\toprule
+Panel & Profile & Exact PAG & Worst skeleton & Temporal reversals \\
+\midrule
+\multirow{2}{*}{Attrition}
+ & Paper & 100.0\% & 100.0\% & 0 \\
+ & Robust & 100.0\% & 100.0\% & 0 \\
+\addlinespace
+\multirow{2}{*}{Longitudinal}
+ & Paper & 55.6\% & 92.3\% & 1 \\
+ & Robust & 100.0\% & 100.0\% & 0 \\
+\addlinespace
+\multirow{2}{*}{Focused}
+ & Paper & 75.0\% & 100.0\% & 0 \\
+ & Robust & 100.0\% & 100.0\% & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\keyresult{The robust profile improves the measured reliability of the STAR
+output: it returns the same full PAG object for every tested cyclic order,
+every target adjacency survives, and no fully directed edge runs backward in
+measurement time. The price is deliberate under-orientation and additional
+CI work. Reliability has improved; identifiability has not.}
+
+\section{Stability and sensitivity}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{star_bootstrap_stability.pdf}
+\caption{School-cluster adjacency frequencies for selected pairs. Frequencies
+measure skeleton stability only; they do not validate endpoint orientation.}
+\label{fig:bootstrap-stability}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{star_sensitivity.pdf}
+\caption{Focused treatment-outcome sensitivity. The adjacency appears at
+\(\alpha=0.05\) and disappears at \(\alpha=0.01\), regardless of whether three
+or four quantile bins are used.}
+\label{fig:sensitivity}
+\end{figure}
+
+The sensitivity result is decisive for interpretation. The focused
+treatment-outcome adjacency is robust to the tested bin count but not to the
+CI threshold. At \(\alpha=0.01\), none of the three local profiles retains it;
+at \(\alpha=0.05\), the paper profiles retain a bidirected mark.  The robust
+endpoint is
+\(K\_Class\leftarrow\!\circ Grade3\_Achievement\) with three bins and
+\(K\_Class\circ\!\!-\!\!\circ Grade3\_Achievement\) with four bins.
+
+The stronger threshold requires more evidence against conditional
+independence before an edge is kept. Its removal therefore indicates that the
+edge is driven by relatively weak conditional-dependence evidence, not an
+invariant feature across reasonable test settings.
+
+\section{Cross-implementation agreement and order audit}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{star_three_algorithm_agreement.pdf}
+\caption{Pairwise skeleton Jaccard and exact endpoint agreement on shared
+edges. Skeleton agreement is consistently stronger than endpoint agreement
+outside the focused panel.}
+\label{fig:three-algorithm-agreement}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Three-algorithm structural agreement. Endpoint rates use only
+adjacencies shared by the indicated pair.}
+\label{tab:three-algorithm-agreement}
+\begin{tabular}{llrr}
+\toprule
+Panel & Pair & Skeleton Jaccard & Exact endpoint rate \\
+\midrule
+\multirow{3}{*}{Attrition}
+ & FCI / self-\FCIplus{} & 0.824 & 50.0\% \\
+ & FCI / R-\FCIplus{} & 0.929 & 61.5\% \\
+ & self- / R-\FCIplus{} & 0.765 & 38.5\% \\
+\addlinespace
+\multirow{3}{*}{Longitudinal}
+ & FCI / self-\FCIplus{} & 0.769 & 50.0\% \\
+ & FCI / R-\FCIplus{} & 0.833 & 70.0\% \\
+ & self- / R-\FCIplus{} & 0.923 & 83.3\% \\
+\addlinespace
+\multirow{3}{*}{Focused}
+ & FCI / self-\FCIplus{} & 1.000 & 100.0\% \\
+ & FCI / R-\FCIplus{} & 1.000 & 100.0\% \\
+ & self- / R-\FCIplus{} & 1.000 & 100.0\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{star_order_audit.pdf}
+\caption{Cyclic-order audit for paper self-\FCIplus{}, robust
+self-\FCIplus{}, and R \code{pcalg::fciPlus}. Skeleton agreement is generally
+stronger than exact endpoint agreement; the robust profile is invariant on
+both measures.}
+\label{fig:order-audit}
+\end{figure}
+
+The order audit rotates the input variable list through every cyclic shift.
+The R reference preserves every panel skeleton, while reproducing exact PAG
+endpoints in 7 of 9 attrition orders, 6 of 9 longitudinal orders, and 6 of 8
+focused orders. Paper self-\FCIplus{} is exact in 9 of 9, 5 of 9, and 6 of 8
+orders, respectively; its longitudinal skeleton changes slightly in some
+orders. Robust self-\FCIplus{} is exact in all 26 refits. The combined evidence
+supports skeleton robustness while independently showing that more aggressive
+endpoint marks can be implementation- and order-sensitive.
+
+\section{Computational comparison}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{star_performance.pdf}
+\caption{Full-data search work and median runtime. All algorithms use the same
+panel, compact-table G-square test, and \(\alpha=0.05\); internal search
+schedules and language runtimes are not identical.}
+\label{fig:performance}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Paper-comparison and robust-profile performance on the STAR panels.}
+\label{tab:performance}
+\begin{tabular}{llrrr}
+\toprule
+Panel & Algorithm & Edges & CI tests & Median seconds \\
+\midrule
+\multirow{4}{*}{Attrition}
+ & FCI & 14 & 1,705 & 5.437 \\
+ & Self-\FCIplus{} paper & 17 & 793 & 1.788 \\
+ & Self-\FCIplus{} robust & 17 & 1,304 & 2.838 \\
+ & R-\FCIplus{} & 13 & 1,191 & 10.394 \\
+\addlinespace
+\multirow{4}{*}{Longitudinal}
+ & FCI & 10 & 960 & 2.148 \\
+ & Self-\FCIplus{} paper & 13 & 335 & 0.337 \\
+ & Self-\FCIplus{} robust & 12 & 619 & 0.562 \\
+ & R-\FCIplus{} & 12 & 475 & 1.650 \\
+\addlinespace
+\multirow{4}{*}{Focused}
+ & FCI & 10 & 291 & 0.322 \\
+ & Self-\FCIplus{} paper & 10 & 185 & 0.159 \\
+ & Self-\FCIplus{} robust & 10 & 334 & 0.247 \\
+ & R-\FCIplus{} & 10 & 256 & 0.884 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\FCIplus{} uses 46.5\%, 34.9\%, and 63.6\% of the standard FCI CI-test counts
+on the attrition, longitudinal, and focused panels. The independent R
+\FCIplus{} uses 69.9\%, 49.5\%, and 88.0\% of the corresponding standard-FCI
+counts. Runtime is not a language-neutral benchmark: the R runner includes
+R-level contingency-table construction, whereas the Python implementation
+uses the package's native data path. CI-call counts are the more interpretable
+search-work comparison.
+
+Relative to paper self-\FCIplus{}, the robust profile uses 1.64, 1.85, and
+1.81 times as many CI calls. Relative to standard FCI, it uses 76.5\%, 64.5\%,
+and 114.8\%. The added work purchases stable skeleton deletion and invariant
+conservative endpoints; it is not claimed as a speed improvement.
+
+These results demonstrate reduced search work, not universal algorithmic
+dominance. In the two panels where skeleton Jaccard is below one, efficiency
+and empirical structure differ simultaneously.
+
+\titleformat{\chapter}[display]
+  {\normalfont\bfseries\color{ReportNavy}}
+  {\filleft\Large\chaptertitlename\ \thechapter}
+  {1ex}
+  {\titlerule\vspace{1.2ex}\LARGE}
+  [\vspace{0.7ex}\titlerule]
+\chapter{Causal Interpretation and Evidence Hierarchy}
+\titleformat{\chapter}[display]
+  {\normalfont\bfseries\color{ReportNavy}}
+  {\filleft\Large\chaptertitlename\ \thechapter}
+  {1ex}
+  {\titlerule\vspace{1.2ex}\Huge}
+  [\vspace{0.7ex}\titlerule]
+\label{chap:causal-evidence}
+
+\section{Five tiers of evidence}
+
+The application uses an explicit hierarchy so that a visually definite PAG
+mark cannot outrank the experimental design.
+
+\begin{table}[H]
+\centering
+\caption{Evidence hierarchy used for every STAR claim.}
+\label{tab:evidence-hierarchy}
+\begin{tabularx}{\textwidth}{p{0.10\textwidth}
+>{\raggedright\arraybackslash}p{0.28\textwidth}Y}
+\toprule
+Tier & Evidence & Permitted claim \\
+\midrule
+1 & Randomized assignment and school-cluster arm contrast &
+Bounded causal statement for the analyzed observed outcome, qualified by
+missingness, compliance, and unreconstructed assignment blocks. \\
+2 & Adjacency replicated across methods, resamples, tested orders, and
+sensitivity settings &
+Robust skeleton-level structural association or constraint; no magnitude or
+direction claim. \\
+3 & Stable skeleton with circles or endpoint disagreement &
+Adjacency is more credible than orientation; endpoint remains unidentified. \\
+4 & Implementation-, order-, or chronology-sensitive endpoint &
+Diagnostic evidence only; not a substantive direction. \\
+5 & Threshold-sensitive or complete-case exploratory pattern &
+Hypothesis for external validation, not a causal conclusion. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+FCI returns equivalence-class constraints and does not estimate a treatment
+effect.  The randomized contrasts and the learned PAGs therefore answer
+different questions even when they concern the same variables.
+
+\section{What can be concluded}
+
+\subsection{Design-supported early observed-arm contrast}
+
+STAR's random assignment is the primary causal identification mechanism.
+Within the kindergarten cohort and among students with observed score
+components, the small-class arm is 13.90 points above the regular arm, with a
+school-cluster 95\% interval of 5.21 to 22.07. This design-supported
+observed-arm contrast is consistent with a beneficial early effect. It is not
+an identified causal effect in the post-assignment observed-outcome subset
+without additional assumptions about missing outcomes, compliance, and the
+original randomization blocks.
+
+The PAG is consistent with an assignment/achievement connection in the
+\FCIplus{} attrition panel, but this bounded interpretation does not depend on
+that endpoint. It depends on the experimental design and the stated selection
+qualification.
+
+\subsection{Adding an aide does not show the same advantage}
+
+The regular-with-aide contrasts are close to zero at kindergarten and grade 3,
+and both intervals include zero. In these observed data there is no evidence
+that adding an aide to a regular-size class reproduces the achievement
+advantage of reducing class size.
+
+\subsection{Early achievement is consistently retained at the skeleton level}
+
+Kindergarten and grade-3 achievement remain adjacent in the full longitudinal
+fits of all three algorithms and in 100\% of the self-implementation school
+bootstraps. Kindergarten achievement is also adjacent to grade-3 observation
+in all three attrition fits. Cross-implementation agreement therefore supports
+a robust \emph{skeleton-level} relationship between early performance, later
+performance, and later data availability.
+
+This finding still does not quantify mediation. Kindergarten achievement is a
+post-assignment variable, and a formal mediation analysis would require
+additional counterfactual assumptions. Moreover, the direction of the
+longitudinal achievement edge fails the chronological audit for both
+\FCIplus{} implementations.
+
+\subsection{Observation has stable structural links beyond class arm}
+
+The full-data attrition PAGs do not retain a direct class-arm/observation
+adjacency, and its bootstrap frequency is low. Observation is more stably
+connected to early achievement and measured context. The evidence therefore
+supports concern about selective attrition without showing a stable direct
+effect of class arm on grade-3 observation.
+
+\section{What cannot be concluded}
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{No unique DAG is identified.} Every PAG represents an
+        equivalence class.
+  \item \textbf{No causal effect magnitude comes from FCI.} The score
+        differences are arm contrasts; PAG edges contain no ``points gained''
+        coefficient.
+  \item \textbf{A bidirected edge is not proof of a hidden confounder.} In the
+        focused panel it conflicts with the known randomization unless
+        selection, post-treatment conditioning, or other violations are
+        considered.
+  \item \textbf{The grade-3 contrast is not a complete long-run
+        intention-to-treat estimate.} It conditions on observed grade-3
+        outcomes.
+  \item \textbf{Temporal reversals are not credible chronology.} They are
+        algorithm diagnostics under violated or approximate assumptions.
+  \item \textbf{Implementation agreement is not proof.} Shared CI decisions
+        and shared logical rules can reproduce the same wrong endpoint.
+  \item \textbf{Tested cyclic shifts are not all permutations.} Exact
+        reproduction over 26 recorded cyclic orders is a finite audit, not a
+        proof of general order invariance.
+  \item \textbf{Bootstrap frequency is not a posterior probability.} It
+        describes adjacency recurrence under school resampling and the fixed
+        analysis pipeline.
+  \item \textbf{Absence is policy conditional.} Failure to retain an edge
+        under one node set, CI test, and threshold is not proof of zero causal
+        effect.
+\end{enumerate}
+
+\keyresult{The strongest application result is a design-supported observed-arm
+contrast: smaller kindergarten classes have higher observed early achievement
+than regular classes, while the aide arm shows no comparable contrast.  The
+positive interval is consistent with a beneficial early effect, but it does
+not by itself identify a causal effect in the selected observed-outcome
+subset. The main contribution of the three-algorithm comparison is to separate
+replicated skeleton structure from unstable endpoint orientation. It exposes
+selection, persistence, and specification sensitivity around the experiment;
+it does not replace it.}
+
+\chapter{Critical Self-Assessment}
+
+\section{Strengths}
+
+\begin{itemize}[leftmargin=2em]
+  \item The algorithm and application are physically and logically separated.
+  \item The data source, user guide, exact model inputs, random seeds, result
+        tables, and report artifacts are committed.
+  \item Standard FCI is always reported alongside \FCIplus{}.
+  \item An independently maintained R implementation is run with matched CI
+        semantics and its disagreements are retained in the report.
+  \item Randomized-arm evidence is separated from exploratory PAG evidence.
+  \item School-level resampling acknowledges the most important clustering
+        unit.
+  \item Endpoint reversals and threshold sensitivity are reported as failures
+        of literal interpretation rather than silently corrected.
+  \item The software is validated with exact oracle graphs, finite-sample
+        integration tests, strict typing, multi-version tests, and wheel
+        installation checks.
+\end{itemize}
+
+\section{Statistical limitations}
+
+\subsection{Discretisation and sparse contingency tables}
+
+Achievement and age are reduced to quantile categories, and teacher
+experience is binned. This enables G-square testing across mixed educational
+variables but discards within-bin information. As conditioning sets grow,
+some multiway contingency cells may have small expected counts, weakening
+the chi-square approximation.
+
+\subsection{Dependence within schools and classrooms}
+
+The primary CI test treats student rows as independent. The bootstrap
+resamples schools, which measures sensitivity to school composition, but it
+does not turn each underlying G-square test into a cluster-robust CI test.
+Classroom identifiers and multilevel structure should be incorporated in a
+more specialised analysis.
+
+\subsection{Complete-case selection}
+
+The longitudinal and focused panels require grade-3 scores. If observation is
+affected by prior achievement, mobility, family circumstances, or school
+processes, conditioning on complete cases may open selection paths. The
+attrition panel provides evidence that observation is structurally related to
+early variables, reinforcing this concern.
+
+\subsection{Post-treatment variables}
+
+Kindergarten achievement and teacher experience are measured during the
+treatment period. They are not baseline covariates in the same sense as sex or
+ethnicity. Including kindergarten achievement may block part of the
+class-size pathway; excluding it may leave omitted post-treatment dependence.
+The two panels deliberately show both specifications instead of selecting the
+one with the preferred edge.
+
+\subsection{Faithfulness and finite-sample CI error}
+
+FCI-family guarantees rely on faithfulness and correct CI decisions. Near-zero
+or cancelling effects may violate faithfulness, while finite samples produce
+false dependence and false independence. The threshold-sensitive focused edge
+is a direct example of this limitation.
+
+\subsection{Unknown sparsity bound}
+
+The \FCIplus{} paper profile uses \(k=3\). The true maximum degree of the
+underlying STAR MAG is not observed and cannot be verified from the learned
+graph alone. If the required separating set exceeds the bound, \FCIplus{} may
+retain an extra edge. Conversely, \code{pcalg::fciPlus} does not expose a
+directly comparable \(k\) argument, so the independent reference is not an
+identical internal search schedule.
+
+\subsection{Endpoint order sensitivity}
+
+The R and paper-profile self-\FCIplus{} audits change some endpoint marks; the
+paper self-\FCIplus{} longitudinal skeleton also changes slightly. This is a
+practical warning for constraint-based orientation under finite-sample CI
+decisions: deterministic output for one column order is not the same as
+order-invariant causal information. The robust profile removes the observed
+order dependence by stable deletion and conservative orientation. The report
+therefore uses it for applied interpretation, while still giving more
+evidential weight to skeleton consensus than to isolated endpoint marks.
+
+\subsection{Coarse PAG bootstrap}
+
+Twelve graph bootstrap replicates are computationally useful but statistically
+coarse. Frequencies such as 83\% and 92\% correspond to ten and eleven
+successful replicates. They should be viewed as stability indicators, not
+precise probabilities that an edge is true.
+
+\subsection{Software maturity and validation coverage}
+
+The package is version 0.1.0 and classified pre-alpha.  Strict typing covers
+the project's own interfaces, but third-party numerical and graph libraries
+do not all provide equally complete type information.  Unit tests and
+hand-authored oracle targets are strong regression evidence, not an
+independent formal proof or an exhaustive MAG-equivalence checker.  In
+particular, the complete Figure~4(b) PAG target is repository derived even
+though its MAG and exhibited separator are source grounded.
+
+\subsection{External-software comparability}
+
+The known-truth comparison normalizes endpoint semantics and controls inputs,
+but the interfaces do not expose identical search caps, query counters, or
+timing boundaries.  The robust row also intentionally uses a different alpha
+policy.  External agreement is therefore differential evidence, while
+cross-language wall time is descriptive only.  Tetrad capability statements
+were documentation checked and not executed.
+
+\section{Substantive limitations}
+
+\limitationbox{The STAR application demonstrates an auditable
+causal-structure workflow; it is not a definitive re-estimation of the
+experimental treatment effect, and known-impossible orientations are reported
+as diagnostics.}
+
+Original randomization blocks, class switching, compliance, and
+school-specific assignment procedures are not reconstructed; a policy estimate
+must return to those records and define an intention-to-treat estimand. The
+transparent composite score simply adds reading and mathematics, leaving test
+scaling, subject-specific, distributional, and subgroup effects unexamined.
+
+\chapter{Conclusions and Future Work}
+
+\section{Conclusions}
+
+The project achieved its two-stage objective and answers the five research
+questions with three bounded findings.
+
+First, source fidelity is explicit and testable.  Standard FCI maps to the
+historical 2000 search schedule, whose Theorem~6.4 is a correctness result for
+a partially oriented inducing-path graph under correct CI information, not a
+modern maximal-orientation theorem.  FCI+ maps to Claassen et al.'s augmented
+skeleton and hierarchy in Algorithm~2; its polynomial result remains the
+restricted \(O(N^{2(k+2)})\) exact-oracle query bound for fixed true degree
+\(k\), faithfulness, and constant-time CI.  The source-to-code-to-test matrix
+makes literal paper mechanisms, later orientation completeness, neutral
+software structure, and robust engineering policy visibly different.
+
+Second, validation is layered rather than circular. Exact m-separation tests
+recover the independently specified targets on the encoded fixtures,
+including hierarchical removal of the Figure~4(b) false link with the
+source-exhibited separator \(\{U,V,Z\}\).  The known-truth benchmark executes
+five methods over 15 runs: robust FCI+ improves the recorded mean endpoint
+metrics, while paper FCI+ reduces logical queries relative to standard FCI.
+The causal-learn and \code{pcalg} comparisons supply differential evidence,
+and Tetrad remains documentation-only.  The package's defensible improvement
+is its integrated audit surface, not a claim to be universally fastest or
+most accurate.
+
+Third, the package was applied to a real educational experiment without
+mixing domain code into the algorithm. The STAR results show a clear observed
+small-class achievement advantage, no comparable aide advantage, stable
+early-to-later achievement structure, and evidence that later observation is
+selective. An independent R \code{pcalg::fciPlus} run exactly replicates the
+focused 10-edge PAG and broadly supports the other skeletons. It also shows
+why PAGs require disciplined interpretation: the most tempting bidirected
+treatment-outcome edge is conditional on complete cases and disappears under a
+stricter alpha, while some endpoint marks change with variable order or violate
+chronology.
+
+A separate robust application profile addresses the principal empirical
+failure found by those audits. Across every cyclic variable order it returns
+the same PAG in all three panels, preserves the main target adjacencies, and
+reports no fully directed temporal reversal. It does so by leaving unsupported
+endpoints unresolved and by spending more CI calls. This is the appropriate
+robustness trade-off for the application: fewer directional claims, backed by
+stronger reproducibility over the tested orders. It is not proof of invariance
+to every permutation.
+
+No algorithm is uniformly ``best'' on the STAR data. The paper-profile
+self-\FCIplus{} is the fidelity and query-efficiency subject. The robust
+self-\FCIplus{} profile is preferred for this applied interpretation under
+the predeclared order and temporal audits, although its circles identify less
+direction. R \code{pcalg} provides
+valuable independent replication and gives the most plausible direction for
+the attrition target edge, yet shares the longitudinal reversal and exhibits
+endpoint order sensitivity. Standard FCI is less economical but leaves the
+longitudinal target partly unresolved rather than fully reversing it.
+Credibility must therefore be assigned claim by claim.
+
+The report therefore rejects two extremes. It is too pessimistic to conclude
+that causal discovery adds nothing to a randomized study; the attrition and
+stability analysis reveals useful structure. It is too optimistic to conclude
+that FCI has rediscovered and fully identified the experiment's causal model.
+The correct contribution lies between them: an auditable map of conditional
+independence constraints, uncertainty, and modelling sensitivity.
+
+\section{Recommended extensions}
+
+\begin{enumerate}[leftmargin=2em,itemsep=0.25em,parsep=0pt,topsep=0.3em]
+  \item Reconstruct the randomization strata, estimate formal intention-to-treat
+        effects, and model grade-3 observation explicitly.
+  \item Develop cluster-aware or multilevel CI tests for students nested within
+        classrooms and schools.
+  \item Increase PAG bootstrap repetitions and report Monte Carlo uncertainty
+        for stability frequencies.
+  \item Run separate reading and mathematics analyses and examine prespecified
+        treatment-effect heterogeneity.
+  \item Evaluate defensible temporal background knowledge separately from the
+        data-only robust profile, without silently forcing preferred arrows.
+  \item Compare alternative CI tests and \(k=2,3,4\) \FCIplus{} profiles while
+        diagnosing which edges depend on the sparsity bound.
+  \item Add an independent exhaustive MAG-equivalence oracle for target-PAG
+        derivation and extend stability reporting to endpoint compatibility.
+\end{enumerate}
+
+\appendix
+
+\chapter{Reproducibility}
+
+\section{Repository layout}
+
+\begin{longtable}{p{0.40\textwidth}p{0.52\textwidth}}
+\toprule
+Path & Contents \\
+\midrule
+\endfirsthead
+\toprule
+Path & Contents \\
+\midrule
+\endhead
+\path{src/fci_engine/} & Reusable FCI and \FCIplus{} package. \\
+\path{tests/} & Unit, oracle, integration, typing, and report tests. \\
+\path{case_studies/tennessee_star/download_data.py} &
+Official Harvard Dataverse downloader and shape validation. \\
+\path{case_studies/tennessee_star/study.py} &
+STAR cohort construction, coding, discovery, bootstrap, sensitivity, and
+summary payload. \\
+\path{case_studies/tennessee_star/report.py} &
+Standalone HTML report renderer. \\
+\path{case_studies/tennessee_star/pcalg_reference.R} &
+Independent CRAN \code{pcalg::fciPlus} runner and matched G-square CI test. \\
+\path{case_studies/tennessee_star/pcalg_reference.py} &
+R runner integration, artifact loading, and metadata validation. \\
+\path{case_studies/tennessee_star/output/} &
+Machine-readable PAG, benchmark, bootstrap, sensitivity, contrast, and visual
+report artifacts. \\
+\path{reports/fci_plus_star_report.tex} &
+This complete LaTeX report. \\
+\path{reports/generate_report_figures.py} &
+Vector-figure generator reading the committed result JSON. \\
+\path{reports/generate_oracle_validation_summary.py} &
+Deterministic generator for the Figure~4(b) oracle and seeded SEM evidence. \\
+\path{reports/data/oracle_validation_summary.csv} &
+Frozen target hash, run settings, metrics, query counts, separator provenance,
+and execution outcomes for Tables~\ref{tab:figure4-results}
+and~\ref{tab:finite-sample}. \\
+\bottomrule
+\end{longtable}
+
+\clearpage
+\section{Commands}
+
+\begin{lstlisting}[style=python,caption={Reproduce the STAR application.}]
+PYTHONPATH=src python -m \
+  case_studies.tennessee_star.run_case_study \
+  --benchmark-repeats 3 \
+  --bootstraps 12 \
+  --descriptive-bootstraps 1000 \
+  --n-jobs 4
+\end{lstlisting}
+
+\begin{lstlisting}[style=python,caption={Refresh the independent R reference
+and rebuild the integrated application.}]
+PYTHONPATH=src python -m \
+  case_studies.tennessee_star.run_case_study \
+  --refresh-pcalg \
+  --rscript /path/to/Rscript \
+  --benchmark-repeats 3 \
+  --bootstraps 12 \
+  --descriptive-bootstraps 1000 \
+  --n-jobs 4
+\end{lstlisting}
+
+\begin{lstlisting}[style=python,caption={Regenerate the report figures.}]
+PYTHONPATH=src python reports/generate_report_figures.py
+\end{lstlisting}
+
+\begin{lstlisting}[style=python,caption={Regenerate the frozen Figure 4(b)
+validation summary.}]
+PYTHONPATH=src python \
+  reports/generate_oracle_validation_summary.py
+\end{lstlisting}
+
+\begin{lstlisting}[style=python,caption={Run the software quality gates.}]
+python -m pytest -q
+python -m ruff check src tests examples case_studies reports
+python -m mypy
+python -m mypy case_studies/tennessee_star
+python -m build --wheel
+\end{lstlisting}
+
+\section{Data integrity}
+
+The committed official data files are:
+
+\begin{itemize}[leftmargin=2em]
+  \item \path{STAR_Students.tab.gz}, a deterministic gzip of the Dataverse
+        tabular export, SHA-256:
+        \par\smallskip
+        \hash{2ffa578822eb30fcd6626fa7c5cc734a}
+             {721fd05dd522403f0d643f89e891bac8}
+  \item \path{starUsersGuide.pdf}, SHA-256:
+        \par\smallskip
+        \hash{e51ff1d28d5af28c128196b3a133957}
+             {f9f2cd872b1abe348f156022193550130}
+\end{itemize}
+
+\chapter{Key STAR Result Tables}
+
+\section{Primary discovery results}
+
+\small
+\begin{longtable}{@{}p{0.14\textwidth}p{0.16\textwidth}rrrrp{0.20\textwidth}@{}}
+\caption{Primary full-data discovery results and temporal audit.}
+\label{tab:all-runs}\\
+\toprule
+Panel & Algorithm & Samples & Edges & CI tests & Seconds & Temporal flag \\
+\midrule
+\endfirsthead
+\toprule
+Panel & Algorithm & Samples & Edges & CI tests & Seconds & Temporal flag \\
+\midrule
+\endhead
+Attrition & FCI & 5,744 & 14 & 1,705 & 5.437 &
+Grade3 Observed \(\to\) K Achievement \\
+Attrition & Self-\FCIplus{} paper & 5,744 & 17 & 793 & 1.788 & None \\
+Attrition & Self-\FCIplus{} robust & 5,744 & 17 & 1,304 & 2.838 & None \\
+Attrition & R-\FCIplus{} & 5,744 & 13 & 1,191 & 10.394 & None \\
+Longitudinal & FCI & 2,787 & 10 & 960 & 2.148 & None \\
+Longitudinal & Self-\FCIplus{} paper & 2,787 & 13 & 335 & 0.337 &
+Grade3 Achievement \(\to\) K Achievement \\
+Longitudinal & Self-\FCIplus{} robust & 2,787 & 12 & 619 & 0.562 & None \\
+Longitudinal & R-\FCIplus{} & 2,787 & 12 & 475 & 1.650 &
+Grade3 Achievement \(\to\) K Achievement \\
+Focused & FCI & 2,976 & 10 & 291 & 0.322 & None \\
+Focused & Self-\FCIplus{} paper & 2,976 & 10 & 185 & 0.159 & None \\
+Focused & Self-\FCIplus{} robust & 2,976 & 10 & 334 & 0.247 & None \\
+Focused & R-\FCIplus{} & 2,976 & 10 & 256 & 0.884 & None \\
+\bottomrule
+\end{longtable}
+\normalsize
+
+\section{Focused sensitivity results}
+
+\begin{table}[H]
+\centering
+\caption{Presence of the class-assignment/grade-3 adjacency.}
+\begin{tabular}{rrlp{0.32\textwidth}r}
+\toprule
+Bins & \(\alpha\) & Algorithm & Adjacent? & CI tests \\
+\midrule
+3 & 0.01 & FCI & No & 225 \\
+3 & 0.01 & \FCIplus{} paper & No & 150 \\
+3 & 0.01 & \FCIplus{} robust & No & 233 \\
+3 & 0.05 & FCI & Yes, \(K\_\mathrm{Class}\leftrightarrow G3\) & 305 \\
+3 & 0.05 & \FCIplus{} paper & Yes, \(K\_\mathrm{Class}\leftrightarrow G3\) & 214 \\
+3 & 0.05 & \FCIplus{} robust &
+Yes, \(K\_\mathrm{Class}\leftarrow\!\circ G3\) & 360 \\
+4 & 0.01 & FCI & No & 252 \\
+4 & 0.01 & \FCIplus{} paper & No & 163 \\
+4 & 0.01 & \FCIplus{} robust & No & 253 \\
+4 & 0.05 & FCI & Yes, \(K\_\mathrm{Class}\leftrightarrow G3\) & 291 \\
+4 & 0.05 & \FCIplus{} paper & Yes, \(K\_\mathrm{Class}\leftrightarrow G3\) & 185 \\
+4 & 0.05 & \FCIplus{} robust &
+Yes, \(K\_\mathrm{Class}\circ\!-\!\circ G3\) & 334 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\chapter{Researcher Interpretation Checklist}
+
+Before treating an FCI-family result as substantive causal evidence, the
+following questions should be answered.
+
+\begin{enumerate}[leftmargin=2em]
+  \item What is the estimand: a graph, an ancestry claim, or a causal effect?
+  \item Which variables are pre-treatment, post-treatment, outcomes, or
+        selection indicators?
+  \item Does the chosen CI test match the data type and missingness pattern?
+  \item Are observations independent, or is clustering present?
+  \item Is the \FCIplus{} sparsity bound plausible and sensitivity-tested?
+  \item Does standard FCI recover the same important skeleton relations?
+  \item Are adjacencies stable under resampling?
+  \item Are endpoints stable under alpha, binning, and variable-set changes?
+  \item Do any directed edges violate known temporal order or randomization?
+  \item Is a bidirected edge being over-interpreted as proof of a specific
+        latent variable?
+  \item Are design-based conclusions being kept separate from data-only PAG
+        conclusions?
+  \item Can every published number be regenerated from committed inputs?
+\end{enumerate}
+
+\begin{thebibliography}{99}
+
+\bibitem[Achilles et al.(2008)]{achilles2008star}
+Achilles, C. M., Bain, H. P., Bellott, F., Boyd-Zaharias, J., Finn, J.,
+Folger, J., Johnston, J., and Word, E. (2008).
+Tennessee's Student Teacher Achievement Ratio (STAR) project.
+Harvard Dataverse, V1.
+\url{https://doi.org/10.7910/DVN/SIWH9F}.
+
+\bibitem[Claassen et al.(2013)]{claassen2013learning}
+Claassen, T., Mooij, J. M., and Heskes, T. (2013).
+Learning sparse causal models is not NP-hard.
+In \textit{Proceedings of the 29th Conference on Uncertainty in Artificial
+Intelligence}.
+
+\bibitem[causal-learn developers(2026)]{causallearn2026}
+causal-learn developers (2026).
+\textit{FCI: Fast Causal Inference}.
+Official causal-learn documentation, accessed 26 July 2026.
+\url{https://causal-learn.readthedocs.io/en/latest/search_methods_index/Constraint-based\%20causal\%20discovery\%20methods/FCI.html}.
+
+\bibitem[Glymour et al.(2019)]{glymour2019review}
+Glymour, C., Zhang, K., and Spirtes, P. (2019).
+Review of causal discovery methods based on graphical models.
+\textit{Frontiers in Genetics}, 10, 524.
+
+\bibitem[Kalisch et al.(2012)]{kalisch2012pcalg}
+Kalisch, M., M{\"a}chler, M., Colombo, D., Maathuis, M. H., and
+B{\"u}hlmann, P. (2012).
+Causal inference using graphical models with the R package pcalg.
+\textit{Journal of Statistical Software}, 47(11), 1--26.
+
+\bibitem[Krueger(1999)]{krueger1999experimental}
+Krueger, A. B. (1999).
+Experimental estimates of education production functions.
+\textit{The Quarterly Journal of Economics}, 114(2), 497--532.
+
+\bibitem[Pearl(2009)]{pearl2009causality}
+Pearl, J. (2009).
+\textit{Causality: Models, Reasoning, and Inference}, second edition.
+Cambridge University Press.
+
+\bibitem[Richardson and Spirtes(2002)]{richardson2002ancestral}
+Richardson, T. S. and Spirtes, P. (2002).
+Ancestral graph Markov models.
+\textit{The Annals of Statistics}, 30(4), 962--1030.
+
+\bibitem[Spirtes et al.(2000)]{spirtes2000causation}
+Spirtes, P., Glymour, C., and Scheines, R. (2000).
+\textit{Causation, Prediction, and Search}, second edition.
+MIT Press.
+
+\bibitem[Tetrad Project(2026)]{tetrad2026}
+Tetrad Project (2026).
+\textit{Tetrad 7.6.10 release and FCI source}.
+Official CMU repository, accessed 26 July 2026.
+\url{https://github.com/cmu-phil/tetrad/releases/tag/v7.6.10}.
+
+\bibitem[Word et al.(1990)]{word1990star}
+Word, E., Johnston, J., Bain, H. P., Fulton, B. D., Zaharias, J. B.,
+Achilles, C. M., Lintz, M. N., Folger, J., and Breda, C. (1990).
+\textit{Student/Teacher Achievement Ratio (STAR): Tennessee's K--3 Class
+Size Study. Final Summary Report 1985--1990}.
+Tennessee State Department of Education.
+
+\bibitem[Zhang(2008)]{zhang2008completeness}
+Zhang, J. (2008).
+On the completeness of orientation rules for causal discovery in the
+presence of latent confounders and selection bias.
+\textit{Artificial Intelligence}, 172(16--17), 1873--1896.
+
+\end{thebibliography}
+
+\end{document}

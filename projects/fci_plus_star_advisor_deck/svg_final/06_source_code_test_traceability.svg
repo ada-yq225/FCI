@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" data-pptx-page-role="content">
+  <rect id="page-background-06" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#F7F5EF" />
+  <g id="header-06" data-pptx-bounds="56 34 1168 88">
+    <text x="56" y="72" font-family="Georgia, Times New Roman, serif" font-size="42" font-weight="700" fill="#183153">Every Paper Stage Is Inspectable and Testable</text>
+    <text x="1224" y="104" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="18" fill="#5F6875">SOURCE → CODE → EVIDENCE</text>
+    <line x1="56" y1="120" x2="1224" y2="120" stroke="#CBD2DC" stroke-width="1.5" />
+  </g>
+  <g id="trace-table-06" data-pptx-bounds="56 137 1168 440">
+    <rect x="56" y="137" width="1168" height="440" rx="14" fill="#FFFFFF" stroke="#CBD2DC" stroke-width="1.5" />
+    <rect x="56" y="137" width="1168" height="52" rx="14" fill="#183153" />
+    <text x="86" y="171" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">SOURCE CONCEPT</text>
+    <text x="376" y="171" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">IMPLEMENTATION BOUNDARY</text>
+    <text x="880" y="171" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">TEST / AUDIT EVIDENCE</text>
+    <line x1="342" y1="189" x2="342" y2="577" stroke="#CBD2DC" stroke-width="1.5" />
+    <line x1="846" y1="189" x2="846" y2="577" stroke="#CBD2DC" stroke-width="1.5" />
+    <rect x="56" y="189" width="10" height="122" fill="#2F6BFF" />
+    <text x="86" y="221" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#2F6BFF">Spirtes FCI</text>
+    <text fill="#1A2433" font-size="18" font-family="Arial, Helvetica, sans-serif" x="86" y="250">Adjacency + sepsets</text><text fill="#1A2433" font-size="18" font-family="Arial, Helvetica, sans-serif" x="86" y="274">Possible-D-SEP</text><text fill="#1A2433" font-size="18" font-family="Arial, Helvetica, sans-serif" x="86" y="298">orientation closure</text><text fill="#183153" font-size="20" font-family="Consolas, Courier New, monospace" font-weight="700" x="376" y="221">skeleton.py · pdsep.py</text><text fill="#183153" font-size="20" font-family="Consolas, Courier New, monospace" font-weight="700" x="376" y="250">orientation.py · rules.py</text><text fill="#5F6875" font-size="16" font-family="Arial, Helvetica, sans-serif" x="376" y="278">FCI.fit · possible_dsep</text><text fill="#5F6875" font-size="16" font-family="Arial, Helvetica, sans-serif" x="376" y="300">refine_skeleton_with_pdsep</text><text x="880" y="221" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#1A2433">Exact-oracle PAG recovery</text>
+    <text fill="#5F6875" font-size="18" font-family="Arial, Helvetica, sans-serif" x="880" y="255">Possible-D-SEP unit paths</text><text fill="#5F6875" font-size="18" font-family="Arial, Helvetica, sans-serif" x="880" y="279">historical schedule regression</text><line x1="56" y1="311" x2="1224" y2="311" stroke="#CBD2DC" stroke-width="1.5" />
+    <rect x="56" y="311" width="10" height="140" fill="#E58A2B" />
+    <text x="86" y="345" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#E58A2B">Claassen FCI+</text>
+    <text fill="#1A2433" font-size="18" font-family="Arial, Helvetica, sans-serif" x="86" y="374">Augmented skeleton</text><text fill="#1A2433" font-size="18" font-family="Arial, Helvetica, sans-serif" x="86" y="399">D-SEP links + hierarchy</text><text fill="#1A2433" font-size="18" font-family="Arial, Helvetica, sans-serif" x="86" y="424">bounded endpoint bases</text><text x="376" y="345" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#183153">dsep.py · fci_plus.py</text>
+    <text fill="#5F6875" font-size="16" font-family="Arial, Helvetica, sans-serif" x="376" y="374">build_augmented_skeleton</text><text fill="#5F6875" font-size="16" font-family="Arial, Helvetica, sans-serif" x="376" y="397">possible_dsep_links · hierarchy</text><text fill="#5F6875" font-size="16" font-family="Arial, Helvetica, sans-serif" x="376" y="420">refine_skeleton_with_fci_plus_dsep</text><text x="880" y="345" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#1A2433">Figure 4(b) separator fixture</text>
+    <text fill="#5F6875" font-size="18" font-family="Arial, Helvetica, sans-serif" x="880" y="379">candidate-link witness tests</text><text fill="#5F6875" font-size="18" font-family="Arial, Helvetica, sans-serif" x="880" y="403">hierarchy and query-bound checks</text><line x1="56" y1="451" x2="1224" y2="451" stroke="#CBD2DC" stroke-width="1.5" />
+    <rect x="56" y="451" width="10" height="126" fill="#1C9A8A" />
+    <text x="86" y="485" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#1C9A8A">Audit layer</text>
+    <text fill="#1A2433" font-size="18" font-family="Arial, Helvetica, sans-serif" x="86" y="516">Engineering extension</text><text fill="#1A2433" font-size="18" font-family="Arial, Helvetica, sans-serif" x="86" y="541">not a source theorem</text><text x="376" y="485" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#183153">PAG · FCIResult · exports</text>
+    <text fill="#5F6875" font-size="16" font-family="Arial, Helvetica, sans-serif" x="376" y="516">CI/orientation trace · sepset source</text><text fill="#5F6875" font-size="16" font-family="Arial, Helvetica, sans-serif" x="376" y="539">edge explanations · order/bootstrap audit</text><text x="880" y="485" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#1A2433">PAG invariants + provenance</text>
+    <text fill="#5F6875" font-size="16" font-family="Arial, Helvetica, sans-serif" x="880" y="516">serialization regressions</text><text fill="#5F6875" font-size="16" font-family="Arial, Helvetica, sans-serif" x="880" y="539">cyclic-order and stability artifacts</text></g>
+  <g id="api-strip-06" data-pptx-bounds="56 596 1168 50">
+    <text x="56" y="626" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#183153"><tspan font-weight="700">Reusable API</tspan><tspan font-family="Consolas, Courier New, monospace" fill="#2F6BFF">  fci(data, ...)</tspan><tspan fill="#5F6875">  ·  </tspan><tspan font-family="Consolas, Courier New, monospace" fill="#E58A2B">fci_plus(data, ...)</tspan><tspan fill="#5F6875">  ·  </tspan><tspan font-family="Consolas, Courier New, monospace" fill="#1C9A8A">FCIPlusConfig.paper / practical</tspan></text>
+  </g>
+  <g id="footer-06" data-pptx-bounds="56 656 1168 32">
+    <text x="56" y="678" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">Full 20-row source-to-code-to-test dossier: reports/research/fci_fci_plus_source_dossier.md</text>
+    <text x="1224" y="678" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="16" fill="#5F6875">06 / 15</text>
+  </g>
+</svg>

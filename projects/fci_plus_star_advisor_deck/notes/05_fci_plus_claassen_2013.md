@@ -1,0 +1,9 @@
+[Timing: 1:35]
+
+FCI+ does not merely truncate Possible-D-SEP. Its contribution is a sparse logical characterization of the non-local edges that need attention. Algorithm 2 begins with a locally bounded PC skeleton, constructs an augmented skeleton whose temporary arrowheads encode particular dependence information, recognizes candidate D-SEP-link witnesses, and builds a recursive hierarchy from known separating sets and collider structure. It then tests and minimizes a targeted separator, removes a verified D-SEP link, revisits the candidate set, and finally applies the established Zhang-rule orientation schedule. Claassen and colleagues derive a query bound of O of N to the power two times k plus four, equivalently O of N to the two times open-parenthesis k plus two close-parenthesis. That statement requires a fixed degree bound k for the observed maximal ancestral graph, Faithfulness, and a constant-time exact oracle. It is not a finite-sample accuracy theorem and not a wall-clock guarantee. The supplement abstract contains a different exponent, but the main paper and the supplement’s theorem body support the exponent shown here, so the report documents the discrepancy rather than silently choosing one.
+
+[Sources]
+- Claassen, Mooij, and Heskes (2013), “Learning Sparse Causal Models is not NP-hard,” Algorithm 2, p. 178, and complexity analysis, p. 179.
+- Claassen, Mooij, and Heskes proof supplement (2014), Theorem 1 and proof, PDF pp. 10–11; compare the arXiv abstract.
+- `reports/research/claim_evidence_matrix.csv`, claim IDs `FCIPLUS-ORACLE`, `FCIPLUS-SPARSITY`, `FCIPLUS-AUGMENT`, `FCIPLUS-HIERARCHY`, `FCIPLUS-REVISIT`, `FCIPLUS-ALGO2`, `FCIPLUS-COMPLEXITY`, and `FCIPLUS-EXPONENT-CAVEAT`.
+[/Sources]

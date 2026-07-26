@@ -1,0 +1,9 @@
+[Timing: 1:30]
+
+The strongest design-supported result here is the kindergarten observed-arm contrast. Small-class students with observed kindergarten outcomes score thirteen point nine points above regular-class students, with a school-cluster bootstrap interval from five point two one to twenty-two point zero seven. Random assignment makes this contrast consistent with a small-class benefit, but missing outcomes, original blocks, switching, and compliance were not reconstructed, so I do not treat it as a fully identified selected-subset causal effect. The regular-plus-aide arm differs from regular by only zero point three one points, with an interval from negative seven point four zero to seven point three eight, so there is no detectable aide advantage at this precision. Among students with observed grade-three outcomes, the small-minus-regular score contrast is eleven point six nine points with an interval from three point seven four to nineteen point three eight, but that is a descriptive follow-up in a selected observed sample. The corresponding grade-three observation-rate contrasts are plus one point five four percentage points for small versus regular, with an interval from negative one point seven three to four point five six, and negative two point zero five percentage points for aide versus regular, with an interval from negative five point three five to one point four one. Neither observation-rate interval excludes zero.
+
+[Sources]
+- `case_studies/tennessee_star/output/star_descriptive_contrasts.csv`, rows `kindergarten_score`, `grade3_score`, and `grade3_observed_rate` for both arm comparisons.
+- `case_studies/tennessee_star/output/star_case_study_summary.json`, key `descriptives.contrasts`.
+- `case_studies/tennessee_star/study.py::_cluster_bootstrap_arm_metrics`, 1,000 school-cluster resamples.
+[/Sources]

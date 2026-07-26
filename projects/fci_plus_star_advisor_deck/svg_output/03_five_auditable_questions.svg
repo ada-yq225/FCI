@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" data-pptx-page-role="content">
+  <rect id="page-background-03" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#F7F5EF"/>
+  <g id="header-03" data-pptx-bounds="56 38 1168 82">
+    <text x="56" y="76" font-family="Georgia, Times New Roman, serif" font-size="42" font-weight="700" fill="#183153">The Project Asks Five Auditable Questions</text>
+    <text x="1224" y="58" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="18" fill="#5F6875">EVALUATION LOGIC</text>
+    <line x1="56" y1="106" x2="1224" y2="106" stroke="#CBD2DC" stroke-width="1.5"/>
+  </g>
+  <g id="question-spine-03" data-pptx-bounds="80 142 1120 450">
+    <line x1="150" y1="175" x2="150" y2="551" stroke="#CBD2DC" stroke-width="6"/>
+    <circle cx="150" cy="180" r="30" fill="#2F6BFF"/>
+    <text x="150" y="190" text-anchor="middle" font-family="Consolas, Courier New, monospace" font-size="24" font-weight="700" fill="#FFFFFF">1</text>
+    <text x="205" y="172" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#2F6BFF">THEORY</text>
+    <text x="205" y="205" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" fill="#1A2433">What do the two original sources actually assume and prove?</text>
+    <circle cx="150" cy="272" r="30" fill="#2F6BFF"/>
+    <text x="150" y="282" text-anchor="middle" font-family="Consolas, Courier New, monospace" font-size="24" font-weight="700" fill="#FFFFFF">2</text>
+    <text x="205" y="264" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#2F6BFF">TRACEABILITY</text>
+    <text x="205" y="297" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" fill="#1A2433">Where is each paper stage implemented and tested?</text>
+    <circle cx="150" cy="364" r="30" fill="#E58A2B"/>
+    <text x="150" y="374" text-anchor="middle" font-family="Consolas, Courier New, monospace" font-size="24" font-weight="700" fill="#FFFFFF">3</text>
+    <text x="205" y="356" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#E58A2B">KNOWN TRUTH</text>
+    <text x="205" y="389" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" fill="#1A2433">What happens when the correct graph is known?</text>
+    <circle cx="150" cy="456" r="30" fill="#7562A8"/>
+    <text x="150" y="466" text-anchor="middle" font-family="Consolas, Courier New, monospace" font-size="24" font-weight="700" fill="#FFFFFF">4</text>
+    <text x="205" y="448" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#7562A8">SOFTWARE</text>
+    <text x="205" y="481" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" fill="#1A2433">Which comparisons across implementations are fair?</text>
+    <circle cx="150" cy="548" r="30" fill="#1C9A8A"/>
+    <text x="150" y="558" text-anchor="middle" font-family="Consolas, Courier New, monospace" font-size="24" font-weight="700" fill="#FFFFFF">5</text>
+    <text x="205" y="540" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#1C9A8A">APPLICATION</text>
+    <text x="205" y="573" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" fill="#1A2433">Which STAR findings are randomized, stable, or exploratory?</text>
+  </g>
+  <g id="sequence-claim-03" data-pptx-bounds="56 603 1168 46">
+    <text x="56" y="623" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#183153">Source fidelity → validation → application interpretation.<tspan x="56" dy="27">An attractive real-data graph cannot reverse this order.</tspan></text>
+  </g>
+  <g id="footer-03" data-pptx-bounds="56 658 1168 30">
+    <text x="56" y="679" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">Evaluation framework used throughout the report and reproducibility artifacts</text>
+    <text x="1224" y="679" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="16" fill="#5F6875">03 / 15</text>
+  </g>
+</svg>

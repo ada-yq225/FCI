@@ -1,0 +1,4 @@
+"panel","algorithm","samples","nodes","edges","ci_tests","median_elapsed_seconds","elapsed_runs_seconds","r_version","pcalg_version","ci_test","alpha","selection_bias","orderings_checked","exact_pag_match_rate","mean_skeleton_jaccard","warning_count","warnings"
+"attrition","pcalg_fci_plus",5744,9,13,1191,10.394,"10.394;10.45;10.217","4.5.3","2.7.12","Python-equivalent G-square",0.05,TRUE,9,0.777777777777778,1,0,""
+"longitudinal","pcalg_fci_plus",2787,9,12,475,1.64999999999999,"1.69800000000001;1.64100000000001;1.64999999999999","4.5.3","2.7.12","Python-equivalent G-square",0.05,TRUE,9,0.666666666666667,1,0,""
+"focused_treatment","pcalg_fci_plus",2976,8,10,256,0.884000000000015,"0.884000000000015;0.87700000000001;0.917000000000002","4.5.3","2.7.12","Python-equivalent G-square",0.05,TRUE,8,0.75,1,0,""

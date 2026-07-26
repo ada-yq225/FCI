@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" data-pptx-page-role="content">
+  <rect id="page-background-12" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#F7F5EF"/>
+  <g id="header-12" data-pptx-bounds="56 34 1168 88">
+    <text x="56" y="72" font-family="Georgia, Times New Roman, serif" font-size="40" font-weight="700" fill="#183153">The Strongest Signal Comes from Randomization</text>
+    <text x="1224" y="104" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="18" fill="#2E7D5B">STAR ARM CONTRASTS</text>
+    <line x1="56" y1="116" x2="1224" y2="116" stroke="#CBD2DC" stroke-width="1.5"/>
+  </g>
+  <g id="evidence-legend-12" data-pptx-bounds="56 122 1168 34">
+    <rect x="56" y="122" width="16" height="16" rx="3" fill="#2E7D5B"/>
+    <text x="82" y="137" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" fill="#2E7D5B">RANDOMIZED KINDERGARTEN CONTRAST</text>
+    <rect x="480" y="122" width="16" height="16" rx="3" fill="#E58A2B"/>
+    <text x="506" y="137" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" fill="#E58A2B">DESCRIPTIVE GRADE-3 FOLLOW-UP (OBSERVED)</text>
+  </g>
+  <g id="forest-plot-12" data-pptx-bounds="56 170 800 405">
+    <rect x="56" y="170" width="800" height="405" rx="14" fill="#FFFFFF" stroke="#CBD2DC" stroke-width="1.5"/>
+    <text x="80" y="203" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#5F6875">ARM MINUS REGULAR · SCHOOL-CLUSTER BOOTSTRAP 95% INTERVAL</text>
+    <text x="356" y="238" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">−10</text>
+    <text x="482" y="238" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">0</text>
+    <text x="607" y="238" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">+10</text>
+    <text x="733" y="238" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">+20</text>
+    <text x="796" y="238" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">+25</text>
+    <g id="chartArea">
+      <line x1="365" y1="250" x2="805" y2="250" stroke="#CBD2DC" stroke-width="1.5"/>
+      <line x1="491" y1="250" x2="491" y2="535" stroke="#5F6875" stroke-width="2"/>
+      <line x1="365" y1="250" x2="365" y2="535" stroke="#E9EDF5" stroke-width="1.5"/>
+      <line x1="616" y1="250" x2="616" y2="535" stroke="#E9EDF5" stroke-width="1.5"/>
+      <line x1="742" y1="250" x2="742" y2="535" stroke="#E9EDF5" stroke-width="1.5"/>
+      <line x1="805" y1="250" x2="805" y2="535" stroke="#E9EDF5" stroke-width="1.5"/>
+      <!-- chart-plot-area: 365,250,805,535 -->
+      <line x1="556" y1="298" x2="768" y2="298" stroke="#2E7D5B" stroke-width="5"/>
+      <circle cx="665" cy="298" r="10" fill="#2E7D5B"/>
+      <line x1="398" y1="358" x2="584" y2="358" stroke="#5F6875" stroke-width="4"/>
+      <circle cx="495" cy="358" r="9" fill="#5F6875"/>
+      <line x1="538" y1="438" x2="734" y2="438" stroke="#E58A2B" stroke-width="5"/>
+      <circle cx="638" cy="438" r="10" fill="#E58A2B"/>
+      <line x1="419" y1="498" x2="582" y2="498" stroke="#5F6875" stroke-width="4"/>
+      <circle cx="497" cy="498" r="9" fill="#5F6875"/>
+    </g>
+    <text x="80" y="288" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#2E7D5B">K score · Small</text>
+    <text x="80" y="348" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1A2433">K score · Aide</text>
+    <text x="80" y="428" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#E58A2B">Grade 3 · Small</text>
+    <text x="80" y="488" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1A2433">Grade 3 · Aide</text>
+    <text x="80" y="530" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">Score points; grade-3 rows include only observed outcomes.</text>
+  </g>
+  <g id="contrast-conclusion-12" data-pptx-bounds="888 170 336 405">
+    <rect x="888" y="170" width="336" height="405" rx="16" fill="#183153"/>
+    <text x="918" y="207" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#A7E8DF">DESIGN-BASED READOUT</text>
+    <text x="918" y="255" font-family="Georgia, Times New Roman, serif" font-size="32" font-weight="700" fill="#FFFFFF">+13.90 points</text>
+    <text x="918" y="289" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#E9EDF5">Small − regular, kindergarten<tspan x="918" dy="27">95% interval [5.21, 22.07]</tspan></text>
+    <line x1="918" y1="357" x2="1194" y2="357" stroke="#5C7190" stroke-width="1.5"/>
+    <text x="918" y="397" font-family="Georgia, Times New Roman, serif" font-size="30" font-weight="700" fill="#FFFFFF">+0.31 points</text>
+    <text x="918" y="431" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#E9EDF5">Aide − regular, kindergarten<tspan x="918" dy="27">95% interval [−7.40, 7.38]</tspan></text>
+    <rect x="918" y="496" width="276" height="54" rx="10" fill="#2E7D5B"/>
+    <text x="1056" y="519" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">Observed-arm contrast supports<tspan x="1056" dy="22">a possible small-class benefit</tspan></text>
+  </g>
+  <g id="followup-caveat-12" data-pptx-bounds="56 584 1168 58">
+    <text x="56" y="606" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1A2433">Observed grade-3 score, Small − Regular: <tspan font-weight="700" fill="#E58A2B">+11.69 [3.74, 19.38]</tspan> — descriptive, not long-run ITT.</text>
+    <text x="56" y="634" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">Grade-3 observation rate: Small − Regular <tspan font-weight="700">+1.54 pp [−1.73, 4.56]</tspan> · Aide − Regular <tspan font-weight="700">−2.05 pp [−5.35, 1.41]</tspan></text>
+  </g>
+  <g id="footer-12" data-pptx-bounds="56 651 1168 37">
+    <text x="56" y="676" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">6,325 kindergarten-assignment cohort · 1,000 school-cluster resamples · star_descriptive_contrasts.csv</text>
+    <text x="1224" y="676" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="16" fill="#5F6875">12 / 15</text>
+  </g>
+</svg>

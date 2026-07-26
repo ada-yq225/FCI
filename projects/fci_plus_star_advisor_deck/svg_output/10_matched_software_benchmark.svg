@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" data-pptx-page-role="content">
+  <rect id="page-background-10" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#F7F5EF"/>
+  <g id="header-10" data-pptx-bounds="56 34 1168 88">
+    <text x="56" y="72" font-family="Georgia, Times New Roman, serif" font-size="40" font-weight="700" fill="#183153">Matched Benchmark: Trade-offs, Not Dominance</text>
+    <text x="1224" y="104" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="18" fill="#7562A8">KNOWN-TRUTH SOFTWARE BENCHMARK</text>
+    <line x1="56" y1="120" x2="1224" y2="120" stroke="#CBD2DC" stroke-width="1.5"/>
+  </g>
+  <g id="benchmark-meta-10" data-pptx-bounds="56 130 1168 54">
+    <text x="56" y="158" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#183153">5 families × 3 repeats</text>
+    <text x="300" y="158" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#5F6875">N = 2,500</text>
+    <text x="440" y="158" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#5F6875">75 / 75 runs</text>
+    <text x="650" y="158" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#5F6875">α = .001 paper/reference · .01 robust auto</text>
+  </g>
+  <g id="benchmark-chart-10" data-pptx-bounds="56 188 1168 340">
+    <rect x="56" y="188" width="1168" height="340" rx="14" fill="#FFFFFF" stroke="#CBD2DC" stroke-width="1.5"/>
+    <text x="78" y="224" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#5F6875">ALGORITHM / PROFILE</text>
+    <text x="430" y="224" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#5F6875">.70</text>
+    <text x="607" y="224" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#5F6875">.80</text>
+    <text x="783" y="224" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#5F6875">.90</text>
+    <text x="960" y="224" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#5F6875">1.00</text>
+    <text x="1050" y="224" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#5F6875">CI calls</text>
+    <g id="chartArea">
+      <line x1="430" y1="238" x2="960" y2="238" stroke="#CBD2DC" stroke-width="1.5"/>
+      <line x1="430" y1="238" x2="430" y2="498" stroke="#CBD2DC" stroke-width="1.5"/>
+      <line x1="607" y1="238" x2="607" y2="498" stroke="#E9EDF5" stroke-width="1.5"/>
+      <line x1="783" y1="238" x2="783" y2="498" stroke="#E9EDF5" stroke-width="1.5"/>
+      <line x1="960" y1="238" x2="960" y2="498" stroke="#CBD2DC" stroke-width="1.5"/>
+      <!-- chart-plot-area: 430,238,960,498 -->
+      <circle cx="858" cy="277" r="10" fill="#2F6BFF"/>
+      <circle cx="495" cy="277" r="10" fill="#183153"/>
+      <circle cx="873" cy="327" r="10" fill="#E58A2B"/>
+      <circle cx="508" cy="327" r="10" fill="#8A4D13"/>
+      <circle cx="933" cy="377" r="10" fill="#1C9A8A"/>
+      <circle cx="677" cy="377" r="10" fill="#0F665B"/>
+      <circle cx="873" cy="427" r="10" fill="#7562A8"/>
+      <circle cx="508" cy="427" r="10" fill="#44366C"/>
+      <circle cx="873" cy="477" r="10" fill="#7562A8"/>
+      <circle cx="508" cy="477" r="10" fill="#44366C"/>
+    </g>
+    <text x="78" y="284" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#2F6BFF">Local FCI · Spirtes profile</text>
+    <text x="78" y="334" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#E58A2B">Local FCI+ · Claassen profile</text>
+    <text x="78" y="384" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#1C9A8A">Local FCI+ · robust workflow</text>
+    <text x="78" y="434" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#7562A8">causal-learn FCI · 0.1.4.7</text>
+    <text x="78" y="484" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#7562A8">pcalg FCI+ · 2.7-12</text>
+    <text x="982" y="284" font-family="Consolas, Courier New, monospace" font-size="20" fill="#1A2433">449.7</text>
+    <text x="982" y="334" font-family="Consolas, Courier New, monospace" font-size="20" fill="#1A2433">197.1</text>
+    <text x="982" y="384" font-family="Consolas, Courier New, monospace" font-size="20" fill="#1A2433">401.9</text>
+    <text x="982" y="434" font-family="Consolas, Courier New, monospace" font-size="20" fill="#5F6875">not exposed</text>
+    <text x="982" y="484" font-family="Consolas, Courier New, monospace" font-size="20" fill="#5F6875">not exposed</text>
+    <text x="430" y="518" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875"><tspan fill="#183153" font-weight="700">dark dots</tspan> = endpoint accuracy · <tspan fill="#2F6BFF" font-weight="700">bright dots</tspan> = semantic F1</text>
+  </g>
+  <g id="benchmark-readout-10" data-pptx-bounds="56 550 1168 79">
+    <rect x="56" y="550" width="560" height="79" rx="12" fill="#DDF3EF"/>
+    <text x="80" y="579" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#1C9A8A">ROBUST WORKFLOW</text>
+    <text x="80" y="610" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#183153">semantic F1 .985 · endpoint accuracy .840</text>
+    <rect x="640" y="550" width="584" height="79" rx="12" fill="#FFF1E9"/>
+    <text x="664" y="579" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#B45F4A">INTERPRETATION LIMIT</text>
+    <text x="664" y="596" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#1A2433">Different α policy: workflow evidence,<tspan x="664" dy="23">not isolated algorithm superiority.</tspan></text>
+  </g>
+  <g id="footer-10" data-pptx-bounds="56 649 1168 39">
+    <text x="56" y="674" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">reports/data/software_benchmark_summary.csv · pcalg timing includes R startup · wall time is not a cross-language contest</text>
+    <text x="1224" y="674" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="16" fill="#5F6875">10 / 15</text>
+  </g>
+</svg>

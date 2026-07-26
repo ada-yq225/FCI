@@ -28,3 +28,15 @@ tmp/
 # deterministic gzip export and the official user guide.
 /case_studies/tennessee_star/data/raw/STAR_Students.tab
 /case_studies/tennessee_star/data/raw/STAR.csv
+
+# PPT Master transient exports and visual-QA renders. The editable SVG source,
+# design lock, notes, source bundle, and stable output/ppt deliverables remain
+# versioned.
+/projects/*/backup/
+/projects/*/exports/
+/projects/*/live_preview/
+/projects/*/validation/*
+!/projects/*/validation/chart_verification_receipt.md
+/projects/fci_plus_star_research.md
+/projects/fci_plus_star_research.facts.json
+/output/ppt/*_pdf_pages/

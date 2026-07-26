@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720" data-pptx-page-role="content">
+  <rect id="page-background-09" data-pptx-role="background" x="0" y="0" width="1280" height="720" fill="#F7F5EF"/>
+  <g id="header-09" data-pptx-bounds="56 34 1168 88">
+    <text x="56" y="72" font-family="Georgia, Times New Roman, serif" font-size="42" font-weight="700" fill="#183153">An Auditability Comparison, Not a Leaderboard</text>
+    <text x="1224" y="104" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="18" fill="#7562A8">SOFTWARE LANDSCAPE</text>
+    <line x1="56" y1="120" x2="1224" y2="120" stroke="#CBD2DC" stroke-width="1.5"/>
+  </g>
+  <g id="feature-matrix-09" data-pptx-bounds="56 140 1168 390">
+    <rect x="56" y="140" width="1168" height="390" rx="14" fill="#FFFFFF" stroke="#CBD2DC" stroke-width="1.5"/>
+    <rect x="56" y="140" width="1168" height="60" rx="14" fill="#183153"/>
+    <line x1="300" y1="200" x2="300" y2="530" stroke="#CBD2DC" stroke-width="1.5"/>
+    <line x1="410" y1="200" x2="410" y2="530" stroke="#CBD2DC" stroke-width="1.5"/>
+    <line x1="520" y1="200" x2="520" y2="530" stroke="#CBD2DC" stroke-width="1.5"/>
+    <line x1="650" y1="200" x2="650" y2="530" stroke="#CBD2DC" stroke-width="1.5"/>
+    <line x1="790" y1="200" x2="790" y2="530" stroke="#CBD2DC" stroke-width="1.5"/>
+    <line x1="930" y1="200" x2="930" y2="530" stroke="#CBD2DC" stroke-width="1.5"/>
+    <line x1="1060" y1="200" x2="1060" y2="530" stroke="#CBD2DC" stroke-width="1.5"/>
+    <line x1="56" y1="282" x2="1224" y2="282" stroke="#CBD2DC" stroke-width="1.5"/>
+    <line x1="56" y1="364" x2="1224" y2="364" stroke="#CBD2DC" stroke-width="1.5"/>
+    <line x1="56" y1="446" x2="1224" y2="446" stroke="#CBD2DC" stroke-width="1.5"/>
+    <g id="chartArea">
+      <line x1="56" y1="530" x2="1224" y2="530" stroke="#CBD2DC" stroke-width="1.5"/>
+      <!-- chart-plot-area: 56,200,1224,530 -->
+      <rect x="74" y="217" width="208" height="48" rx="8" fill="#E8F0FF"/>
+      <rect x="74" y="299" width="208" height="48" rx="8" fill="#F1ECFA"/>
+      <rect x="74" y="381" width="208" height="48" rx="8" fill="#F1ECFA"/>
+      <rect x="74" y="463" width="208" height="48" rx="8" fill="#E9EDF5"/>
+    </g>
+    <text x="78" y="177" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">TOOL / EVIDENCE</text>
+    <text x="355" y="177" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">FCI</text>
+    <text x="465" y="177" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">FCI+</text>
+    <text x="585" y="177" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">CI TRACE</text>
+    <text x="720" y="177" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">ORDER AUDIT</text>
+    <text x="860" y="177" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">BOOTSTRAP</text>
+    <text x="995" y="177" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">EXPORT</text>
+    <text x="1142" y="177" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">STATUS</text>
+    <text x="92" y="247" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#2F6BFF">fci_engine 0.1.0</text>
+    <text x="92" y="329" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#7562A8">pcalg 2.7-12</text>
+    <text x="92" y="401" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#7562A8">causal-learn<tspan x="92" dy="21">0.1.4.7</tspan></text>
+    <text x="92" y="493" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#5F6875">Tetrad 7.6.10</text>
+    <text x="355" y="250" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#2E7D5B">YES</text>
+    <text x="465" y="250" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#2E7D5B">YES</text>
+    <text x="585" y="250" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#2E7D5B">structured</text>
+    <text x="720" y="250" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#2E7D5B">built in</text>
+    <text x="860" y="250" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#2E7D5B">built in</text>
+    <text x="995" y="250" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#2E7D5B">artifacts</text>
+    <text x="1142" y="250" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#7562A8">EXECUTED</text>
+    <text x="355" y="332" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#2E7D5B">YES</text>
+    <text x="465" y="332" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#2E7D5B">YES</text>
+    <text x="585" y="332" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#5F6875">not established</text>
+    <text x="720" y="332" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#5F6875">partial</text>
+    <text x="860" y="332" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#5F6875">not established</text>
+    <text x="995" y="332" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#B45F4A">NO</text>
+    <text x="1142" y="332" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#7562A8">EXECUTED</text>
+    <text x="355" y="414" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#2E7D5B">YES</text>
+    <text x="465" y="414" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#B45F4A">NO</text>
+    <text x="585" y="414" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#B45F4A">not exported</text>
+    <text x="720" y="414" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#5F6875">not established</text>
+    <text x="860" y="414" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#5F6875">not established</text>
+    <text x="995" y="414" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#B45F4A">NO</text>
+    <text x="1142" y="414" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#7562A8">EXECUTED</text>
+    <text x="355" y="496" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#2E7D5B">YES</text>
+    <text x="465" y="496" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#B45F4A">NO</text>
+    <text x="585" y="496" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#5F6875">logger only</text>
+    <text x="720" y="496" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#5F6875">partial</text>
+    <text x="860" y="496" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#5F6875">workflow</text>
+    <text x="995" y="496" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#B45F4A">NO</text>
+    <text x="1142" y="496" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#5F6875">DOCS ONLY</text>
+  </g>
+  <g id="distinction-09" data-pptx-bounds="56 554 1168 80">
+    <rect x="56" y="554" width="1168" height="80" rx="12" fill="#E9EDF5"/>
+    <text x="80" y="584" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#183153">LOCAL DISTINCTION</text>
+    <text x="80" y="606" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#1A2433">Explicit paper profiles + CI/orientation traces + separator provenance<tspan x="80" dy="27">+ stability audits + reproducible artifact exports</tspan></text>
+  </g>
+  <g id="footer-09" data-pptx-bounds="56 649 1168 39">
+    <text x="56" y="674" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">Dated software inventory, 2026-07-26 · Feature availability is not an accuracy ranking · endpoint encodings require normalization</text>
+    <text x="1224" y="674" text-anchor="end" font-family="Consolas, Courier New, monospace" font-size="16" fill="#5F6875">09 / 15</text>
+  </g>
+</svg>
