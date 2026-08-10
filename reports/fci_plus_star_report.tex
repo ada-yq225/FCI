@@ -2141,9 +2141,10 @@ expected counts \(E\) under \(X\perp Y\mid S\), the statistic is
         O_{xys}\log\left(\frac{O_{xys}}{E_{xys}}\right),
 \]
 with zero-count contributions omitted. The test is appropriate for the
-discretised panels, but high-order conditioning can create sparse cells. That
-is one reason the \FCIplus{} bound is fixed at \(k=3\) and why sensitivity is
-reported rather than hidden.
+discretised panels, but high-order conditioning can create sparse cells. The
+primary \FCIplus{} analysis uses \(k=3\), while the sensitivity grid repeats
+the focused analysis at \(k\in\{2,3,4\}\). These are bounded analysis settings,
+not evidence that the unknown STAR MAG has a known maximum degree.
 
 \section{Primary discovery configuration}
 
@@ -2187,15 +2188,15 @@ replacement. All student rows from a selected school are included, including
 repeated copies when a school is sampled more than once. FCI or \FCIplus{} is
 then refitted and the presence of each unordered adjacency is recorded.
 
-With \(B=12\) replicates, the estimated adjacency frequency is
+With \(B=100\) replicates, the estimated adjacency frequency is
 \[
   \widehat{\pi}_{XY}
   = \frac{1}{B}\sum_{b=1}^{B}
     \mathbf{1}\{X\text{ and }Y\text{ are adjacent in replicate }b\}.
 \]
-This is an exploratory stability diagnostic. Twelve replicates give a coarse
-grid of 8.3 percentage points and are not sufficient for precise tail
-probabilities.
+This is an exploratory stability diagnostic with one-percentage-point
+frequency resolution. It is not a confidence interval, a posterior edge
+probability, or an endpoint-compatible uncertainty summary.
 
 \section{Sensitivity analysis}
 
@@ -2310,8 +2311,8 @@ returns 13 edges after 1,191 tests. The FCI/self-\FCIplus{},
 FCI/R-\FCIplus{}, and self-/R-\FCIplus{} skeleton Jaccard values are 0.824,
 0.929, and 0.765. All three omit a direct
 \code{K\_Class}--\code{Grade3\_Observed} adjacency. In the self-implementation
-school bootstrap that adjacency appears in only 17\% of FCI fits and 8\% of
-both paper and robust \FCIplus{} fits.
+school bootstrap that adjacency appears in 12\% of FCI fits, 16\% of paper
+\FCIplus{} fits, and 15\% of robust \FCIplus{} fits.
 
 By contrast, \code{K\_Achievement}--
 \code{Grade3\_Observed} is adjacent in 100\% of the bootstrap fits for all
@@ -2351,13 +2352,13 @@ Pairwise skeleton Jaccard is 0.769 for FCI/self-\FCIplus{}, 0.833 for FCI/R,
 and 0.923 for the two \FCIplus{} implementations.
 
 All three algorithms retain the kindergarten/grade-3 achievement adjacency,
-and it appears in all 12 school-cluster bootstrap samples for all three local
+and it appears in all 100 school-cluster bootstrap samples for all three local
 profiles.
 Neither full-data PAG retains a direct class-assignment/grade-3 achievement
 adjacency once kindergarten achievement is included. That treatment-outcome
-adjacency nevertheless reappears in 50\% of FCI and 67\% of \FCIplus{}
-paper-profile bootstrap fits. It appears in all robust-profile bootstrap fits
-despite being absent from the robust full-data PAG. This discordance is a
+adjacency nevertheless reappears in 71\% of FCI, 79\% of paper \FCIplus{},
+and 80\% of robust-profile bootstrap fits despite being absent from each
+corresponding full-data PAG. This discordance is a
 warning that conservative orientation and order invariance do not remove
 school-resampling sensitivity.
 
@@ -2386,8 +2387,8 @@ PAG, not merely the same skeleton. All three contain
   K\_\mathrm{Class}\leftrightarrow
   Grade3\_\mathrm{Achievement}.
 \]
-The adjacency appears in 92\% of the FCI school bootstraps, 83\% of the
-paper self-\FCIplus{} bootstraps, and 100\% of the robust-profile bootstraps.
+The adjacency appears in 92\% of the FCI school bootstraps, 85\% of the
+paper self-\FCIplus{} bootstraps, and 96\% of the robust-profile bootstraps.
 The independent exact PAG replication makes this
 observed conditional-independence pattern more credible, but does not make the
 literal latent-confounding interpretation credible.
@@ -2473,14 +2474,15 @@ measure skeleton stability only; they do not validate endpoint orientation.}
 \includegraphics[width=0.92\textwidth]{star_sensitivity.pdf}
 \caption{Focused treatment-outcome sensitivity. The adjacency appears at
 \(\alpha=0.05\) and disappears at \(\alpha=0.01\), regardless of whether three
-or four quantile bins are used.}
+or four quantile bins or \(k=2,3,4\) is used for \FCIplus{}.}
 \label{fig:sensitivity}
 \end{figure}
 
 The sensitivity result is decisive for interpretation. The focused
-treatment-outcome adjacency is robust to the tested bin count but not to the
-CI threshold. At \(\alpha=0.01\), none of the three local profiles retains it;
-at \(\alpha=0.05\), the paper profiles retain a bidirected mark.  The robust
+treatment-outcome adjacency is robust to the tested bin count and FCI+ degree
+bound but not to the CI threshold. At \(\alpha=0.01\), none of the local
+configurations retains it; at \(\alpha=0.05\), the paper profiles retain a
+bidirected mark for every tested \(k\).  The robust
 endpoint is
 \(K\_Class\leftarrow\!\circ Grade3\_Achievement\) with three bins and
 \(K\_Class\circ\!\!-\!\!\circ Grade3\_Achievement\) with four bins.
@@ -2825,12 +2827,13 @@ order dependence by stable deletion and conservative orientation. The report
 therefore uses it for applied interpretation, while still giving more
 evidential weight to skeleton consensus than to isolated endpoint marks.
 
-\subsection{Coarse PAG bootstrap}
+\subsection{PAG adjacency bootstrap}
 
-Twelve graph bootstrap replicates are computationally useful but statistically
-coarse. Frequencies such as 83\% and 92\% correspond to ten and eleven
-successful replicates. They should be viewed as stability indicators, not
-precise probabilities that an edge is true.
+One hundred school-cluster graph bootstrap replicates improve the earlier
+12-run pilot to one-percentage-point frequency resolution. They remain
+adjacency-stability diagnostics rather than confidence intervals or posterior
+probabilities that an edge is true; endpoint-compatible uncertainty and Monte
+Carlo error are not estimated.
 
 \subsection{Software maturity and validation coverage}
 
@@ -2850,6 +2853,25 @@ timing boundaries.  The robust row also intentionally uses a different alpha
 policy.  External agreement is therefore differential evidence, while
 cross-language wall time is descriptive only.  Tetrad capability statements
 were documentation checked and not executed.
+
+\section{Exact-oracle node-count scaling audit}
+
+An additional deterministic audit runs the two local paper profiles on a
+directed chain and on the Figure~4(b) D-SEP core augmented with isolated
+observed variables, at 5, 10, 20, 40, and 80 nodes. Every recorded run recovers
+the exact target skeleton. On the five-node D-SEP core, self-\FCIplus{} uses 62
+CI queries versus 101 for standard FCI. That advantage does not persist after
+irrelevant isolated variables are added: at 80 nodes the recorded counts are
+5,162 versus 3,251. On the 80-node chain, which has no difficult D-SEP link,
+the counts are 24,338 versus 12,638.
+
+This is not a contradiction of the fixed-\(k\) polynomial theorem. The theorem
+is a worst-case upper bound, not a pairwise dominance result, and augmentation
+has a real cost when targeted D-SEP search offers little benefit. The scaling
+audit therefore sharpens the performance claim: paper FCI+ reduces queries on
+the canonical hard link and all three primary STAR panels, but it is not
+uniformly faster. Full rows and timing metadata are stored in
+\path{reports/data/scaling_benchmark.csv}.
 
 \section{Substantive limitations}
 
@@ -2937,14 +2959,15 @@ independence constraints, uncertainty, and modelling sensitivity.
         effects, and model grade-3 observation explicitly.
   \item Develop cluster-aware or multilevel CI tests for students nested within
         classrooms and schools.
-  \item Increase PAG bootstrap repetitions and report Monte Carlo uncertainty
-        for stability frequencies.
+  \item Report Monte Carlo uncertainty for the 100-replicate PAG stability
+        frequencies and extend stability summaries to endpoint compatibility.
   \item Run separate reading and mathematics analyses and examine prespecified
         treatment-effect heterogeneity.
   \item Evaluate defensible temporal background knowledge separately from the
         data-only robust profile, without silently forcing preferred arrows.
-  \item Compare alternative CI tests and \(k=2,3,4\) \FCIplus{} profiles while
-        diagnosing which edges depend on the sparsity bound.
+  \item Compare alternative mixed-data CI tests; the completed \(k=2,3,4\)
+        grid should remain a bounded sensitivity audit rather than a claim
+        about the unknown true degree.
   \item Add an independent exhaustive MAG-equivalence oracle for target-PAG
         derivation and extend stability reporting to endpoint compatibility.
 \end{enumerate}
@@ -2990,6 +3013,12 @@ Deterministic generator for the Figure~4(b) oracle and seeded SEM evidence. \\
 Frozen target hash, run settings, metrics, query counts, separator provenance,
 and execution outcomes for Tables~\ref{tab:figure4-results}
 and~\ref{tab:finite-sample}. \\
+\path{reports/generate_scaling_benchmark.py} &
+Deterministic 5--80 node exact-oracle scaling audit. \\
+\path{reports/data/scaling_benchmark.csv} &
+Query counts, timings, and exact-skeleton checks for both scaling families. \\
+\path{ADVISOR_MEETING_QA_README.md} &
+Meeting-ready scope, methods, interpretation, limitation, and next-step QA. \\
 \bottomrule
 \end{longtable}
 
@@ -3000,7 +3029,7 @@ and~\ref{tab:finite-sample}. \\
 PYTHONPATH=src python -m \
   case_studies.tennessee_star.run_case_study \
   --benchmark-repeats 3 \
-  --bootstraps 12 \
+  --bootstraps 100 \
   --descriptive-bootstraps 1000 \
   --n-jobs 4
 \end{lstlisting}
@@ -3012,7 +3041,7 @@ PYTHONPATH=src python -m \
   --refresh-pcalg \
   --rscript /path/to/Rscript \
   --benchmark-repeats 3 \
-  --bootstraps 12 \
+  --bootstraps 100 \
   --descriptive-bootstraps 1000 \
   --n-jobs 4
 \end{lstlisting}
@@ -3090,25 +3119,28 @@ Focused & R-\FCIplus{} & 2,976 & 10 & 256 & 0.884 & None \\
 
 \begin{table}[H]
 \centering
-\caption{Presence of the class-assignment/grade-3 adjacency.}
-\begin{tabular}{rrlp{0.32\textwidth}r}
+\caption{Presence of the class-assignment/grade-3 adjacency across the full
+alpha, binning, and FCI+ degree-bound grid. Query ranges cover \(k=2,3,4\).}
+\begin{tabular}{rrllp{0.27\textwidth}r}
 \toprule
-Bins & \(\alpha\) & Algorithm & Adjacent? & CI tests \\
+Bins & \(\alpha\) & Algorithm & \(k\) & Adjacent? & CI tests \\
 \midrule
-3 & 0.01 & FCI & No & 225 \\
-3 & 0.01 & \FCIplus{} paper & No & 150 \\
-3 & 0.01 & \FCIplus{} robust & No & 233 \\
-3 & 0.05 & FCI & Yes, \(K\_\mathrm{Class}\leftrightarrow G3\) & 305 \\
-3 & 0.05 & \FCIplus{} paper & Yes, \(K\_\mathrm{Class}\leftrightarrow G3\) & 214 \\
-3 & 0.05 & \FCIplus{} robust &
-Yes, \(K\_\mathrm{Class}\leftarrow\!\circ G3\) & 360 \\
-4 & 0.01 & FCI & No & 252 \\
-4 & 0.01 & \FCIplus{} paper & No & 163 \\
-4 & 0.01 & \FCIplus{} robust & No & 253 \\
-4 & 0.05 & FCI & Yes, \(K\_\mathrm{Class}\leftrightarrow G3\) & 291 \\
-4 & 0.05 & \FCIplus{} paper & Yes, \(K\_\mathrm{Class}\leftrightarrow G3\) & 185 \\
-4 & 0.05 & \FCIplus{} robust &
-Yes, \(K\_\mathrm{Class}\circ\!-\!\circ G3\) & 334 \\
+3 & 0.01 & FCI & -- & No & 225 \\
+3 & 0.01 & \FCIplus{} paper & 2--4 & No & 146--150 \\
+3 & 0.01 & \FCIplus{} robust & 2--4 & No & 217--234 \\
+3 & 0.05 & FCI & -- & Yes, \(K\_\mathrm{Class}\leftrightarrow G3\) & 305 \\
+3 & 0.05 & \FCIplus{} paper & 2--4 &
+Yes, \(K\_\mathrm{Class}\leftrightarrow G3\) & 203--214 \\
+3 & 0.05 & \FCIplus{} robust & 2--4 &
+Yes, \(K\_\mathrm{Class}\leftarrow\!\circ G3\) & 316--367 \\
+4 & 0.01 & FCI & -- & No & 252 \\
+4 & 0.01 & \FCIplus{} paper & 2--4 & No & 152--163 \\
+4 & 0.01 & \FCIplus{} robust & 2--4 & No & 223--257 \\
+4 & 0.05 & FCI & -- & Yes, \(K\_\mathrm{Class}\leftrightarrow G3\) & 291 \\
+4 & 0.05 & \FCIplus{} paper & 2--4 &
+Yes, \(K\_\mathrm{Class}\leftrightarrow G3\) & 174--185 \\
+4 & 0.05 & \FCIplus{} robust & 2--4 &
+Yes, \(K\_\mathrm{Class}\circ\!-\!\circ G3\) & 290--341 \\
 \bottomrule
 \end{tabular}
 \end{table}

@@ -24,24 +24,24 @@
   "comparisons": {
     "attrition": {
       "fci_plus_ci_test_ratio": 0.46510263929618767,
-      "fci_plus_runtime_ratio": 0.32891153543021356,
+      "fci_plus_runtime_ratio": 0.321737996280853,
       "skeleton_jaccard": 0.8235294117647058
     },
     "focused_treatment": {
       "fci_plus_ci_test_ratio": 0.6357388316151202,
-      "fci_plus_runtime_ratio": 0.49313895142407793,
+      "fci_plus_runtime_ratio": 0.4831777636204496,
       "skeleton_jaccard": 1.0
     },
     "longitudinal": {
       "fci_plus_ci_test_ratio": 0.3489583333333333,
-      "fci_plus_runtime_ratio": 0.15678034835003016,
+      "fci_plus_runtime_ratio": 0.15534923867589812,
       "skeleton_jaccard": 0.7692307692307693
     }
   },
   "configuration": {
     "alpha": 0.05,
     "ci_test": "G-square on discretized variables",
-    "cluster_bootstraps": 12,
+    "cluster_bootstraps": 100,
     "external_reference": {
       "algorithm": "pcalg_fci_plus",
       "alpha": 0.05,
@@ -188,7 +188,7 @@
       "robust_minimum_skeleton_jaccard": 1.0,
       "robust_target_edge": "K_Achievement o-o Grade3_Observed",
       "robust_temporal_flags": 0,
-      "runtime_ratio": 1.5868241149636702,
+      "runtime_ratio": 1.4357491924756876,
       "skeleton_jaccard": 1.0
     },
     "focused_treatment": {
@@ -201,7 +201,7 @@
       "robust_minimum_skeleton_jaccard": 1.0,
       "robust_target_edge": "K_Class o-o Grade3_Achievement",
       "robust_temporal_flags": 0,
-      "runtime_ratio": 1.552181638198963,
+      "runtime_ratio": 1.5632515542369891,
       "skeleton_jaccard": 1.0
     },
     "longitudinal": {
@@ -214,7 +214,7 @@
       "robust_minimum_skeleton_jaccard": 1.0,
       "robust_target_edge": "K_Achievement o-o Grade3_Achievement",
       "robust_temporal_flags": 0,
-      "runtime_ratio": 1.669161349136971,
+      "runtime_ratio": 1.6434314124794327,
       "skeleton_jaccard": 0.9230769230769231
     }
   },
@@ -227,22 +227,22 @@
       ],
       "bootstrap_adjacencies": [
         {
-          "frequency": 0.5833333333333334,
+          "frequency": 0.46,
           "x": "Entry_Age",
           "y": "Ethnicity"
         },
         {
-          "frequency": 0.5,
+          "frequency": 0.36,
           "x": "Entry_Age",
           "y": "Free_Lunch"
         },
         {
-          "frequency": 0.5,
+          "frequency": 0.51,
           "x": "Entry_Age",
           "y": "Gender"
         },
         {
-          "frequency": 0.8333333333333334,
+          "frequency": 0.8,
           "x": "Entry_Age",
           "y": "Grade3_Observed"
         },
@@ -252,12 +252,17 @@
           "y": "K_Achievement"
         },
         {
-          "frequency": 0.5833333333333334,
+          "frequency": 0.11,
+          "x": "Entry_Age",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 0.56,
           "x": "Entry_Age",
           "y": "School_Context"
         },
         {
-          "frequency": 0.6666666666666666,
+          "frequency": 0.57,
           "x": "Entry_Age",
           "y": "Teacher_Experience"
         },
@@ -267,22 +272,22 @@
           "y": "Free_Lunch"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.15,
           "x": "Ethnicity",
           "y": "Gender"
         },
         {
-          "frequency": 0.5,
+          "frequency": 0.53,
           "x": "Ethnicity",
           "y": "Grade3_Observed"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.95,
           "x": "Ethnicity",
           "y": "K_Achievement"
         },
         {
-          "frequency": 0.25,
+          "frequency": 0.15,
           "x": "Ethnicity",
           "y": "K_Class"
         },
@@ -307,7 +312,7 @@
           "y": "K_Achievement"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.16,
           "x": "Free_Lunch",
           "y": "K_Class"
         },
@@ -317,12 +322,12 @@
           "y": "School_Context"
         },
         {
-          "frequency": 0.9166666666666666,
+          "frequency": 0.96,
           "x": "Free_Lunch",
           "y": "Teacher_Experience"
         },
         {
-          "frequency": 0.3333333333333333,
+          "frequency": 0.4,
           "x": "Gender",
           "y": "Grade3_Observed"
         },
@@ -332,7 +337,7 @@
           "y": "K_Achievement"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.23,
           "x": "Gender",
           "y": "Teacher_Experience"
         },
@@ -342,7 +347,7 @@
           "y": "K_Achievement"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.12,
           "x": "Grade3_Observed",
           "y": "K_Class"
         },
@@ -352,12 +357,12 @@
           "y": "School_Context"
         },
         {
-          "frequency": 0.5,
+          "frequency": 0.44,
           "x": "Grade3_Observed",
           "y": "Teacher_Experience"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.98,
           "x": "K_Achievement",
           "y": "K_Class"
         },
@@ -372,7 +377,7 @@
           "y": "Teacher_Experience"
         },
         {
-          "frequency": 0.5833333333333334,
+          "frequency": 0.62,
           "x": "K_Class",
           "y": "School_Context"
         },
@@ -390,11 +395,11 @@
       "ci_tests": 1705,
       "edges": 14,
       "elapsed_runs_seconds": [
-        5.43688770800145,
-        5.435614792000706,
-        5.442302874998859
+        5.652932250000049,
+        5.7061350829999355,
+        5.656390125000144
       ],
-      "median_elapsed_seconds": 5.43688770800145,
+      "median_elapsed_seconds": 5.656390125000144,
       "node_names": [
         "K_Class",
         "Gender",
@@ -419,7 +424,7 @@
           {
             "ci_tests": 1705,
             "edges": 14,
-            "elapsed_seconds": 5.43688770800145,
+            "elapsed_seconds": 5.652932250000049,
             "exact_pag_match": true,
             "first_node": "K_Class",
             "ordering": "cyclic_shift_0",
@@ -432,7 +437,7 @@
           {
             "ci_tests": 1733,
             "edges": 15,
-            "elapsed_seconds": 5.715025874997082,
+            "elapsed_seconds": 5.838277542000469,
             "exact_pag_match": false,
             "first_node": "Gender",
             "ordering": "cyclic_shift_1",
@@ -445,7 +450,7 @@
           {
             "ci_tests": 2433,
             "edges": 11,
-            "elapsed_seconds": 9.485490457998822,
+            "elapsed_seconds": 9.615628624999772,
             "exact_pag_match": false,
             "first_node": "Ethnicity",
             "ordering": "cyclic_shift_2",
@@ -456,7 +461,7 @@
           {
             "ci_tests": 2531,
             "edges": 11,
-            "elapsed_seconds": 9.829554332998669,
+            "elapsed_seconds": 9.9557988330007,
             "exact_pag_match": false,
             "first_node": "Free_Lunch",
             "ordering": "cyclic_shift_3",
@@ -467,7 +472,7 @@
           {
             "ci_tests": 2520,
             "edges": 11,
-            "elapsed_seconds": 9.749277416998666,
+            "elapsed_seconds": 9.992535083000803,
             "exact_pag_match": false,
             "first_node": "School_Context",
             "ordering": "cyclic_shift_4",
@@ -480,7 +485,7 @@
           {
             "ci_tests": 2406,
             "edges": 11,
-            "elapsed_seconds": 9.35167462499885,
+            "elapsed_seconds": 9.466222125000058,
             "exact_pag_match": false,
             "first_node": "Entry_Age",
             "ordering": "cyclic_shift_5",
@@ -493,7 +498,7 @@
           {
             "ci_tests": 2442,
             "edges": 11,
-            "elapsed_seconds": 9.519863708002958,
+            "elapsed_seconds": 9.65960562500004,
             "exact_pag_match": false,
             "first_node": "Teacher_Experience",
             "ordering": "cyclic_shift_6",
@@ -504,7 +509,7 @@
           {
             "ci_tests": 1751,
             "edges": 14,
-            "elapsed_seconds": 5.777930207997997,
+            "elapsed_seconds": 5.846952999999303,
             "exact_pag_match": false,
             "first_node": "K_Achievement",
             "ordering": "cyclic_shift_7",
@@ -517,7 +522,7 @@
           {
             "ci_tests": 1757,
             "edges": 14,
-            "elapsed_seconds": 5.8224152920010965,
+            "elapsed_seconds": 5.872757791999902,
             "exact_pag_match": true,
             "first_node": "Grade3_Observed",
             "ordering": "cyclic_shift_8",
@@ -660,22 +665,22 @@
       ],
       "bootstrap_adjacencies": [
         {
-          "frequency": 0.4166666666666667,
+          "frequency": 0.52,
           "x": "Entry_Age",
           "y": "Ethnicity"
         },
         {
-          "frequency": 0.6666666666666666,
+          "frequency": 0.49,
           "x": "Entry_Age",
           "y": "Free_Lunch"
         },
         {
-          "frequency": 0.5,
+          "frequency": 0.53,
           "x": "Entry_Age",
           "y": "Gender"
         },
         {
-          "frequency": 0.8333333333333334,
+          "frequency": 0.76,
           "x": "Entry_Age",
           "y": "Grade3_Observed"
         },
@@ -685,17 +690,17 @@
           "y": "K_Achievement"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.19,
           "x": "Entry_Age",
           "y": "K_Class"
         },
         {
-          "frequency": 0.6666666666666666,
+          "frequency": 0.68,
           "x": "Entry_Age",
           "y": "School_Context"
         },
         {
-          "frequency": 0.75,
+          "frequency": 0.68,
           "x": "Entry_Age",
           "y": "Teacher_Experience"
         },
@@ -705,22 +710,22 @@
           "y": "Free_Lunch"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.18,
           "x": "Ethnicity",
           "y": "Gender"
         },
         {
-          "frequency": 0.4166666666666667,
+          "frequency": 0.56,
           "x": "Ethnicity",
           "y": "Grade3_Observed"
         },
         {
-          "frequency": 0.9166666666666666,
+          "frequency": 0.98,
           "x": "Ethnicity",
           "y": "K_Achievement"
         },
         {
-          "frequency": 0.3333333333333333,
+          "frequency": 0.17,
           "x": "Ethnicity",
           "y": "K_Class"
         },
@@ -745,7 +750,7 @@
           "y": "K_Achievement"
         },
         {
-          "frequency": 0.25,
+          "frequency": 0.16,
           "x": "Free_Lunch",
           "y": "K_Class"
         },
@@ -755,12 +760,12 @@
           "y": "School_Context"
         },
         {
-          "frequency": 0.9166666666666666,
+          "frequency": 0.97,
           "x": "Free_Lunch",
           "y": "Teacher_Experience"
         },
         {
-          "frequency": 0.5833333333333334,
+          "frequency": 0.48,
           "x": "Gender",
           "y": "Grade3_Observed"
         },
@@ -770,12 +775,12 @@
           "y": "K_Achievement"
         },
         {
-          "frequency": 0.08333333333333333,
+          "frequency": 0.02,
           "x": "Gender",
           "y": "K_Class"
         },
         {
-          "frequency": 0.25,
+          "frequency": 0.21,
           "x": "Gender",
           "y": "Teacher_Experience"
         },
@@ -785,7 +790,7 @@
           "y": "K_Achievement"
         },
         {
-          "frequency": 0.08333333333333333,
+          "frequency": 0.16,
           "x": "Grade3_Observed",
           "y": "K_Class"
         },
@@ -795,12 +800,12 @@
           "y": "School_Context"
         },
         {
-          "frequency": 0.3333333333333333,
+          "frequency": 0.45,
           "x": "Grade3_Observed",
           "y": "Teacher_Experience"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.97,
           "x": "K_Achievement",
           "y": "K_Class"
         },
@@ -810,17 +815,17 @@
           "y": "School_Context"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.99,
           "x": "K_Achievement",
           "y": "Teacher_Experience"
         },
         {
-          "frequency": 0.5833333333333334,
+          "frequency": 0.7,
           "x": "K_Class",
           "y": "School_Context"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.99,
           "x": "K_Class",
           "y": "Teacher_Experience"
         },
@@ -833,11 +838,11 @@
       "ci_tests": 793,
       "edges": 17,
       "elapsed_runs_seconds": [
-        1.7981680409975525,
-        1.7856185829987226,
-        1.7882550840004114
+        1.8198756250003498,
+        1.8528756249997969,
+        1.8095682089997354
       ],
-      "median_elapsed_seconds": 1.7882550840004114,
+      "median_elapsed_seconds": 1.8198756250003498,
       "node_names": [
         "K_Class",
         "Gender",
@@ -862,7 +867,7 @@
           {
             "ci_tests": 793,
             "edges": 17,
-            "elapsed_seconds": 1.7981680409975525,
+            "elapsed_seconds": 1.8198756250003498,
             "exact_pag_match": true,
             "first_node": "K_Class",
             "ordering": "cyclic_shift_0",
@@ -873,7 +878,7 @@
           {
             "ci_tests": 791,
             "edges": 17,
-            "elapsed_seconds": 1.7772994170009042,
+            "elapsed_seconds": 1.8152386250003474,
             "exact_pag_match": true,
             "first_node": "Gender",
             "ordering": "cyclic_shift_1",
@@ -884,7 +889,7 @@
           {
             "ci_tests": 801,
             "edges": 17,
-            "elapsed_seconds": 1.7907174579995626,
+            "elapsed_seconds": 1.8282497500003956,
             "exact_pag_match": true,
             "first_node": "Ethnicity",
             "ordering": "cyclic_shift_2",
@@ -895,7 +900,7 @@
           {
             "ci_tests": 807,
             "edges": 17,
-            "elapsed_seconds": 1.7986226659995737,
+            "elapsed_seconds": 1.8306807919998391,
             "exact_pag_match": true,
             "first_node": "Free_Lunch",
             "ordering": "cyclic_shift_3",
@@ -906,7 +911,7 @@
           {
             "ci_tests": 797,
             "edges": 17,
-            "elapsed_seconds": 1.7753410000004806,
+            "elapsed_seconds": 1.8017440000003262,
             "exact_pag_match": true,
             "first_node": "School_Context",
             "ordering": "cyclic_shift_4",
@@ -917,7 +922,7 @@
           {
             "ci_tests": 793,
             "edges": 17,
-            "elapsed_seconds": 1.7737468749983236,
+            "elapsed_seconds": 1.8007214170002044,
             "exact_pag_match": true,
             "first_node": "Entry_Age",
             "ordering": "cyclic_shift_5",
@@ -928,7 +933,7 @@
           {
             "ci_tests": 801,
             "edges": 17,
-            "elapsed_seconds": 1.7963909579993924,
+            "elapsed_seconds": 1.8329461670000455,
             "exact_pag_match": true,
             "first_node": "Teacher_Experience",
             "ordering": "cyclic_shift_6",
@@ -939,7 +944,7 @@
           {
             "ci_tests": 796,
             "edges": 17,
-            "elapsed_seconds": 1.7992349159976584,
+            "elapsed_seconds": 1.8380209999995714,
             "exact_pag_match": true,
             "first_node": "K_Achievement",
             "ordering": "cyclic_shift_7",
@@ -950,7 +955,7 @@
           {
             "ci_tests": 801,
             "edges": 17,
-            "elapsed_seconds": 1.8011603330014623,
+            "elapsed_seconds": 1.8425707090000287,
             "exact_pag_match": true,
             "first_node": "Grade3_Observed",
             "ordering": "cyclic_shift_8",
@@ -1113,67 +1118,67 @@
       ],
       "bootstrap_adjacencies": [
         {
-          "frequency": 0.75,
+          "frequency": 0.48,
           "x": "Entry_Age",
           "y": "Ethnicity"
         },
         {
+          "frequency": 0.43,
+          "x": "Entry_Age",
+          "y": "Free_Lunch"
+        },
+        {
+          "frequency": 0.63,
+          "x": "Entry_Age",
+          "y": "Gender"
+        },
+        {
+          "frequency": 0.79,
+          "x": "Entry_Age",
+          "y": "Grade3_Observed"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Entry_Age",
+          "y": "K_Achievement"
+        },
+        {
+          "frequency": 0.08,
+          "x": "Entry_Age",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 0.68,
+          "x": "Entry_Age",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 0.64,
+          "x": "Entry_Age",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 1.0,
+          "x": "Ethnicity",
+          "y": "Free_Lunch"
+        },
+        {
+          "frequency": 0.12,
+          "x": "Ethnicity",
+          "y": "Gender"
+        },
+        {
           "frequency": 0.5,
-          "x": "Entry_Age",
-          "y": "Free_Lunch"
-        },
-        {
-          "frequency": 0.6666666666666666,
-          "x": "Entry_Age",
-          "y": "Gender"
-        },
-        {
-          "frequency": 0.9166666666666666,
-          "x": "Entry_Age",
-          "y": "Grade3_Observed"
-        },
-        {
-          "frequency": 1.0,
-          "x": "Entry_Age",
-          "y": "K_Achievement"
-        },
-        {
-          "frequency": 0.08333333333333333,
-          "x": "Entry_Age",
-          "y": "K_Class"
-        },
-        {
-          "frequency": 0.6666666666666666,
-          "x": "Entry_Age",
-          "y": "School_Context"
-        },
-        {
-          "frequency": 0.3333333333333333,
-          "x": "Entry_Age",
-          "y": "Teacher_Experience"
-        },
-        {
-          "frequency": 1.0,
-          "x": "Ethnicity",
-          "y": "Free_Lunch"
-        },
-        {
-          "frequency": 0.08333333333333333,
-          "x": "Ethnicity",
-          "y": "Gender"
-        },
-        {
-          "frequency": 0.5833333333333334,
           "x": "Ethnicity",
           "y": "Grade3_Observed"
         },
         {
-          "frequency": 0.9166666666666666,
+          "frequency": 0.97,
           "x": "Ethnicity",
           "y": "K_Achievement"
         },
         {
-          "frequency": 0.08333333333333333,
+          "frequency": 0.12,
           "x": "Ethnicity",
           "y": "K_Class"
         },
@@ -1198,7 +1203,7 @@
           "y": "K_Achievement"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.23,
           "x": "Free_Lunch",
           "y": "K_Class"
         },
@@ -1213,17 +1218,22 @@
           "y": "Teacher_Experience"
         },
         {
-          "frequency": 0.6666666666666666,
+          "frequency": 0.44,
           "x": "Gender",
           "y": "Grade3_Observed"
         },
         {
-          "frequency": 0.9166666666666666,
+          "frequency": 0.99,
           "x": "Gender",
           "y": "K_Achievement"
         },
         {
-          "frequency": 0.25,
+          "frequency": 0.03,
+          "x": "Gender",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 0.23,
           "x": "Gender",
           "y": "Teacher_Experience"
         },
@@ -1233,7 +1243,7 @@
           "y": "K_Achievement"
         },
         {
-          "frequency": 0.08333333333333333,
+          "frequency": 0.15,
           "x": "Grade3_Observed",
           "y": "K_Class"
         },
@@ -1243,12 +1253,12 @@
           "y": "School_Context"
         },
         {
-          "frequency": 0.3333333333333333,
+          "frequency": 0.4,
           "x": "Grade3_Observed",
           "y": "Teacher_Experience"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.97,
           "x": "K_Achievement",
           "y": "K_Class"
         },
@@ -1258,12 +1268,12 @@
           "y": "School_Context"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.98,
           "x": "K_Achievement",
           "y": "Teacher_Experience"
         },
         {
-          "frequency": 0.75,
+          "frequency": 0.78,
           "x": "K_Class",
           "y": "School_Context"
         },
@@ -1281,11 +1291,11 @@
       "ci_tests": 1304,
       "edges": 17,
       "elapsed_runs_seconds": [
-        2.5779048330005025,
-        2.8376462909982365,
-        2.9847247500001686
+        2.6128849590004393,
+        2.6283052079998015,
+        2.609347790999891
       ],
-      "median_elapsed_seconds": 2.8376462909982365,
+      "median_elapsed_seconds": 2.6128849590004393,
       "node_names": [
         "K_Class",
         "Gender",
@@ -1310,7 +1320,7 @@
           {
             "ci_tests": 1304,
             "edges": 17,
-            "elapsed_seconds": 2.5779048330005025,
+            "elapsed_seconds": 2.6128849590004393,
             "exact_pag_match": true,
             "first_node": "K_Class",
             "ordering": "cyclic_shift_0",
@@ -1321,7 +1331,7 @@
           {
             "ci_tests": 1304,
             "edges": 17,
-            "elapsed_seconds": 2.6444446249988687,
+            "elapsed_seconds": 2.6382512499994846,
             "exact_pag_match": true,
             "first_node": "Gender",
             "ordering": "cyclic_shift_1",
@@ -1332,7 +1342,7 @@
           {
             "ci_tests": 1304,
             "edges": 17,
-            "elapsed_seconds": 2.637402666001435,
+            "elapsed_seconds": 2.6147703749993525,
             "exact_pag_match": true,
             "first_node": "Ethnicity",
             "ordering": "cyclic_shift_2",
@@ -1343,7 +1353,7 @@
           {
             "ci_tests": 1304,
             "edges": 17,
-            "elapsed_seconds": 2.620529499999975,
+            "elapsed_seconds": 2.608403166000244,
             "exact_pag_match": true,
             "first_node": "Free_Lunch",
             "ordering": "cyclic_shift_3",
@@ -1354,7 +1364,7 @@
           {
             "ci_tests": 1304,
             "edges": 17,
-            "elapsed_seconds": 2.6125702500030457,
+            "elapsed_seconds": 2.585768833999282,
             "exact_pag_match": true,
             "first_node": "School_Context",
             "ordering": "cyclic_shift_4",
@@ -1365,7 +1375,7 @@
           {
             "ci_tests": 1304,
             "edges": 17,
-            "elapsed_seconds": 2.6267993330002355,
+            "elapsed_seconds": 2.578807500000039,
             "exact_pag_match": true,
             "first_node": "Entry_Age",
             "ordering": "cyclic_shift_5",
@@ -1376,7 +1386,7 @@
           {
             "ci_tests": 1304,
             "edges": 17,
-            "elapsed_seconds": 2.649509582999599,
+            "elapsed_seconds": 2.612936458999684,
             "exact_pag_match": true,
             "first_node": "Teacher_Experience",
             "ordering": "cyclic_shift_6",
@@ -1387,7 +1397,7 @@
           {
             "ci_tests": 1304,
             "edges": 17,
-            "elapsed_seconds": 2.6463204589999805,
+            "elapsed_seconds": 2.6140799170007085,
             "exact_pag_match": true,
             "first_node": "K_Achievement",
             "ordering": "cyclic_shift_7",
@@ -1398,7 +1408,7 @@
           {
             "ci_tests": 1304,
             "edges": 17,
-            "elapsed_seconds": 2.6495016670014593,
+            "elapsed_seconds": 2.632963582999764,
             "exact_pag_match": true,
             "first_node": "Grade3_Observed",
             "ordering": "cyclic_shift_8",
@@ -1560,17 +1570,22 @@
       ],
       "bootstrap_adjacencies": [
         {
-          "frequency": 0.5,
+          "frequency": 0.51,
           "x": "Entry_Age",
           "y": "Ethnicity"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.03,
+          "x": "Entry_Age",
+          "y": "Free_Lunch"
+        },
+        {
+          "frequency": 0.17,
           "x": "Entry_Age",
           "y": "Gender"
         },
         {
-          "frequency": 0.4166666666666667,
+          "frequency": 0.3,
           "x": "Entry_Age",
           "y": "Grade3_Achievement"
         },
@@ -1580,14 +1595,19 @@
           "y": "K_Achievement"
         },
         {
-          "frequency": 0.08333333333333333,
+          "frequency": 0.16,
           "x": "Entry_Age",
           "y": "K_Class"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.29,
           "x": "Entry_Age",
           "y": "School_Context"
+        },
+        {
+          "frequency": 0.27,
+          "x": "Entry_Age",
+          "y": "Teacher_Experience"
         },
         {
           "frequency": 1.0,
@@ -1595,17 +1615,22 @@
           "y": "Free_Lunch"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.01,
+          "x": "Ethnicity",
+          "y": "Gender"
+        },
+        {
+          "frequency": 0.97,
           "x": "Ethnicity",
           "y": "Grade3_Achievement"
         },
         {
-          "frequency": 0.8333333333333334,
+          "frequency": 0.9,
           "x": "Ethnicity",
           "y": "K_Achievement"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.18,
           "x": "Ethnicity",
           "y": "K_Class"
         },
@@ -1615,9 +1640,14 @@
           "y": "School_Context"
         },
         {
-          "frequency": 0.9166666666666666,
+          "frequency": 0.95,
           "x": "Ethnicity",
           "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 0.02,
+          "x": "Free_Lunch",
+          "y": "Gender"
         },
         {
           "frequency": 1.0,
@@ -1630,29 +1660,44 @@
           "y": "K_Achievement"
         },
         {
+          "frequency": 0.06,
+          "x": "Free_Lunch",
+          "y": "K_Class"
+        },
+        {
           "frequency": 1.0,
           "x": "Free_Lunch",
           "y": "School_Context"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.88,
           "x": "Free_Lunch",
           "y": "Teacher_Experience"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.24,
           "x": "Gender",
           "y": "Grade3_Achievement"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.23,
           "x": "Gender",
           "y": "K_Achievement"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.1,
           "x": "Gender",
           "y": "K_Class"
+        },
+        {
+          "frequency": 0.04,
+          "x": "Gender",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 0.03,
+          "x": "Gender",
+          "y": "Teacher_Experience"
         },
         {
           "frequency": 1.0,
@@ -1660,37 +1705,37 @@
           "y": "K_Achievement"
         },
         {
-          "frequency": 0.5,
+          "frequency": 0.71,
           "x": "Grade3_Achievement",
           "y": "K_Class"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.93,
           "x": "Grade3_Achievement",
           "y": "School_Context"
         },
         {
-          "frequency": 0.8333333333333334,
+          "frequency": 0.81,
           "x": "Grade3_Achievement",
           "y": "Teacher_Experience"
         },
         {
-          "frequency": 0.75,
+          "frequency": 0.88,
           "x": "K_Achievement",
           "y": "K_Class"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.99,
           "x": "K_Achievement",
           "y": "School_Context"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.97,
           "x": "K_Achievement",
           "y": "Teacher_Experience"
         },
         {
-          "frequency": 0.5833333333333334,
+          "frequency": 0.56,
           "x": "K_Class",
           "y": "School_Context"
         },
@@ -1708,11 +1753,11 @@
       "ci_tests": 960,
       "edges": 10,
       "elapsed_runs_seconds": [
-        2.1471087919999263,
-        2.1484405000010156,
-        2.150436957999773
+        2.135252125000079,
+        2.149338916000488,
+        2.1199074590003875
       ],
-      "median_elapsed_seconds": 2.1484405000010156,
+      "median_elapsed_seconds": 2.135252125000079,
       "node_names": [
         "K_Class",
         "Gender",
@@ -1737,7 +1782,7 @@
           {
             "ci_tests": 960,
             "edges": 10,
-            "elapsed_seconds": 2.1471087919999263,
+            "elapsed_seconds": 2.135252125000079,
             "exact_pag_match": true,
             "first_node": "K_Class",
             "ordering": "cyclic_shift_0",
@@ -1748,7 +1793,7 @@
           {
             "ci_tests": 962,
             "edges": 10,
-            "elapsed_seconds": 2.1260984580003424,
+            "elapsed_seconds": 2.1164347919993816,
             "exact_pag_match": true,
             "first_node": "Gender",
             "ordering": "cyclic_shift_1",
@@ -1759,7 +1804,7 @@
           {
             "ci_tests": 967,
             "edges": 10,
-            "elapsed_seconds": 2.1351886250013195,
+            "elapsed_seconds": 2.1205951250003636,
             "exact_pag_match": true,
             "first_node": "Ethnicity",
             "ordering": "cyclic_shift_2",
@@ -1770,7 +1815,7 @@
           {
             "ci_tests": 966,
             "edges": 10,
-            "elapsed_seconds": 2.1237145830018562,
+            "elapsed_seconds": 2.107152292000137,
             "exact_pag_match": true,
             "first_node": "Free_Lunch",
             "ordering": "cyclic_shift_3",
@@ -1781,7 +1826,7 @@
           {
             "ci_tests": 917,
             "edges": 10,
-            "elapsed_seconds": 2.036226958000043,
+            "elapsed_seconds": 2.028894291999677,
             "exact_pag_match": true,
             "first_node": "School_Context",
             "ordering": "cyclic_shift_4",
@@ -1792,7 +1837,7 @@
           {
             "ci_tests": 919,
             "edges": 10,
-            "elapsed_seconds": 2.062171749999834,
+            "elapsed_seconds": 2.048319042000003,
             "exact_pag_match": false,
             "first_node": "Entry_Age",
             "ordering": "cyclic_shift_5",
@@ -1803,7 +1848,7 @@
           {
             "ci_tests": 911,
             "edges": 10,
-            "elapsed_seconds": 2.058476709000388,
+            "elapsed_seconds": 2.0405506669994793,
             "exact_pag_match": true,
             "first_node": "Teacher_Experience",
             "ordering": "cyclic_shift_6",
@@ -1814,7 +1859,7 @@
           {
             "ci_tests": 947,
             "edges": 10,
-            "elapsed_seconds": 2.1141807499989227,
+            "elapsed_seconds": 2.103926957999647,
             "exact_pag_match": true,
             "first_node": "K_Achievement",
             "ordering": "cyclic_shift_7",
@@ -1825,7 +1870,7 @@
           {
             "ci_tests": 972,
             "edges": 10,
-            "elapsed_seconds": 2.153691041003185,
+            "elapsed_seconds": 2.134909666000567,
             "exact_pag_match": true,
             "first_node": "Grade3_Achievement",
             "ordering": "cyclic_shift_8",
@@ -1932,37 +1977,42 @@
       ],
       "bootstrap_adjacencies": [
         {
-          "frequency": 0.3333333333333333,
+          "frequency": 0.47,
           "x": "Entry_Age",
           "y": "Ethnicity"
         },
         {
-          "frequency": 0.25,
+          "frequency": 0.06,
           "x": "Entry_Age",
           "y": "Free_Lunch"
         },
         {
-          "frequency": 0.25,
+          "frequency": 0.2,
+          "x": "Entry_Age",
+          "y": "Gender"
+        },
+        {
+          "frequency": 0.34,
           "x": "Entry_Age",
           "y": "Grade3_Achievement"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.99,
           "x": "Entry_Age",
           "y": "K_Achievement"
         },
         {
-          "frequency": 0.08333333333333333,
+          "frequency": 0.09,
           "x": "Entry_Age",
           "y": "K_Class"
         },
         {
-          "frequency": 0.4166666666666667,
+          "frequency": 0.28,
           "x": "Entry_Age",
           "y": "School_Context"
         },
         {
-          "frequency": 0.3333333333333333,
+          "frequency": 0.25,
           "x": "Entry_Age",
           "y": "Teacher_Experience"
         },
@@ -1972,14 +2022,24 @@
           "y": "Free_Lunch"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.02,
+          "x": "Ethnicity",
+          "y": "Gender"
+        },
+        {
+          "frequency": 0.99,
           "x": "Ethnicity",
           "y": "Grade3_Achievement"
         },
         {
-          "frequency": 0.75,
+          "frequency": 0.8,
           "x": "Ethnicity",
           "y": "K_Achievement"
+        },
+        {
+          "frequency": 0.15,
+          "x": "Ethnicity",
+          "y": "K_Class"
         },
         {
           "frequency": 1.0,
@@ -1992,6 +2052,11 @@
           "y": "Teacher_Experience"
         },
         {
+          "frequency": 0.01,
+          "x": "Free_Lunch",
+          "y": "Gender"
+        },
+        {
           "frequency": 1.0,
           "x": "Free_Lunch",
           "y": "Grade3_Achievement"
@@ -2002,12 +2067,17 @@
           "y": "K_Achievement"
         },
         {
+          "frequency": 0.09,
+          "x": "Free_Lunch",
+          "y": "K_Class"
+        },
+        {
           "frequency": 1.0,
           "x": "Free_Lunch",
           "y": "School_Context"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.92,
           "x": "Free_Lunch",
           "y": "Teacher_Experience"
         },
@@ -2017,14 +2087,24 @@
           "y": "Grade3_Achievement"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.23,
           "x": "Gender",
           "y": "K_Achievement"
         },
         {
-          "frequency": 0.3333333333333333,
+          "frequency": 0.12,
           "x": "Gender",
           "y": "K_Class"
+        },
+        {
+          "frequency": 0.08,
+          "x": "Gender",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 0.02,
+          "x": "Gender",
+          "y": "Teacher_Experience"
         },
         {
           "frequency": 1.0,
@@ -2032,37 +2112,37 @@
           "y": "K_Achievement"
         },
         {
-          "frequency": 0.6666666666666666,
+          "frequency": 0.79,
           "x": "Grade3_Achievement",
           "y": "K_Class"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.93,
           "x": "Grade3_Achievement",
           "y": "School_Context"
         },
         {
-          "frequency": 0.9166666666666666,
+          "frequency": 0.86,
           "x": "Grade3_Achievement",
           "y": "Teacher_Experience"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.96,
           "x": "K_Achievement",
           "y": "K_Class"
         },
         {
-          "frequency": 0.9166666666666666,
+          "frequency": 0.97,
           "x": "K_Achievement",
           "y": "School_Context"
         },
         {
-          "frequency": 0.9166666666666666,
+          "frequency": 0.95,
           "x": "K_Achievement",
           "y": "Teacher_Experience"
         },
         {
-          "frequency": 0.5833333333333334,
+          "frequency": 0.63,
           "x": "K_Class",
           "y": "School_Context"
         },
@@ -2080,11 +2160,11 @@
       "ci_tests": 335,
       "edges": 13,
       "elapsed_runs_seconds": [
-        0.3378745829977561,
-        0.33677904199794284,
-        0.3368332499994722
+        0.3275957500000004,
+        0.33214104199942085,
+        0.33170979199985595
       ],
-      "median_elapsed_seconds": 0.3368332499994722,
+      "median_elapsed_seconds": 0.33170979199985595,
       "node_names": [
         "K_Class",
         "Gender",
@@ -2109,7 +2189,7 @@
           {
             "ci_tests": 335,
             "edges": 13,
-            "elapsed_seconds": 0.3378745829977561,
+            "elapsed_seconds": 0.3275957500000004,
             "exact_pag_match": true,
             "first_node": "K_Class",
             "ordering": "cyclic_shift_0",
@@ -2122,7 +2202,7 @@
           {
             "ci_tests": 342,
             "edges": 13,
-            "elapsed_seconds": 0.3480346249998547,
+            "elapsed_seconds": 0.33483287499984726,
             "exact_pag_match": true,
             "first_node": "Gender",
             "ordering": "cyclic_shift_1",
@@ -2135,7 +2215,7 @@
           {
             "ci_tests": 347,
             "edges": 13,
-            "elapsed_seconds": 0.35245737500008545,
+            "elapsed_seconds": 0.3378782499994486,
             "exact_pag_match": true,
             "first_node": "Ethnicity",
             "ordering": "cyclic_shift_2",
@@ -2148,7 +2228,7 @@
           {
             "ci_tests": 356,
             "edges": 13,
-            "elapsed_seconds": 0.3590819579985691,
+            "elapsed_seconds": 0.3504152920004344,
             "exact_pag_match": false,
             "first_node": "Free_Lunch",
             "ordering": "cyclic_shift_3",
@@ -2159,7 +2239,7 @@
           {
             "ci_tests": 322,
             "edges": 12,
-            "elapsed_seconds": 0.30939308300003177,
+            "elapsed_seconds": 0.29683270800069295,
             "exact_pag_match": false,
             "first_node": "School_Context",
             "ordering": "cyclic_shift_4",
@@ -2170,7 +2250,7 @@
           {
             "ci_tests": 306,
             "edges": 12,
-            "elapsed_seconds": 0.2899305419996381,
+            "elapsed_seconds": 0.27902412500043283,
             "exact_pag_match": false,
             "first_node": "Entry_Age",
             "ordering": "cyclic_shift_5",
@@ -2181,7 +2261,7 @@
           {
             "ci_tests": 303,
             "edges": 12,
-            "elapsed_seconds": 0.29184662499756087,
+            "elapsed_seconds": 0.278519917000267,
             "exact_pag_match": false,
             "first_node": "Teacher_Experience",
             "ordering": "cyclic_shift_6",
@@ -2194,7 +2274,7 @@
           {
             "ci_tests": 324,
             "edges": 13,
-            "elapsed_seconds": 0.32574783300151466,
+            "elapsed_seconds": 0.31728595799995674,
             "exact_pag_match": true,
             "first_node": "K_Achievement",
             "ordering": "cyclic_shift_7",
@@ -2207,7 +2287,7 @@
           {
             "ci_tests": 339,
             "edges": 13,
-            "elapsed_seconds": 0.3460924589999195,
+            "elapsed_seconds": 0.3349212909997732,
             "exact_pag_match": true,
             "first_node": "Grade3_Achievement",
             "ordering": "cyclic_shift_8",
@@ -2342,17 +2422,22 @@
       ],
       "bootstrap_adjacencies": [
         {
-          "frequency": 0.6666666666666666,
+          "frequency": 0.51,
           "x": "Entry_Age",
           "y": "Ethnicity"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.04,
+          "x": "Entry_Age",
+          "y": "Free_Lunch"
+        },
+        {
+          "frequency": 0.17,
           "x": "Entry_Age",
           "y": "Gender"
         },
         {
-          "frequency": 0.3333333333333333,
+          "frequency": 0.25,
           "x": "Entry_Age",
           "y": "Grade3_Achievement"
         },
@@ -2362,17 +2447,17 @@
           "y": "K_Achievement"
         },
         {
-          "frequency": 0.08333333333333333,
+          "frequency": 0.1,
           "x": "Entry_Age",
           "y": "K_Class"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.3,
           "x": "Entry_Age",
           "y": "School_Context"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.31,
           "x": "Entry_Age",
           "y": "Teacher_Experience"
         },
@@ -2382,14 +2467,24 @@
           "y": "Free_Lunch"
         },
         {
+          "frequency": 0.02,
+          "x": "Ethnicity",
+          "y": "Gender"
+        },
+        {
           "frequency": 1.0,
           "x": "Ethnicity",
           "y": "Grade3_Achievement"
         },
         {
-          "frequency": 0.9166666666666666,
+          "frequency": 0.83,
           "x": "Ethnicity",
           "y": "K_Achievement"
+        },
+        {
+          "frequency": 0.13,
+          "x": "Ethnicity",
+          "y": "K_Class"
         },
         {
           "frequency": 1.0,
@@ -2397,9 +2492,14 @@
           "y": "School_Context"
         },
         {
-          "frequency": 0.9166666666666666,
+          "frequency": 0.97,
           "x": "Ethnicity",
           "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 0.04,
+          "x": "Free_Lunch",
+          "y": "Gender"
         },
         {
           "frequency": 1.0,
@@ -2407,9 +2507,14 @@
           "y": "Grade3_Achievement"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.99,
           "x": "Free_Lunch",
           "y": "K_Achievement"
+        },
+        {
+          "frequency": 0.06,
+          "x": "Free_Lunch",
+          "y": "K_Class"
         },
         {
           "frequency": 1.0,
@@ -2417,27 +2522,32 @@
           "y": "School_Context"
         },
         {
-          "frequency": 0.8333333333333334,
+          "frequency": 0.89,
           "x": "Free_Lunch",
           "y": "Teacher_Experience"
         },
         {
-          "frequency": 0.3333333333333333,
+          "frequency": 0.24,
           "x": "Gender",
           "y": "Grade3_Achievement"
         },
         {
-          "frequency": 0.4166666666666667,
+          "frequency": 0.2,
           "x": "Gender",
           "y": "K_Achievement"
         },
         {
-          "frequency": 0.25,
+          "frequency": 0.15,
           "x": "Gender",
           "y": "K_Class"
         },
         {
-          "frequency": 0.08333333333333333,
+          "frequency": 0.09,
+          "x": "Gender",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 0.03,
           "x": "Gender",
           "y": "Teacher_Experience"
         },
@@ -2447,42 +2557,42 @@
           "y": "K_Achievement"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.8,
           "x": "Grade3_Achievement",
           "y": "K_Class"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.94,
           "x": "Grade3_Achievement",
           "y": "School_Context"
         },
         {
-          "frequency": 0.8333333333333334,
+          "frequency": 0.88,
           "x": "Grade3_Achievement",
           "y": "Teacher_Experience"
         },
         {
-          "frequency": 0.9166666666666666,
+          "frequency": 0.93,
           "x": "K_Achievement",
           "y": "K_Class"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.99,
           "x": "K_Achievement",
           "y": "School_Context"
         },
         {
-          "frequency": 0.9166666666666666,
+          "frequency": 0.96,
           "x": "K_Achievement",
           "y": "Teacher_Experience"
         },
         {
-          "frequency": 0.5833333333333334,
+          "frequency": 0.57,
           "x": "K_Class",
           "y": "School_Context"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.99,
           "x": "K_Class",
           "y": "Teacher_Experience"
         },
@@ -2495,11 +2605,11 @@
       "ci_tests": 619,
       "edges": 12,
       "elapsed_runs_seconds": [
-        0.5622290420033096,
-        0.570414666999568,
-        0.5613267079970683
+        0.5492700419999892,
+        0.5451422919995821,
+        0.5428693750000093
       ],
-      "median_elapsed_seconds": 0.5622290420033096,
+      "median_elapsed_seconds": 0.5451422919995821,
       "node_names": [
         "K_Class",
         "Gender",
@@ -2524,7 +2634,7 @@
           {
             "ci_tests": 619,
             "edges": 12,
-            "elapsed_seconds": 0.5622290420033096,
+            "elapsed_seconds": 0.5492700419999892,
             "exact_pag_match": true,
             "first_node": "K_Class",
             "ordering": "cyclic_shift_0",
@@ -2535,7 +2645,7 @@
           {
             "ci_tests": 619,
             "edges": 12,
-            "elapsed_seconds": 0.6483328329995857,
+            "elapsed_seconds": 0.5430797910003093,
             "exact_pag_match": true,
             "first_node": "Gender",
             "ordering": "cyclic_shift_1",
@@ -2546,7 +2656,7 @@
           {
             "ci_tests": 619,
             "edges": 12,
-            "elapsed_seconds": 0.7168425000018033,
+            "elapsed_seconds": 0.5462718750004569,
             "exact_pag_match": true,
             "first_node": "Ethnicity",
             "ordering": "cyclic_shift_2",
@@ -2557,7 +2667,7 @@
           {
             "ci_tests": 619,
             "edges": 12,
-            "elapsed_seconds": 0.5775208749982994,
+            "elapsed_seconds": 0.5394997079993118,
             "exact_pag_match": true,
             "first_node": "Free_Lunch",
             "ordering": "cyclic_shift_3",
@@ -2568,7 +2678,7 @@
           {
             "ci_tests": 619,
             "edges": 12,
-            "elapsed_seconds": 0.5378235000025597,
+            "elapsed_seconds": 0.5431900000003225,
             "exact_pag_match": true,
             "first_node": "School_Context",
             "ordering": "cyclic_shift_4",
@@ -2579,7 +2689,7 @@
           {
             "ci_tests": 619,
             "edges": 12,
-            "elapsed_seconds": 0.5321867499988002,
+            "elapsed_seconds": 0.5383126249998895,
             "exact_pag_match": true,
             "first_node": "Entry_Age",
             "ordering": "cyclic_shift_5",
@@ -2590,7 +2700,7 @@
           {
             "ci_tests": 619,
             "edges": 12,
-            "elapsed_seconds": 0.5309184170000663,
+            "elapsed_seconds": 0.5413014159994418,
             "exact_pag_match": true,
             "first_node": "Teacher_Experience",
             "ordering": "cyclic_shift_6",
@@ -2601,7 +2711,7 @@
           {
             "ci_tests": 619,
             "edges": 12,
-            "elapsed_seconds": 0.5344227079986013,
+            "elapsed_seconds": 0.5418870829998923,
             "exact_pag_match": true,
             "first_node": "K_Achievement",
             "ordering": "cyclic_shift_7",
@@ -2612,7 +2722,7 @@
           {
             "ci_tests": 619,
             "edges": 12,
-            "elapsed_seconds": 0.5350688750004338,
+            "elapsed_seconds": 0.5465037500007384,
             "exact_pag_match": true,
             "first_node": "Grade3_Achievement",
             "ordering": "cyclic_shift_8",
@@ -2734,37 +2844,37 @@
       ],
       "bootstrap_adjacencies": [
         {
-          "frequency": 0.8333333333333334,
+          "frequency": 0.65,
           "x": "Entry_Age",
           "y": "Ethnicity"
         },
         {
-          "frequency": 0.08333333333333333,
+          "frequency": 0.08,
           "x": "Entry_Age",
           "y": "Free_Lunch"
         },
         {
-          "frequency": 0.25,
+          "frequency": 0.17,
           "x": "Entry_Age",
           "y": "Gender"
         },
         {
-          "frequency": 0.25,
+          "frequency": 0.41,
           "x": "Entry_Age",
           "y": "Grade3_Achievement"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.11,
           "x": "Entry_Age",
           "y": "K_Class"
         },
         {
-          "frequency": 0.4166666666666667,
+          "frequency": 0.32,
           "x": "Entry_Age",
           "y": "School_Context"
         },
         {
-          "frequency": 0.25,
+          "frequency": 0.21,
           "x": "Entry_Age",
           "y": "Teacher_Experience"
         },
@@ -2774,7 +2884,7 @@
           "y": "Free_Lunch"
         },
         {
-          "frequency": 0.08333333333333333,
+          "frequency": 0.01,
           "x": "Ethnicity",
           "y": "Gender"
         },
@@ -2784,7 +2894,7 @@
           "y": "Grade3_Achievement"
         },
         {
-          "frequency": 0.25,
+          "frequency": 0.13,
           "x": "Ethnicity",
           "y": "K_Class"
         },
@@ -2794,9 +2904,14 @@
           "y": "School_Context"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.96,
           "x": "Ethnicity",
           "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 0.02,
+          "x": "Free_Lunch",
+          "y": "Gender"
         },
         {
           "frequency": 1.0,
@@ -2804,42 +2919,52 @@
           "y": "Grade3_Achievement"
         },
         {
+          "frequency": 0.07,
+          "x": "Free_Lunch",
+          "y": "K_Class"
+        },
+        {
           "frequency": 1.0,
           "x": "Free_Lunch",
           "y": "School_Context"
         },
         {
-          "frequency": 0.8333333333333334,
+          "frequency": 0.85,
           "x": "Free_Lunch",
           "y": "Teacher_Experience"
         },
         {
-          "frequency": 0.3333333333333333,
+          "frequency": 0.32,
           "x": "Gender",
           "y": "Grade3_Achievement"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.14,
           "x": "Gender",
           "y": "K_Class"
         },
         {
-          "frequency": 0.9166666666666666,
+          "frequency": 0.13,
+          "x": "Gender",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 0.92,
           "x": "Grade3_Achievement",
           "y": "K_Class"
         },
         {
-          "frequency": 0.9166666666666666,
+          "frequency": 0.93,
           "x": "Grade3_Achievement",
           "y": "School_Context"
-        },
-        {
-          "frequency": 0.5833333333333334,
-          "x": "Grade3_Achievement",
-          "y": "Teacher_Experience"
         },
         {
           "frequency": 0.75,
+          "x": "Grade3_Achievement",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 0.68,
           "x": "K_Class",
           "y": "School_Context"
         },
@@ -2857,11 +2982,11 @@
       "ci_tests": 291,
       "edges": 10,
       "elapsed_runs_seconds": [
-        0.32495366700095474,
-        0.32089345800341107,
-        0.32234795799740823
+        0.32957983300002525,
+        0.33199750000039785,
+        0.33140287500009435
       ],
-      "median_elapsed_seconds": 0.32234795799740823,
+      "median_elapsed_seconds": 0.33140287500009435,
       "node_names": [
         "K_Class",
         "Gender",
@@ -2885,7 +3010,7 @@
           {
             "ci_tests": 291,
             "edges": 10,
-            "elapsed_seconds": 0.32495366700095474,
+            "elapsed_seconds": 0.32957983300002525,
             "exact_pag_match": true,
             "first_node": "K_Class",
             "ordering": "cyclic_shift_0",
@@ -2896,7 +3021,7 @@
           {
             "ci_tests": 288,
             "edges": 10,
-            "elapsed_seconds": 0.31911308399867266,
+            "elapsed_seconds": 0.32757158399999753,
             "exact_pag_match": true,
             "first_node": "Gender",
             "ordering": "cyclic_shift_1",
@@ -2907,7 +3032,7 @@
           {
             "ci_tests": 292,
             "edges": 10,
-            "elapsed_seconds": 0.3206103330012411,
+            "elapsed_seconds": 0.3289113750006436,
             "exact_pag_match": true,
             "first_node": "Ethnicity",
             "ordering": "cyclic_shift_2",
@@ -2918,7 +3043,7 @@
           {
             "ci_tests": 294,
             "edges": 10,
-            "elapsed_seconds": 0.3198733749995881,
+            "elapsed_seconds": 0.33537224999963655,
             "exact_pag_match": false,
             "first_node": "Free_Lunch",
             "ordering": "cyclic_shift_3",
@@ -2929,7 +3054,7 @@
           {
             "ci_tests": 289,
             "edges": 10,
-            "elapsed_seconds": 0.314859082998737,
+            "elapsed_seconds": 0.331068082999991,
             "exact_pag_match": false,
             "first_node": "School_Context",
             "ordering": "cyclic_shift_4",
@@ -2940,7 +3065,7 @@
           {
             "ci_tests": 292,
             "edges": 10,
-            "elapsed_seconds": 0.32026354200206697,
+            "elapsed_seconds": 0.33199975000025006,
             "exact_pag_match": true,
             "first_node": "Entry_Age",
             "ordering": "cyclic_shift_5",
@@ -2951,7 +3076,7 @@
           {
             "ci_tests": 296,
             "edges": 10,
-            "elapsed_seconds": 0.3228819999967527,
+            "elapsed_seconds": 0.33818733299995074,
             "exact_pag_match": true,
             "first_node": "Teacher_Experience",
             "ordering": "cyclic_shift_6",
@@ -2962,7 +3087,7 @@
           {
             "ci_tests": 293,
             "edges": 10,
-            "elapsed_seconds": 0.32154349999836995,
+            "elapsed_seconds": 0.32830933300010656,
             "exact_pag_match": true,
             "first_node": "Grade3_Achievement",
             "ordering": "cyclic_shift_7",
@@ -3069,32 +3194,37 @@
       ],
       "bootstrap_adjacencies": [
         {
-          "frequency": 0.6666666666666666,
+          "frequency": 0.62,
           "x": "Entry_Age",
           "y": "Ethnicity"
         },
         {
-          "frequency": 0.25,
+          "frequency": 0.1,
+          "x": "Entry_Age",
+          "y": "Free_Lunch"
+        },
+        {
+          "frequency": 0.24,
           "x": "Entry_Age",
           "y": "Gender"
         },
         {
-          "frequency": 0.4166666666666667,
+          "frequency": 0.39,
           "x": "Entry_Age",
           "y": "Grade3_Achievement"
         },
         {
-          "frequency": 0.25,
+          "frequency": 0.15,
           "x": "Entry_Age",
           "y": "K_Class"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.3,
           "x": "Entry_Age",
           "y": "School_Context"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.34,
           "x": "Entry_Age",
           "y": "Teacher_Experience"
         },
@@ -3104,12 +3234,17 @@
           "y": "Free_Lunch"
         },
         {
+          "frequency": 0.02,
+          "x": "Ethnicity",
+          "y": "Gender"
+        },
+        {
           "frequency": 1.0,
           "x": "Ethnicity",
           "y": "Grade3_Achievement"
         },
         {
-          "frequency": 0.08333333333333333,
+          "frequency": 0.11,
           "x": "Ethnicity",
           "y": "K_Class"
         },
@@ -3119,12 +3254,12 @@
           "y": "School_Context"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.99,
           "x": "Ethnicity",
           "y": "Teacher_Experience"
         },
         {
-          "frequency": 0.08333333333333333,
+          "frequency": 0.05,
           "x": "Free_Lunch",
           "y": "Gender"
         },
@@ -3134,7 +3269,7 @@
           "y": "Grade3_Achievement"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.07,
           "x": "Free_Lunch",
           "y": "K_Class"
         },
@@ -3144,42 +3279,42 @@
           "y": "School_Context"
         },
         {
-          "frequency": 0.8333333333333334,
+          "frequency": 0.91,
           "x": "Free_Lunch",
           "y": "Teacher_Experience"
         },
         {
-          "frequency": 0.4166666666666667,
+          "frequency": 0.43,
           "x": "Gender",
           "y": "Grade3_Achievement"
         },
         {
-          "frequency": 0.25,
+          "frequency": 0.24,
           "x": "Gender",
           "y": "K_Class"
         },
         {
-          "frequency": 0.08333333333333333,
+          "frequency": 0.13,
           "x": "Gender",
           "y": "School_Context"
         },
         {
-          "frequency": 0.8333333333333334,
+          "frequency": 0.85,
           "x": "Grade3_Achievement",
           "y": "K_Class"
         },
         {
-          "frequency": 0.9166666666666666,
+          "frequency": 0.92,
           "x": "Grade3_Achievement",
           "y": "School_Context"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.88,
           "x": "Grade3_Achievement",
           "y": "Teacher_Experience"
         },
         {
-          "frequency": 0.75,
+          "frequency": 0.74,
           "x": "K_Class",
           "y": "School_Context"
         },
@@ -3197,11 +3332,11 @@
       "ci_tests": 185,
       "edges": 10,
       "elapsed_runs_seconds": [
-        0.1597257499997795,
-        0.1589623340005346,
-        0.1587310830000206
+        0.16307845899973472,
+        0.1594945410006403,
+        0.160126499999933
       ],
-      "median_elapsed_seconds": 0.1589623340005346,
+      "median_elapsed_seconds": 0.160126499999933,
       "node_names": [
         "K_Class",
         "Gender",
@@ -3225,7 +3360,7 @@
           {
             "ci_tests": 185,
             "edges": 10,
-            "elapsed_seconds": 0.1597257499997795,
+            "elapsed_seconds": 0.16307845899973472,
             "exact_pag_match": true,
             "first_node": "K_Class",
             "ordering": "cyclic_shift_0",
@@ -3236,7 +3371,7 @@
           {
             "ci_tests": 182,
             "edges": 10,
-            "elapsed_seconds": 0.15589337500205147,
+            "elapsed_seconds": 0.1606394159998672,
             "exact_pag_match": true,
             "first_node": "Gender",
             "ordering": "cyclic_shift_1",
@@ -3247,7 +3382,7 @@
           {
             "ci_tests": 186,
             "edges": 10,
-            "elapsed_seconds": 0.15829816599944024,
+            "elapsed_seconds": 0.1611713749998671,
             "exact_pag_match": true,
             "first_node": "Ethnicity",
             "ordering": "cyclic_shift_2",
@@ -3258,7 +3393,7 @@
           {
             "ci_tests": 188,
             "edges": 10,
-            "elapsed_seconds": 0.16014633299710113,
+            "elapsed_seconds": 0.16259108300073422,
             "exact_pag_match": false,
             "first_node": "Free_Lunch",
             "ordering": "cyclic_shift_3",
@@ -3269,7 +3404,7 @@
           {
             "ci_tests": 183,
             "edges": 10,
-            "elapsed_seconds": 0.15603783299957286,
+            "elapsed_seconds": 0.159027791999506,
             "exact_pag_match": false,
             "first_node": "School_Context",
             "ordering": "cyclic_shift_4",
@@ -3280,7 +3415,7 @@
           {
             "ci_tests": 188,
             "edges": 10,
-            "elapsed_seconds": 0.16262341699984972,
+            "elapsed_seconds": 0.16397225000036997,
             "exact_pag_match": true,
             "first_node": "Entry_Age",
             "ordering": "cyclic_shift_5",
@@ -3291,7 +3426,7 @@
           {
             "ci_tests": 192,
             "edges": 10,
-            "elapsed_seconds": 0.1657766249991255,
+            "elapsed_seconds": 0.1693831249995128,
             "exact_pag_match": true,
             "first_node": "Teacher_Experience",
             "ordering": "cyclic_shift_6",
@@ -3302,7 +3437,7 @@
           {
             "ci_tests": 188,
             "edges": 10,
-            "elapsed_seconds": 0.16065504200014402,
+            "elapsed_seconds": 0.16492595900035667,
             "exact_pag_match": true,
             "first_node": "Grade3_Achievement",
             "ordering": "cyclic_shift_7",
@@ -3409,32 +3544,37 @@
       ],
       "bootstrap_adjacencies": [
         {
-          "frequency": 0.75,
+          "frequency": 0.61,
           "x": "Entry_Age",
           "y": "Ethnicity"
         },
         {
-          "frequency": 0.25,
+          "frequency": 0.08,
           "x": "Entry_Age",
           "y": "Free_Lunch"
         },
         {
-          "frequency": 0.3333333333333333,
+          "frequency": 0.23,
           "x": "Entry_Age",
           "y": "Gender"
         },
         {
-          "frequency": 0.5,
+          "frequency": 0.38,
           "x": "Entry_Age",
           "y": "Grade3_Achievement"
         },
         {
-          "frequency": 0.4166666666666667,
+          "frequency": 0.09,
+          "x": "Entry_Age",
+          "y": "K_Class"
+        },
+        {
+          "frequency": 0.37,
           "x": "Entry_Age",
           "y": "School_Context"
         },
         {
-          "frequency": 0.6666666666666666,
+          "frequency": 0.28,
           "x": "Entry_Age",
           "y": "Teacher_Experience"
         },
@@ -3444,12 +3584,17 @@
           "y": "Free_Lunch"
         },
         {
+          "frequency": 0.02,
+          "x": "Ethnicity",
+          "y": "Gender"
+        },
+        {
           "frequency": 1.0,
           "x": "Ethnicity",
           "y": "Grade3_Achievement"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.1,
           "x": "Ethnicity",
           "y": "K_Class"
         },
@@ -3459,12 +3604,12 @@
           "y": "School_Context"
         },
         {
-          "frequency": 0.9166666666666666,
+          "frequency": 0.97,
           "x": "Ethnicity",
           "y": "Teacher_Experience"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.04,
           "x": "Free_Lunch",
           "y": "Gender"
         },
@@ -3474,7 +3619,7 @@
           "y": "Grade3_Achievement"
         },
         {
-          "frequency": 0.16666666666666666,
+          "frequency": 0.13,
           "x": "Free_Lunch",
           "y": "K_Class"
         },
@@ -3484,42 +3629,52 @@
           "y": "School_Context"
         },
         {
-          "frequency": 0.9166666666666666,
+          "frequency": 0.88,
           "x": "Free_Lunch",
           "y": "Teacher_Experience"
         },
         {
-          "frequency": 0.3333333333333333,
+          "frequency": 0.39,
           "x": "Gender",
           "y": "Grade3_Achievement"
         },
         {
-          "frequency": 0.08333333333333333,
+          "frequency": 0.24,
           "x": "Gender",
           "y": "K_Class"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.11,
+          "x": "Gender",
+          "y": "School_Context"
+        },
+        {
+          "frequency": 0.04,
+          "x": "Gender",
+          "y": "Teacher_Experience"
+        },
+        {
+          "frequency": 0.96,
           "x": "Grade3_Achievement",
           "y": "K_Class"
         },
         {
-          "frequency": 0.9166666666666666,
+          "frequency": 0.91,
           "x": "Grade3_Achievement",
           "y": "School_Context"
         },
         {
-          "frequency": 0.8333333333333334,
+          "frequency": 0.86,
           "x": "Grade3_Achievement",
           "y": "Teacher_Experience"
         },
         {
-          "frequency": 0.5,
+          "frequency": 0.64,
           "x": "K_Class",
           "y": "School_Context"
         },
         {
-          "frequency": 1.0,
+          "frequency": 0.99,
           "x": "K_Class",
           "y": "Teacher_Experience"
         },
@@ -3532,11 +3687,11 @@
       "ci_tests": 334,
       "edges": 10,
       "elapsed_runs_seconds": [
-        0.246177583001554,
-        0.24673841600088053,
-        0.24704491699958453
+        0.25285945899941,
+        0.2503179999994245,
+        0.24926758399942628
       ],
-      "median_elapsed_seconds": 0.24673841600088053,
+      "median_elapsed_seconds": 0.2503179999994245,
       "node_names": [
         "K_Class",
         "Gender",
@@ -3560,7 +3715,7 @@
           {
             "ci_tests": 334,
             "edges": 10,
-            "elapsed_seconds": 0.246177583001554,
+            "elapsed_seconds": 0.25285945899941,
             "exact_pag_match": true,
             "first_node": "K_Class",
             "ordering": "cyclic_shift_0",
@@ -3571,7 +3726,7 @@
           {
             "ci_tests": 334,
             "edges": 10,
-            "elapsed_seconds": 0.24888666599872522,
+            "elapsed_seconds": 0.25194591600029526,
             "exact_pag_match": true,
             "first_node": "Gender",
             "ordering": "cyclic_shift_1",
@@ -3582,7 +3737,7 @@
           {
             "ci_tests": 334,
             "edges": 10,
-            "elapsed_seconds": 0.25076049999915995,
+            "elapsed_seconds": 0.25749604199972964,
             "exact_pag_match": true,
             "first_node": "Ethnicity",
             "ordering": "cyclic_shift_2",
@@ -3593,7 +3748,7 @@
           {
             "ci_tests": 334,
             "edges": 10,
-            "elapsed_seconds": 0.24713633300052607,
+            "elapsed_seconds": 0.25135962500007736,
             "exact_pag_match": true,
             "first_node": "Free_Lunch",
             "ordering": "cyclic_shift_3",
@@ -3604,7 +3759,7 @@
           {
             "ci_tests": 334,
             "edges": 10,
-            "elapsed_seconds": 0.24595079199934844,
+            "elapsed_seconds": 0.2508417090002695,
             "exact_pag_match": true,
             "first_node": "School_Context",
             "ordering": "cyclic_shift_4",
@@ -3615,7 +3770,7 @@
           {
             "ci_tests": 334,
             "edges": 10,
-            "elapsed_seconds": 0.24599962499996764,
+            "elapsed_seconds": 0.25002383399987593,
             "exact_pag_match": true,
             "first_node": "Entry_Age",
             "ordering": "cyclic_shift_5",
@@ -3626,7 +3781,7 @@
           {
             "ci_tests": 334,
             "edges": 10,
-            "elapsed_seconds": 0.24510295799700543,
+            "elapsed_seconds": 0.24982954099959898,
             "exact_pag_match": true,
             "first_node": "Teacher_Experience",
             "ordering": "cyclic_shift_6",
@@ -3637,7 +3792,7 @@
           {
             "ci_tests": 334,
             "edges": 10,
-            "elapsed_seconds": 0.2461341669986723,
+            "elapsed_seconds": 0.2491790829999445,
             "exact_pag_match": true,
             "first_node": "Grade3_Achievement",
             "ordering": "cyclic_shift_7",
@@ -4412,7 +4567,18 @@
       "bins": 3,
       "ci_tests": 225,
       "edge": null,
-      "edge_count": 8
+      "edge_count": 8,
+      "sparsity_bound": null
+    },
+    {
+      "adjacent": false,
+      "algorithm": "fci_plus",
+      "alpha": 0.01,
+      "bins": 3,
+      "ci_tests": 146,
+      "edge": null,
+      "edge_count": 8,
+      "sparsity_bound": 2
     },
     {
       "adjacent": false,
@@ -4421,7 +4587,28 @@
       "bins": 3,
       "ci_tests": 150,
       "edge": null,
-      "edge_count": 8
+      "edge_count": 8,
+      "sparsity_bound": 3
+    },
+    {
+      "adjacent": false,
+      "algorithm": "fci_plus",
+      "alpha": 0.01,
+      "bins": 3,
+      "ci_tests": 150,
+      "edge": null,
+      "edge_count": 8,
+      "sparsity_bound": 4
+    },
+    {
+      "adjacent": false,
+      "algorithm": "fci_plus_robust",
+      "alpha": 0.01,
+      "bins": 3,
+      "ci_tests": 217,
+      "edge": null,
+      "edge_count": 8,
+      "sparsity_bound": 2
     },
     {
       "adjacent": false,
@@ -4430,7 +4617,18 @@
       "bins": 3,
       "ci_tests": 233,
       "edge": null,
-      "edge_count": 8
+      "edge_count": 8,
+      "sparsity_bound": 3
+    },
+    {
+      "adjacent": false,
+      "algorithm": "fci_plus_robust",
+      "alpha": 0.01,
+      "bins": 3,
+      "ci_tests": 234,
+      "edge": null,
+      "edge_count": 8,
+      "sparsity_bound": 4
     },
     {
       "adjacent": true,
@@ -4439,7 +4637,18 @@
       "bins": 3,
       "ci_tests": 305,
       "edge": "K_Class <-> Grade3_Achievement",
-      "edge_count": 11
+      "edge_count": 11,
+      "sparsity_bound": null
+    },
+    {
+      "adjacent": true,
+      "algorithm": "fci_plus",
+      "alpha": 0.05,
+      "bins": 3,
+      "ci_tests": 203,
+      "edge": "K_Class <-> Grade3_Achievement",
+      "edge_count": 11,
+      "sparsity_bound": 2
     },
     {
       "adjacent": true,
@@ -4448,7 +4657,28 @@
       "bins": 3,
       "ci_tests": 214,
       "edge": "K_Class <-> Grade3_Achievement",
-      "edge_count": 11
+      "edge_count": 11,
+      "sparsity_bound": 3
+    },
+    {
+      "adjacent": true,
+      "algorithm": "fci_plus",
+      "alpha": 0.05,
+      "bins": 3,
+      "ci_tests": 214,
+      "edge": "K_Class <-> Grade3_Achievement",
+      "edge_count": 11,
+      "sparsity_bound": 4
+    },
+    {
+      "adjacent": true,
+      "algorithm": "fci_plus_robust",
+      "alpha": 0.05,
+      "bins": 3,
+      "ci_tests": 316,
+      "edge": "K_Class <-o Grade3_Achievement",
+      "edge_count": 10,
+      "sparsity_bound": 2
     },
     {
       "adjacent": true,
@@ -4457,7 +4687,18 @@
       "bins": 3,
       "ci_tests": 360,
       "edge": "K_Class <-o Grade3_Achievement",
-      "edge_count": 10
+      "edge_count": 10,
+      "sparsity_bound": 3
+    },
+    {
+      "adjacent": true,
+      "algorithm": "fci_plus_robust",
+      "alpha": 0.05,
+      "bins": 3,
+      "ci_tests": 367,
+      "edge": "K_Class <-o Grade3_Achievement",
+      "edge_count": 10,
+      "sparsity_bound": 4
     },
     {
       "adjacent": false,
@@ -4466,7 +4707,18 @@
       "bins": 4,
       "ci_tests": 252,
       "edge": null,
-      "edge_count": 9
+      "edge_count": 9,
+      "sparsity_bound": null
+    },
+    {
+      "adjacent": false,
+      "algorithm": "fci_plus",
+      "alpha": 0.01,
+      "bins": 4,
+      "ci_tests": 152,
+      "edge": null,
+      "edge_count": 9,
+      "sparsity_bound": 2
     },
     {
       "adjacent": false,
@@ -4475,7 +4727,28 @@
       "bins": 4,
       "ci_tests": 163,
       "edge": null,
-      "edge_count": 9
+      "edge_count": 9,
+      "sparsity_bound": 3
+    },
+    {
+      "adjacent": false,
+      "algorithm": "fci_plus",
+      "alpha": 0.01,
+      "bins": 4,
+      "ci_tests": 163,
+      "edge": null,
+      "edge_count": 9,
+      "sparsity_bound": 4
+    },
+    {
+      "adjacent": false,
+      "algorithm": "fci_plus_robust",
+      "alpha": 0.01,
+      "bins": 4,
+      "ci_tests": 223,
+      "edge": null,
+      "edge_count": 9,
+      "sparsity_bound": 2
     },
     {
       "adjacent": false,
@@ -4484,7 +4757,18 @@
       "bins": 4,
       "ci_tests": 253,
       "edge": null,
-      "edge_count": 9
+      "edge_count": 9,
+      "sparsity_bound": 3
+    },
+    {
+      "adjacent": false,
+      "algorithm": "fci_plus_robust",
+      "alpha": 0.01,
+      "bins": 4,
+      "ci_tests": 257,
+      "edge": null,
+      "edge_count": 9,
+      "sparsity_bound": 4
     },
     {
       "adjacent": true,
@@ -4493,7 +4777,18 @@
       "bins": 4,
       "ci_tests": 291,
       "edge": "K_Class <-> Grade3_Achievement",
-      "edge_count": 10
+      "edge_count": 10,
+      "sparsity_bound": null
+    },
+    {
+      "adjacent": true,
+      "algorithm": "fci_plus",
+      "alpha": 0.05,
+      "bins": 4,
+      "ci_tests": 174,
+      "edge": "K_Class <-> Grade3_Achievement",
+      "edge_count": 10,
+      "sparsity_bound": 2
     },
     {
       "adjacent": true,
@@ -4502,7 +4797,28 @@
       "bins": 4,
       "ci_tests": 185,
       "edge": "K_Class <-> Grade3_Achievement",
-      "edge_count": 10
+      "edge_count": 10,
+      "sparsity_bound": 3
+    },
+    {
+      "adjacent": true,
+      "algorithm": "fci_plus",
+      "alpha": 0.05,
+      "bins": 4,
+      "ci_tests": 185,
+      "edge": "K_Class <-> Grade3_Achievement",
+      "edge_count": 10,
+      "sparsity_bound": 4
+    },
+    {
+      "adjacent": true,
+      "algorithm": "fci_plus_robust",
+      "alpha": 0.05,
+      "bins": 4,
+      "ci_tests": 290,
+      "edge": "K_Class o-o Grade3_Achievement",
+      "edge_count": 10,
+      "sparsity_bound": 2
     },
     {
       "adjacent": true,
@@ -4511,7 +4827,18 @@
       "bins": 4,
       "ci_tests": 334,
       "edge": "K_Class o-o Grade3_Achievement",
-      "edge_count": 10
+      "edge_count": 10,
+      "sparsity_bound": 3
+    },
+    {
+      "adjacent": true,
+      "algorithm": "fci_plus_robust",
+      "alpha": 0.05,
+      "bins": 4,
+      "ci_tests": 341,
+      "edge": "K_Class o-o Grade3_Achievement",
+      "edge_count": 10,
+      "sparsity_bound": 4
     }
   ],
   "source": {

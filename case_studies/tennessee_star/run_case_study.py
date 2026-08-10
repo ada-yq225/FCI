@@ -31,7 +31,7 @@ def run(
     alpha: float = 0.05,
     sparsity_bound: int = 3,
     benchmark_repeats: int = 3,
-    bootstraps: int = 12,
+    bootstraps: int = 100,
     descriptive_bootstraps: int = 1000,
     n_jobs: int = 4,
     refresh_pcalg: bool = False,
@@ -59,7 +59,7 @@ def run(
     )
     sensitivity = sensitivity_analysis(
         frame,
-        sparsity_bound=sparsity_bound,
+        sparsity_bounds=tuple(sorted({2, sparsity_bound, 4})),
     )
     external_records: list[dict[str, Any]] = []
     external_metadata: dict[str, Any] | None = None
@@ -186,7 +186,7 @@ def main() -> None:
     parser.add_argument("--alpha", type=float, default=0.05)
     parser.add_argument("--sparsity-bound", type=int, default=3)
     parser.add_argument("--benchmark-repeats", type=int, default=3)
-    parser.add_argument("--bootstraps", type=int, default=12)
+    parser.add_argument("--bootstraps", type=int, default=100)
     parser.add_argument("--descriptive-bootstraps", type=int, default=1000)
     parser.add_argument("--n-jobs", type=int, default=4)
     parser.add_argument("--refresh-pcalg", action="store_true")

@@ -20,6 +20,7 @@ from case_studies.tennessee_star.study import (
     cyclic_order_audit,
     load_star,
     prepare_study,
+    sensitivity_analysis,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -139,6 +140,24 @@ def test_robust_application_profile_is_conservative_and_order_stable() -> None:
     assert result.config.conservative_colliders is True
     assert audit["exact_pag_match_rate"] == 1.0
     assert audit["minimum_skeleton_jaccard"] == 1.0
+
+
+def test_star_sensitivity_varies_fci_plus_k_without_duplicating_fci() -> None:
+    rows = sensitivity_analysis(
+        load_star(),
+        alphas=(0.01,),
+        bin_counts=(3,),
+        sparsity_bounds=(2, 3, 4),
+    )
+
+    assert len(rows) == 7
+    fci_rows = [row for row in rows if row["algorithm"] == "fci"]
+    assert len(fci_rows) == 1
+    assert fci_rows[0]["sparsity_bound"] is None
+    for algorithm in ("fci_plus", "fci_plus_robust"):
+        assert {
+            row["sparsity_bound"] for row in rows if row["algorithm"] == algorithm
+        } == {2, 3, 4}
 
 
 def test_star_three_algorithm_comparison_records_replication_and_disagreement() -> None:

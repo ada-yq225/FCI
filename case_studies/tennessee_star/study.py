@@ -292,7 +292,7 @@ def run_discovery_suite(
     alpha: float = 0.05,
     sparsity_bound: int = 3,
     benchmark_repeats: int = 3,
-    bootstraps: int = 12,
+    bootstraps: int = 100,
     n_jobs: int = 4,
     random_state: int = 20260716,
     order_audit: bool = True,
@@ -582,20 +582,37 @@ def sensitivity_analysis(
     *,
     alphas: tuple[float, ...] = (0.01, 0.05),
     bin_counts: tuple[int, ...] = (3, 4),
-    sparsity_bound: int = 3,
+    sparsity_bounds: tuple[int, ...] = (2, 3, 4),
 ) -> list[dict[str, Any]]:
-    """Test the focused class-assignment/grade-3 adjacency across choices."""
+    """Test the focused target across alpha, binning, and FCI+ degree bounds.
+
+    Standard FCI has no FCI+ sparsity bound, so it is fitted once per
+    ``(bins, alpha)`` cell. Both FCI+ profiles are fitted at every supplied
+    bound. The bound is an analysis setting: this sensitivity grid does not
+    assert that the true STAR MAG has maximum degree ``k``.
+    """
+
+    if not sparsity_bounds:
+        raise ValueError("sparsity_bounds must contain at least one value.")
+    if any(bound < 0 for bound in sparsity_bounds):
+        raise ValueError("sparsity_bounds must be non-negative.")
 
     rows = []
     for bins in bin_counts:
         panel = prepare_study(frame, achievement_bins=bins).panels["focused_treatment"]
         for alpha in alphas:
-            for algorithm in ("fci", "fci_plus", "fci_plus_robust"):
+            configurations: list[tuple[AlgorithmName, int | None]] = [("fci", None)]
+            configurations.extend(
+                (algorithm, bound)
+                for algorithm in ("fci_plus", "fci_plus_robust")
+                for bound in sparsity_bounds
+            )
+            for algorithm, bound in configurations:
                 result = _fit_panel(
                     panel.data,
                     algorithm=algorithm,
                     alpha=alpha,
-                    sparsity_bound=sparsity_bound,
+                    sparsity_bound=(max(sparsity_bounds) if bound is None else bound),
                 )
                 edge = edge_for_pair(
                     result,
@@ -607,6 +624,7 @@ def sensitivity_analysis(
                         "bins": bins,
                         "alpha": alpha,
                         "algorithm": algorithm,
+                        "sparsity_bound": bound,
                         "adjacent": edge is not None,
                         "edge": edge,
                         "edge_count": len(result.edges),

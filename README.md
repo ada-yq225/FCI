@@ -340,9 +340,9 @@ python -m mypy
 Current validation is checked by Pytest, Ruff, strict MyPy, a wheel build, and
 an installed-wheel smoke test. GitHub Actions runs Pytest independently on
 Python 3.9, 3.10, 3.11, 3.12, and 3.13.
-Local validation for this revision: **256 passed** on Python 3.14; **243 passed,
-4 optional-reference skips** on Python 3.9.6; strict MyPy passed under both
-interpreters.
+Local validation for this revision: **365 passed** on Python 3.13 with the
+optional `causal-learn` reference dependency installed. CI remains the
+cross-version authority for the full Python matrix and strict MyPy environment.
 The full graphs, diagnostics, same-data FCI baseline, configuration, and
 limitations are collected in the
 [advisor showcase](examples/advisor_showcase.html). Its metrics are computed by
@@ -374,6 +374,24 @@ per-case edge explanations before citing its aggregate numbers. This visual
 report uses a different cohort from the paper-aligned Figure 4(b) experiment
 above.
 
+### Exact-oracle scaling audit
+
+The repository also records a node-count scaling audit on two sparse graph
+families at 5, 10, 20, 40, and 80 observed variables:
+
+```bash
+PYTHONPATH=src python reports/generate_scaling_benchmark.py
+```
+
+The output is
+[`reports/data/scaling_benchmark.csv`](reports/data/scaling_benchmark.csv).
+Every recorded run recovers the exact target skeleton. The benchmark is
+deliberately diagnostic rather than promotional: FCI+ uses fewer queries on
+the five-node Figure 4(b) core, while augmentation overhead can dominate after
+irrelevant isolated variables are added or when the graph has no difficult
+D-SEP link. The STAR query reduction is therefore reported as a property of
+those three 8-9 node panels, not as a universal speed ranking.
+
 ## Tennessee STAR Applied Case Study
 
 The repository now includes a separate real-data application to the Tennessee
@@ -391,6 +409,11 @@ Student/Teacher Achievement Ratio randomized class-size experiment:
 The application is intentionally outside `src/fci_engine`: STAR-specific data
 coding, cohort selection, school-cluster bootstrap, visualizations, and
 researcher conclusions are not mixed into the reusable algorithm package.
+
+The focused sensitivity grid varies alpha, three versus four achievement
+bins, and FCI+ `k` in `{2, 3, 4}`. The PAG adjacency bootstrap uses 100
+school-cluster resamples; those frequencies remain adjacency diagnostics, not
+endpoint validation or treatment-effect uncertainty intervals.
 
 The visual report compares standard FCI, the self-implemented FCI+, and an
 independently executed CRAN `pcalg::fciPlus` reference. Install R and `pcalg`,

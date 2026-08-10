@@ -1,13 +1,29 @@
-bins,alpha,algorithm,adjacent,edge,edge_count,ci_tests
-3,0.01,fci,False,,8,225
-3,0.01,fci_plus,False,,8,150
-3,0.01,fci_plus_robust,False,,8,233
-3,0.05,fci,True,K_Class <-> Grade3_Achievement,11,305
-3,0.05,fci_plus,True,K_Class <-> Grade3_Achievement,11,214
-3,0.05,fci_plus_robust,True,K_Class <-o Grade3_Achievement,10,360
-4,0.01,fci,False,,9,252
-4,0.01,fci_plus,False,,9,163
-4,0.01,fci_plus_robust,False,,9,253
-4,0.05,fci,True,K_Class <-> Grade3_Achievement,10,291
-4,0.05,fci_plus,True,K_Class <-> Grade3_Achievement,10,185
-4,0.05,fci_plus_robust,True,K_Class o-o Grade3_Achievement,10,334
+bins,alpha,algorithm,sparsity_bound,adjacent,edge,edge_count,ci_tests
+3,0.01,fci,,False,,8,225
+3,0.01,fci_plus,2.0,False,,8,146
+3,0.01,fci_plus,3.0,False,,8,150
+3,0.01,fci_plus,4.0,False,,8,150
+3,0.01,fci_plus_robust,2.0,False,,8,217
+3,0.01,fci_plus_robust,3.0,False,,8,233
+3,0.01,fci_plus_robust,4.0,False,,8,234
+3,0.05,fci,,True,K_Class <-> Grade3_Achievement,11,305
+3,0.05,fci_plus,2.0,True,K_Class <-> Grade3_Achievement,11,203
+3,0.05,fci_plus,3.0,True,K_Class <-> Grade3_Achievement,11,214
+3,0.05,fci_plus,4.0,True,K_Class <-> Grade3_Achievement,11,214
+3,0.05,fci_plus_robust,2.0,True,K_Class <-o Grade3_Achievement,10,316
+3,0.05,fci_plus_robust,3.0,True,K_Class <-o Grade3_Achievement,10,360
+3,0.05,fci_plus_robust,4.0,True,K_Class <-o Grade3_Achievement,10,367
+4,0.01,fci,,False,,9,252
+4,0.01,fci_plus,2.0,False,,9,152
+4,0.01,fci_plus,3.0,False,,9,163
+4,0.01,fci_plus,4.0,False,,9,163
+4,0.01,fci_plus_robust,2.0,False,,9,223
+4,0.01,fci_plus_robust,3.0,False,,9,253
+4,0.01,fci_plus_robust,4.0,False,,9,257
+4,0.05,fci,,True,K_Class <-> Grade3_Achievement,10,291
+4,0.05,fci_plus,2.0,True,K_Class <-> Grade3_Achievement,10,174
+4,0.05,fci_plus,3.0,True,K_Class <-> Grade3_Achievement,10,185
+4,0.05,fci_plus,4.0,True,K_Class <-> Grade3_Achievement,10,185
+4,0.05,fci_plus_robust,2.0,True,K_Class o-o Grade3_Achievement,10,290
+4,0.05,fci_plus_robust,3.0,True,K_Class o-o Grade3_Achievement,10,334
+4,0.05,fci_plus_robust,4.0,True,K_Class o-o Grade3_Achievement,10,341

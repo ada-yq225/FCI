@@ -41,7 +41,7 @@
     <text font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#E9EDF5" x="850" y="422">Later complete-case panels may encode</text><text font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#E9EDF5" x="850" y="449">attrition and conditioning effects.</text><rect x="850" y="490" width="344" height="54" rx="10" fill="#B45F4A" />
     <text font-family="Arial, Helvetica, sans-serif" text-anchor="middle" font-size="18" fill="#FFFFFF" font-weight="700" x="1022" y="513">No temporal constraints supplied</text><text font-family="Arial, Helvetica, sans-serif" text-anchor="middle" font-size="18" fill="#FFFFFF" font-weight="700" x="1022" y="535">to the discovery algorithms</text></g>
   <g id="bootstrap-note-11" data-pptx-bounds="56 596 1168 42">
-    <text x="56" y="622" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1A2433"><tspan font-weight="700" fill="#2E7D5B">1,000 school-cluster resamples</tspan> for arm contrasts · <tspan font-weight="700" fill="#2F6BFF">12 school resamples</tspan> for coarse PAG stability only</text>
+    <text x="56" y="622" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1A2433"><tspan font-weight="700" fill="#2E7D5B">1,000 school-cluster resamples</tspan> for arm contrasts · <tspan font-weight="700" fill="#2F6BFF">100 school resamples</tspan> for PAG adjacency stability</text>
   </g>
   <g id="footer-11" data-pptx-bounds="56 651 1168 37">
     <text x="56" y="676" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">Tennessee STAR DOI 10.7910/DVN/SIWH9F · committed cohort and preprocessing provenance</text>

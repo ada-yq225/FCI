@@ -54,7 +54,7 @@
     <rect x="56" y="566" width="1168" height="72" rx="12" fill="#FFF3E3"/>
     <text x="80" y="590" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#E58A2B">Paper FCI Plus / FCI CI work:</text>
     <text x="368" y="590" font-family="Consolas, Courier New, monospace" font-size="20" font-weight="700" fill="#183153">47% attrition · 35% longitudinal · 64% focused</text>
-    <text x="80" y="620" font-family="Consolas, Courier New, monospace" font-size="16" fill="#5F6875">Median seconds [FCI / paper / robust / R] — A: 5.44/1.79/2.84/10.39 · L: 2.15/.34/.56/1.65 · F: .32/.16/.25/.88</text>
+    <text x="80" y="620" font-family="Consolas, Courier New, monospace" font-size="16" fill="#5F6875">Median seconds [FCI / paper / robust / R] — A: 5.66/1.82/2.61/10.39 · L: 2.14/.33/.55/1.65 · F: .33/.16/.25/.88</text>
   </g>
   <g id="footer-14" data-pptx-bounds="56 649 1168 39">
     <text x="56" y="674" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#5F6875">star_benchmark.csv · three-run timing is not a cross-language speed contest · efficiency does not identify a causal effect</text>

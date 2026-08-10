@@ -1281,7 +1281,8 @@ def plot_bootstrap_stability(payload: dict[str, Any]) -> None:
         [f"{panel}: {label}" for panel, label in zip(panel_prefix, labels)]
     )
     axis.invert_yaxis()
-    axis.set_xlabel("Adjacency frequency across 12 school-cluster resamples")
+    repeats = int(payload["configuration"]["cluster_bootstraps"])
+    axis.set_xlabel(f"Adjacency frequency across {repeats} school-cluster resamples")
     axis.set_title(
         "Bootstrap adjacency stability for substantively important pairs",
         loc="left",
@@ -1325,16 +1326,24 @@ def plot_sensitivity(payload: dict[str, Any]) -> None:
         (4, 0.01),
         (4, 0.05),
     ]
-    algorithms = ["fci", "fci_plus", "fci_plus_robust"]
-    matrix = np.zeros((3, 4))
-    tests: NDArray[np.int_] = np.zeros((3, 4), dtype=int)
+    row_keys: list[tuple[str, int | None]] = [
+        ("fci", None),
+        ("fci_plus", 2),
+        ("fci_plus", 3),
+        ("fci_plus", 4),
+        ("fci_plus_robust", 2),
+        ("fci_plus_robust", 3),
+        ("fci_plus_robust", 4),
+    ]
+    matrix = np.zeros((len(row_keys), 4))
+    tests: NDArray[np.int_] = np.zeros((len(row_keys), 4), dtype=int)
     for row in rows:
-        row_index = algorithms.index(row["algorithm"])
+        row_index = row_keys.index((row["algorithm"], row.get("sparsity_bound")))
         column_index = columns.index((row["bins"], row["alpha"]))
         matrix[row_index, column_index] = 1 if row["adjacent"] else 0
         tests[row_index, column_index] = row["ci_tests"]
 
-    figure, axis = plt.subplots(figsize=(8.8, 2.6))
+    figure, axis = plt.subplots(figsize=(8.8, 4.6))
     color_matrix = np.where(matrix == 1, 1.0, 0.0)
     axis.imshow(
         color_matrix,
@@ -1343,7 +1352,7 @@ def plot_sensitivity(payload: dict[str, Any]) -> None:
         vmax=1,
         aspect="auto",
     )
-    for row_index in range(3):
+    for row_index in range(len(row_keys)):
         for column_index in range(4):
             label = (
                 "Present\n" if matrix[row_index, column_index] else "Absent\n"
@@ -1362,8 +1371,18 @@ def plot_sensitivity(payload: dict[str, Any]) -> None:
     axis.set_xticklabels(
         [f"{bins} bins\n$\\alpha={alpha:.2f}$" for bins, alpha in columns]
     )
-    axis.set_yticks(range(3))
-    axis.set_yticklabels(["Standard FCI", "FCI+ paper", "FCI+ robust"])
+    axis.set_yticks(range(len(row_keys)))
+    axis.set_yticklabels(
+        [
+            "Standard FCI",
+            "FCI+ paper, k=2",
+            "FCI+ paper, k=3",
+            "FCI+ paper, k=4",
+            "FCI+ robust, k=2",
+            "FCI+ robust, k=3",
+            "FCI+ robust, k=4",
+        ]
+    )
     axis.set_title(
         "Sensitivity of the focused class-assignment / grade-3 adjacency",
         loc="left",

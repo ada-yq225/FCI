@@ -21,6 +21,6 @@ def test_research_figure_pdfs_do_not_embed_raster_images() -> None:
 
     for name in RESEARCH_FIGURES:
         path = FIGURE_DIR / name
-        assert not image_xobject.search(path.read_bytes()), (
-            f"{name} contains a raster /Image XObject"
-        )
+        assert not image_xobject.search(
+            path.read_bytes()
+        ), f"{name} contains a raster /Image XObject"

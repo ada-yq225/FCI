@@ -592,7 +592,7 @@ def render_report(payload: dict[str, Any]) -> str:
         <h3>Limits and audit failures</h3>
         <div class="finding"><strong>The PAG is not an effect estimate.</strong><p>Neither FCI nor FCI+ estimates the number of score points caused by a smaller class. The arm contrasts come from the experiment's assignment, not from PAG endpoints.</p></div>
         <div class="finding"><strong>Paper implementations do not win every plausibility audit.</strong><p>R pcalg gives the temporally sensible kindergarten-achievement to grade-3-observation direction, while standard FCI reverses it and paper self FCI+ leaves it partly unresolved. In the longitudinal panel, both paper FCI+ implementations reverse the achievement chronology. The robust application profile leaves those directions unresolved. {_render_temporal_flag_summary(payload)}</p></div>
-        <div class="finding"><strong>The treatment-outcome edge is specification-sensitive.</strong><p>The sensitivity table shows whether the edge survives changes in α and discretization. A conclusion that appears only at one setting is not treated as robust.</p></div>
+        <div class="finding"><strong>The treatment-outcome edge is specification-sensitive.</strong><p>The sensitivity table shows whether the edge survives changes in α, discretization, and the FCI+ sparsity bound k. A conclusion that appears only at selected settings is not treated as robust.</p></div>
         <div class="finding"><strong>Mixed educational data are approximated as discrete.</strong><p>Quantile bins make G-square applicable, but bin boundaries discard information and high-order contingency tables can have sparse expected counts. Students are also clustered within schools and classrooms.</p></div>
       </div>
     </div>
@@ -1135,6 +1135,7 @@ def _render_sensitivity_table(rows: list[dict[str, Any]]) -> str:
             f"<td>{row['bins']}</td>"
             f"<td>{row['alpha']:.2f}</td>"
             f"<td>{_esc(ALGORITHM_LABELS[row['algorithm']])}</td>"
+            f"<td>{'-' if row.get('sparsity_bound') is None else row['sparsity_bound']}</td>"
             f"<td>{'Yes' if row['adjacent'] else 'No'}</td>"
             f"<td>{_esc(row['edge'] or '-')}</td>"
             f"<td>{row['ci_tests']:,}</td>"
@@ -1142,7 +1143,8 @@ def _render_sensitivity_table(rows: list[dict[str, Any]]) -> str:
         )
     return (
         '<div class="table-wrap"><table><thead><tr><th>Quantile bins</th>'
-        "<th>α</th><th>Algorithm</th><th>K class adjacent to grade 3?</th>"
+        "<th>α</th><th>Algorithm</th><th>FCI+ k</th>"
+        "<th>K class adjacent to grade 3?</th>"
         "<th>Endpoint marks</th><th>CI tests</th></tr></thead><tbody>"
         + "".join(rendered)
         + "</tbody></table></div>"

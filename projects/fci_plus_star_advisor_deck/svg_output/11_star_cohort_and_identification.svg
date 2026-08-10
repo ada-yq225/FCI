@@ -44,7 +44,7 @@
     <text x="1022" y="513" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">No temporal constraints supplied<tspan x="1022" dy="22">to the discovery algorithms</tspan></text>
   </g>
   <g id="bootstrap-note-11" data-pptx-bounds="56 596 1168 42">
-    <text x="56" y="622" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1A2433"><tspan font-weight="700" fill="#2E7D5B">1,000 school-cluster resamples</tspan> for arm contrasts · <tspan font-weight="700" fill="#2F6BFF">12 school resamples</tspan> for coarse PAG stability only</text>
+    <text x="56" y="622" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#1A2433"><tspan font-weight="700" fill="#2E7D5B">1,000 school-cluster resamples</tspan> for arm contrasts · <tspan font-weight="700" fill="#2F6BFF">100 school resamples</tspan> for PAG adjacency stability</text>
   </g>
   <g id="footer-11" data-pptx-bounds="56 651 1168 37">
     <text x="56" y="676" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5F6875">Tennessee STAR DOI 10.7910/DVN/SIWH9F · committed cohort and preprocessing provenance</text>

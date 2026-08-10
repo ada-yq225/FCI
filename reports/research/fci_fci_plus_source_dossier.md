@@ -245,6 +245,11 @@ The paper profiles preserve the conceptual boundary:
 10. **The STAR application remains observational structure discovery.** Its
     randomized assignment can support a separate experimental comparison,
     but a learned PAG alone does not estimate the class-size treatment effect.
+11. **Fixed-\(k\) polynomial complexity is not per-instance dominance.** The
+    committed 5--80 node exact-oracle audit recovers every target skeleton but
+    shows that augmented-skeleton overhead can make FCI+ use more queries on
+    easy chains or after isolated variables are added. The defensible empirical
+    claim is workload-dependent query reduction, not universal superiority.
 
 ## Software-comparison evidence policy
 

@@ -59,7 +59,7 @@ analysis therefore:
 8. separately runs `fci_plus(..., profile="practical")` as the recommended
    finite-sample application result;
 9. audits every local algorithm under every cyclic variable ordering;
-10. resamples whole kindergarten schools for adjacency stability.
+10. resamples whole kindergarten schools 100 times for adjacency stability.
 
 The paper-profile runs answer “did the implementation follow and reproduce the
 published algorithms?” The robust application run answers “which conclusions
@@ -78,7 +78,9 @@ independent implementation comparison rather than an identical internal
 search schedule.
 
 The main threshold is `alpha=0.05`. A sensitivity table repeats the focused
-treatment analysis at `alpha=0.01` and with three versus four quantile bins.
+treatment analysis at `alpha=0.01`, with three versus four quantile bins, and
+with FCI+ sparsity bounds `k=2,3,4`. These are bounded analysis settings, not
+claims that the unknown STAR MAG has a known maximum degree.
 
 ## Reproduce the report
 
@@ -106,7 +108,7 @@ The command writes:
 - `output/star_bootstrap_adjacencies.csv`: school-bootstrap frequencies;
 - `output/star_python_order_audit.csv`: all cyclic-order refits for the three
   local analysis profiles;
-- `output/star_sensitivity.csv`: alpha/binning sensitivity;
+- `output/star_sensitivity.csv`: alpha/binning/FCI+ `k` sensitivity;
 - `output/star_descriptive_contrasts.csv`: randomized-arm summaries.
 - `output/star_pcalg_runs.csv`: R and `pcalg` versions, timings, and CI calls;
 - `output/star_pcalg_edges.csv`: every R `pcalg::fciPlus` PAG edge;
