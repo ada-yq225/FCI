@@ -274,9 +274,7 @@ def test_claim_matrix_requires_a_locator_for_every_report_claim() -> None:
         for part in symbol_locator.split(";"):
             path_text = part.strip().split("::", maxsplit=1)[0]
             if "/" in path_text:
-                assert (
-                    ROOT / path_text
-                ).exists(), (
+                assert (ROOT / path_text).exists(), (
                     f"{row['claim_id']} has an invalid repository path: {path_text}"
                 )
 

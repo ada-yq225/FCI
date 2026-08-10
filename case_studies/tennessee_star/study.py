@@ -573,8 +573,8 @@ def _cluster_bootstrap_arm_metrics(
 
 def _percentile_interval(values: Iterable[float]) -> tuple[float, float]:
     array = np.asarray(list(values), dtype=float)
-    low, high = np.quantile(array, [0.025, 0.975])
-    return float(low), float(high)
+    quantiles = np.asarray(np.quantile(array, [0.025, 0.975]), dtype=float)
+    return float(quantiles[0]), float(quantiles[1])
 
 
 def sensitivity_analysis(
@@ -602,9 +602,13 @@ def sensitivity_analysis(
         panel = prepare_study(frame, achievement_bins=bins).panels["focused_treatment"]
         for alpha in alphas:
             configurations: list[tuple[AlgorithmName, int | None]] = [("fci", None)]
+            fci_plus_algorithms: tuple[AlgorithmName, ...] = (
+                "fci_plus",
+                "fci_plus_robust",
+            )
             configurations.extend(
                 (algorithm, bound)
-                for algorithm in ("fci_plus", "fci_plus_robust")
+                for algorithm in fci_plus_algorithms
                 for bound in sparsity_bounds
             )
             for algorithm, bound in configurations:
