@@ -292,16 +292,22 @@ def render_report(payload: dict[str, Any]) -> str:
     margin-top: 16px;
   }}
   .pag-card {{
-    border: 1px solid var(--soft-line);
-    border-radius: 10px;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+    border: 1px solid #e4e9f0;
+    border-radius: 14px;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, .055);
     min-width: 0;
-    padding: 12px;
+    padding: 14px;
   }}
   .pag-header {{
     align-items: center;
     display: flex;
     justify-content: space-between;
-    margin-bottom: 6px;
+    margin-bottom: 2px;
+  }}
+  .pag-header h3 {{
+    font-size: 15px;
+    letter-spacing: -.01em;
   }}
   .badge {{
     background: #f2f4f7;
@@ -311,12 +317,24 @@ def render_report(payload: dict[str, Any]) -> str:
     font-weight: 700;
     padding: 4px 8px;
   }}
-  .pag-card svg {{ height: auto; width: 100%; }}
+  .pag-card svg {{ display: block; height: auto; width: 100%; }}
   .pag-edge {{ cursor: pointer; }}
+  .edge-line {{ opacity: .82; transition: opacity .15s, stroke .15s; }}
+  .edge-line, .edge-hit {{
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }}
   .pag-edge:hover .edge-line,
-  .pag-edge:focus .edge-line {{ stroke: var(--blue); stroke-width: 3; }}
-  .pag-node rect {{ fill: #fff; stroke: #667085; }}
-  .pag-node text {{ fill: #172033; font-size: 11px; font-weight: 700; }}
+  .pag-edge:focus .edge-line {{ opacity: 1; stroke: var(--blue); stroke-width: 3; }}
+  .pag-node rect {{ fill: #fff; stroke: #94a3b8; stroke-width: 1.15; }}
+  .pag-node text {{ fill: #172033; font-size: 11.5px; font-weight: 720; }}
+  .tier-label {{
+    fill: #94a3b8;
+    font-size: 8.5px;
+    font-weight: 800;
+    letter-spacing: .12em;
+  }}
+  .tier-rule {{ stroke: #dbe3ec; stroke-width: 1; }}
   .edge-detail {{
     background: #f8fafc;
     border-radius: 7px;
@@ -930,22 +948,25 @@ def _render_three_algorithm_comparison(
 def _render_pag_svg(run: dict[str, Any], graph_id: str) -> str:
     nodes = run["node_names"]
     positions = _node_positions(nodes)
-    width = 720
-    height = 430
-    node_width = 136.0
-    node_height = 36.0
+    width = 780
+    height = 480
+    node_width = 144.0
+    node_height = 38.0
+    routes = _route_pag_edges(
+        run["pag_edges"],
+        positions,
+        node_width=node_width,
+        node_height=node_height,
+        canvas_width=width,
+        canvas_height=height,
+    )
     edge_parts = []
-    for index, edge in enumerate(run["pag_edges"]):
+    for index, (edge, route) in enumerate(zip(run["pag_edges"], routes)):
         x = edge["x"]
         y = edge["y"]
-        x1, y1 = positions[x]
-        x2, y2 = positions[y]
-        start, end = _trimmed_segment(
-            (x1, y1),
-            (x2, y2),
-            node_width / 2 + 5,
-            node_height / 2 + 5,
-        )
+        start = route[0]
+        end = route[-1]
+        path = _svg_path(route)
         endpoint_x = edge["endpoint_x"]
         endpoint_y = edge["endpoint_y"]
         edge_text = edge["edge"]
@@ -958,52 +979,236 @@ def _render_pag_svg(run: dict[str, Any], graph_id: str) -> str:
         edge_parts.append(
             f'<g class="pag-edge" tabindex="0" role="button" '
             f'data-target="{target}" '
+            f'data-edge-index="{index}" data-node-x="{_attr(x)}" '
+            f'data-node-y="{_attr(y)}" '
+            f'data-start="{start[0]:.1f},{start[1]:.1f}" '
+            f'data-end="{end[0]:.1f},{end[1]:.1f}" '
             f'data-explanation="{_attr(explanation)}">'
             f"<title>{_esc(explanation)}</title>"
-            f'<line class="edge-hit" x1="{start[0]:.1f}" y1="{start[1]:.1f}" '
-            f'x2="{end[0]:.1f}" y2="{end[1]:.1f}" stroke="transparent" '
-            f'stroke-width="14"/>'
-            f'<line class="edge-line" x1="{start[0]:.1f}" y1="{start[1]:.1f}" '
-            f'x2="{end[0]:.1f}" y2="{end[1]:.1f}" stroke="#667085" '
-            f'stroke-width="1.8"/>'
-            f"{_endpoint_mark(start, end, endpoint_x)}"
-            f"{_endpoint_mark(end, start, endpoint_y)}"
+            f'<path class="edge-hit" d="{path}" fill="none" '
+            f'stroke="transparent" stroke-width="14"/>'
+            f'<path class="edge-line" d="{path}" fill="none" '
+            f'stroke="#64748b" stroke-width="1.65"/>'
+            f"{_endpoint_mark(start, route[1], endpoint_x)}"
+            f"{_endpoint_mark(end, route[-2], endpoint_y)}"
             "</g>"
         )
 
     node_parts = []
+    shadow_id = f"node-shadow-{graph_id}"
     for node in nodes:
         x, y = positions[node]
         label = node.replace("_", " ")
         node_parts.append(
-            f'<g class="pag-node"><rect x="{x - node_width / 2:.1f}" '
+            f'<g class="pag-node" filter="url(#{_attr(shadow_id)})">'
+            f'<rect x="{x - node_width / 2:.1f}" '
             f'y="{y - node_height / 2:.1f}" width="{node_width:.1f}" '
-            f'height="{node_height:.1f}" rx="7"/>'
+            f'height="{node_height:.1f}" rx="9"/>'
             f'<text x="{x:.1f}" y="{y + 4:.1f}" text-anchor="middle">'
             f"{_esc(label)}</text></g>"
         )
+    tier_labels = {
+        0: "BACKGROUND",
+        1: "CLASSROOM",
+        2: "EARLY ACHIEVEMENT",
+        3: "GRADE 3 OUTCOME",
+    }
+    present_tiers = sorted({TEMPORAL_TIERS.get(node, 1) for node in nodes})
+    x_positions = _tier_x_positions()
+    guide_parts = []
+    for tier in present_tiers:
+        x = x_positions.get(tier, 340.0)
+        guide_parts.append(
+            f'<text class="tier-label" x="{x:.1f}" y="24" '
+            f'text-anchor="middle">{tier_labels.get(tier, "VARIABLES")}</text>'
+            f'<line class="tier-rule" x1="{x - 18:.1f}" y1="34" '
+            f'x2="{x + 18:.1f}" y2="34"/>'
+        )
+    defs = (
+        f'<defs><filter id="{_attr(shadow_id)}" x="-12%" y="-25%" '
+        'width="124%" height="150%">'
+        '<feDropShadow dx="0" dy="1.4" stdDeviation="1.7" '
+        'flood-color="#0f172a" flood-opacity="0.10"/>'
+        "</filter></defs>"
+    )
     return (
         f'<svg viewBox="0 0 {width} {height}" role="img" '
         f'aria-label="{_esc(ALGORITHM_LABELS[run["algorithm"]])} PAG">'
+        + defs
+        + "".join(guide_parts)
         + "".join(edge_parts)
         + "".join(node_parts)
         + "</svg>"
     )
 
 
+def _route_pag_edges(
+    edges: list[dict[str, Any]],
+    positions: dict[str, tuple[float, float]],
+    *,
+    node_width: float,
+    node_height: float,
+    canvas_width: float,
+    canvas_height: float,
+) -> list[list[tuple[float, float]]]:
+    """Route PAG edges through separate node ports and around collinear nodes."""
+
+    specs: list[dict[str, Any]] = []
+    for index, edge in enumerate(edges):
+        start = positions[edge["x"]]
+        end = positions[edge["y"]]
+        dx = end[0] - start[0]
+        dy = end[1] - start[1]
+        vertical_obstacle = abs(dx) < 1e-6 and any(
+            node not in {edge["x"], edge["y"]}
+            and abs(point[0] - start[0]) < node_width
+            and min(start[1], end[1]) < point[1] < max(start[1], end[1])
+            for node, point in positions.items()
+        )
+        horizontal_obstacle = abs(dy) < 1e-6 and any(
+            node not in {edge["x"], edge["y"]}
+            and abs(point[1] - start[1]) < node_height
+            and min(start[0], end[0]) < point[0] < max(start[0], end[0])
+            for node, point in positions.items()
+        )
+        if vertical_obstacle:
+            side = "right" if start[0] < canvas_width / 2 else "left"
+            start_side = end_side = side
+            detour = "vertical"
+        elif horizontal_obstacle:
+            side = "bottom" if start[1] < canvas_height / 2 else "top"
+            start_side = end_side = side
+            detour = "horizontal"
+        elif abs(dx) > abs(dy):
+            start_side = "right" if dx > 0 else "left"
+            end_side = "left" if dx > 0 else "right"
+            detour = None
+        else:
+            start_side = "bottom" if dy > 0 else "top"
+            end_side = "top" if dy > 0 else "bottom"
+            detour = None
+        specs.append(
+            {
+                "index": index,
+                "start_node": edge["x"],
+                "end_node": edge["y"],
+                "start_side": start_side,
+                "end_side": end_side,
+                "detour": detour,
+            }
+        )
+
+    port_offsets: dict[tuple[int, str], float] = {}
+    groups: dict[tuple[str, str], list[tuple[int, str, str]]] = {}
+    for spec in specs:
+        groups.setdefault((spec["start_node"], spec["start_side"]), []).append(
+            (spec["index"], "start", spec["end_node"])
+        )
+        groups.setdefault((spec["end_node"], spec["end_side"]), []).append(
+            (spec["index"], "end", spec["start_node"])
+        )
+    for (node, side), members in groups.items():
+        horizontal_side = side in {"top", "bottom"}
+        members.sort(
+            key=lambda item: (
+                positions[item[2]][1 if horizontal_side else 0],
+                item[2],
+                item[0],
+            )
+        )
+        span = min(56.0 if horizontal_side else 17.0, 12.0 * (len(members) - 1))
+        for member_index, (edge_index, endpoint, _) in enumerate(members):
+            offset = (
+                0.0
+                if len(members) == 1
+                else -span + 2 * span * member_index / (len(members) - 1)
+            )
+            port_offsets[(edge_index, endpoint)] = offset
+
+    detour_counts: dict[tuple[str, str], int] = {}
+    routes: list[list[tuple[float, float]]] = []
+    for spec in specs:
+        start = _node_port(
+            positions[spec["start_node"]],
+            spec["start_side"],
+            port_offsets[(spec["index"], "start")],
+            node_width,
+            node_height,
+        )
+        end = _node_port(
+            positions[spec["end_node"]],
+            spec["end_side"],
+            port_offsets[(spec["index"], "end")],
+            node_width,
+            node_height,
+        )
+        if spec["detour"] == "vertical":
+            key = (spec["start_side"], "vertical")
+            rank = detour_counts.get(key, 0)
+            detour_counts[key] = rank + 1
+            direction = 1.0 if spec["start_side"] == "right" else -1.0
+            corridor = start[0] + direction * (64.0 + 12.0 * rank)
+            corridor = min(max(corridor, 12.0), canvas_width - 12.0)
+            routes.append([start, (corridor, start[1]), (corridor, end[1]), end])
+        elif spec["detour"] == "horizontal":
+            key = (spec["start_side"], "horizontal")
+            rank = detour_counts.get(key, 0)
+            detour_counts[key] = rank + 1
+            direction = 1.0 if spec["start_side"] == "bottom" else -1.0
+            corridor = start[1] + direction * (44.0 + 10.0 * rank)
+            corridor = min(max(corridor, 12.0), canvas_height - 12.0)
+            routes.append([start, (start[0], corridor), (end[0], corridor), end])
+        else:
+            routes.append([start, end])
+    return routes
+
+
+def _node_port(
+    center: tuple[float, float],
+    side: str,
+    offset: float,
+    node_width: float,
+    node_height: float,
+) -> tuple[float, float]:
+    gap = 5.0
+    x, y = center
+    if side == "left":
+        return (x - node_width / 2 - gap, y + offset)
+    if side == "right":
+        return (x + node_width / 2 + gap, y + offset)
+    if side == "top":
+        return (x + offset, y - node_height / 2 - gap)
+    return (x + offset, y + node_height / 2 + gap)
+
+
+def _svg_path(points: list[tuple[float, float]]) -> str:
+    start = f"M {points[0][0]:.1f} {points[0][1]:.1f}"
+    if len(points) == 4:
+        controls = " ".join(f"{x:.1f} {y:.1f}" for x, y in points[1:])
+        return f"{start} C {controls}"
+    return start + " " + " ".join(f"L {x:.1f} {y:.1f}" for x, y in points[1:])
+
+
+def _tier_x_positions() -> dict[int, float]:
+    # Keep at least a 46px gap between adjacent tier columns (node width is
+    # 144px) so short inter-tier edges such as K_Achievement--Grade3_Observed
+    # remain visible between their node ports.
+    return {0: 95.0, 1: 315.0, 2: 505.0, 3: 695.0}
+
+
 def _node_positions(nodes: list[str]) -> dict[str, tuple[float, float]]:
     tier_nodes: dict[int, list[str]] = {}
     for node in nodes:
         tier_nodes.setdefault(TEMPORAL_TIERS.get(node, 1), []).append(node)
-    x_positions = {0: 85.0, 1: 275.0, 2: 465.0, 3: 645.0}
+    x_positions = _tier_x_positions()
     positions = {}
     for tier, values in tier_nodes.items():
         ordered = sorted(values)
         if len(ordered) == 1:
-            ys = [215.0]
+            ys = [250.0]
         else:
-            step = 340.0 / (len(ordered) - 1)
-            ys = [45.0 + step * index for index in range(len(ordered))]
+            step = 338.0 / (len(ordered) - 1)
+            ys = [82.0 + step * index for index in range(len(ordered))]
         for node, y in zip(ordered, ys):
             positions[node] = (x_positions.get(tier, 300.0), y)
     return positions
@@ -1046,13 +1251,13 @@ def _endpoint_mark(
     if endpoint == "CIRCLE":
         return (
             f'<circle cx="{x:.1f}" cy="{y:.1f}" r="4.5" fill="#fff" '
-            f'stroke="#667085" stroke-width="1.8"/>'
+            f'stroke="#52627a" stroke-width="1.7"/>'
         )
     if endpoint == "TAIL":
         return (
             f'<line x1="{x - px * 6:.1f}" y1="{y - py * 6:.1f}" '
             f'x2="{x + px * 6:.1f}" y2="{y + py * 6:.1f}" '
-            f'stroke="#667085" stroke-width="2"/>'
+            f'stroke="#52627a" stroke-width="1.9"/>'
         )
     if endpoint == "ARROW":
         base_x = x - ux * 12
@@ -1062,7 +1267,7 @@ def _endpoint_mark(
             f"{base_x + px * 5:.1f},{base_y + py * 5:.1f} "
             f"{base_x - px * 5:.1f},{base_y - py * 5:.1f}"
         )
-        return f'<polygon points="{points}" fill="#667085"/>'
+        return f'<polygon points="{points}" fill="#52627a"/>'
     return ""
 
 

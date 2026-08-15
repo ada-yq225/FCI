@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import numpy as np
@@ -14,7 +15,7 @@ from case_studies.tennessee_star.download_data import (
     sha256,
 )
 from case_studies.tennessee_star.pcalg_reference import load_pcalg_reference
-from case_studies.tennessee_star.report import render_report
+from case_studies.tennessee_star.report import _render_pag_svg, render_report
 from case_studies.tennessee_star.study import (
     _fit_panel,
     cyclic_order_audit,
@@ -79,6 +80,49 @@ def test_committed_star_report_is_reproducible_from_summary_payload() -> None:
     assert "A separate robust FCI+ application profile" in html
     assert "a universally correct causal graph" in html
     assert "doi.org/10.7910/DVN/SIWH9F" in html
+
+
+def test_pag_renderer_separates_incident_edge_endpoints() -> None:
+    payload = json.loads(
+        (OUTPUT / "star_case_study_summary.json").read_text(encoding="utf-8")
+    )
+    for run_index, run in enumerate(payload["runs"]):
+        svg = _render_pag_svg(run, f"routing-{run_index}")
+        endpoints_by_node: dict[str, list[str]] = {}
+        for node_x, node_y, start, end in re.findall(
+            r'data-node-x="([^"]+)" data-node-y="([^"]+)" '
+            r'data-start="([^"]+)" data-end="([^"]+)"',
+            svg,
+        ):
+            endpoints_by_node.setdefault(node_x, []).append(start)
+            endpoints_by_node.setdefault(node_y, []).append(end)
+
+        assert '<path class="edge-line"' in svg
+        assert all(
+            len(points) == len(set(points)) for points in endpoints_by_node.values()
+        )
+
+
+def test_pag_renderer_routes_long_collinear_edges_around_middle_nodes() -> None:
+    run = {
+        "algorithm": "fci_plus",
+        "node_names": ["Ethnicity", "Free_Lunch", "School_Context"],
+        "pag_edges": [
+            {
+                "x": "Ethnicity",
+                "y": "School_Context",
+                "endpoint_x": "TAIL",
+                "endpoint_y": "ARROW",
+                "edge": "Ethnicity --> School_Context",
+            }
+        ],
+    }
+
+    svg = _render_pag_svg(run, "collinear-routing")
+
+    path = re.search(r'<path class="edge-line" d="([^"]+)"', svg)
+    assert path is not None
+    assert " C " in path.group(1)
 
 
 def test_star_summary_contains_validation_and_robust_runs_for_every_panel() -> None:
