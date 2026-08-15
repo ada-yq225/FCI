@@ -16,7 +16,15 @@ from matplotlib.axes import Axes
 from matplotlib.colors import LinearSegmentedColormap, ListedColormap
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
-from matplotlib.patches import Circle, FancyBboxPatch, Polygon, Rectangle, Wedge
+from matplotlib.patches import (
+    Circle,
+    FancyBboxPatch,
+    PathPatch,
+    Polygon,
+    Rectangle,
+    Wedge,
+)
+from matplotlib.path import Path as MplPath
 from numpy.typing import NDArray
 
 from fci_engine import canonical_dsep_mag, fci_plus
@@ -67,6 +75,26 @@ TEMPORAL_TIERS = {
     "Grade3_Observed": 3,
     "Grade3_Achievement": 3,
 }
+
+# The PAG figures reuse the exact edge-routing geometry of the interactive STAR
+# report so that the PDF and HTML views of the same graph never drift apart.
+PAG_CANVAS_WIDTH = 780.0
+PAG_CANVAS_HEIGHT = 480.0
+PAG_NODE_WIDTH = 144.0
+PAG_NODE_HEIGHT = 38.0
+
+
+def _star_report_module() -> Any:
+    """Import the STAR report renderer, which owns the PAG routing logic."""
+
+    import sys
+
+    root = str(ROOT)
+    if root not in sys.path:
+        sys.path.insert(0, root)
+    from case_studies.tennessee_star import report as star_report
+
+    return star_report
 
 
 def main() -> None:
@@ -1512,11 +1540,11 @@ def plot_figure4_validation() -> None:
     )
     nodes = list(mag.nodes)
     positions = {
-        "Z": (0.08, 0.5),
-        "U": (0.4, 0.75),
-        "V": (0.4, 0.25),
-        "X": (0.86, 0.75),
-        "Y": (0.86, 0.25),
+        "Z": (105.0, 240.0),
+        "U": (345.0, 120.0),
+        "V": (345.0, 360.0),
+        "X": (665.0, 120.0),
+        "Y": (665.0, 360.0),
     }
     oracle_edges = [
         {
@@ -1569,20 +1597,10 @@ def _bootstrap_frequency(run: dict[str, Any], x: str, y: str) -> float:
 
 
 def _tier_positions(nodes: list[str]) -> dict[str, tuple[float, float]]:
-    tier_nodes: dict[int, list[str]] = {}
-    for node in nodes:
-        tier_nodes.setdefault(TEMPORAL_TIERS.get(node, 1), []).append(node)
-    x_positions = {0: 0.05, 1: 0.38, 2: 0.64, 3: 1.0}
-    positions: dict[str, tuple[float, float]] = {}
-    for tier, values in tier_nodes.items():
-        ordered = sorted(values)
-        if len(ordered) == 1:
-            y_values = [0.5]
-        else:
-            y_values = np.linspace(0.9, 0.1, len(ordered))
-        for node, y_value in zip(ordered, y_values):
-            positions[node] = (x_positions.get(tier, 0.35), float(y_value))
-    return positions
+    """Return the same tiered pixel layout as the interactive STAR report."""
+
+    positions = _star_report_module()._node_positions(nodes)
+    return {node: (float(x), float(y)) for node, (x, y) in positions.items()}
 
 
 def _draw_pag(
@@ -1591,44 +1609,71 @@ def _draw_pag(
     edges: list[dict[str, Any]],
     positions: dict[str, tuple[float, float]],
 ) -> None:
-    axis.set_xlim(-0.2, 1.2)
-    axis.set_ylim(-0.1, 1.1)
+    axis.set_xlim(0.0, PAG_CANVAS_WIDTH)
+    # Match the SVG's downward y axis so both renderers share one layout.
+    axis.set_ylim(PAG_CANVAS_HEIGHT, 0.0)
     axis.set_aspect("equal")
     axis.axis("off")
 
-    for edge in edges:
-        x_name = edge["x"]
-        y_name = edge["y"]
-        start, end = _trim_segment(positions[x_name], positions[y_name], 0.095)
-        axis.plot(
-            [start[0], end[0]],
-            [start[1], end[1]],
-            color=GREY,
-            linewidth=1.3,
-            zorder=1,
-        )
+    routes = _star_report_module()._route_pag_edges(
+        edges,
+        positions,
+        node_width=PAG_NODE_WIDTH,
+        node_height=PAG_NODE_HEIGHT,
+        canvas_width=PAG_CANVAS_WIDTH,
+        canvas_height=PAG_CANVAS_HEIGHT,
+    )
+    for edge, route in zip(edges, routes):
+        if len(route) == 4:
+            path = MplPath(
+                route,
+                [
+                    MplPath.MOVETO,
+                    MplPath.CURVE4,
+                    MplPath.CURVE4,
+                    MplPath.CURVE4,
+                ],
+            )
+            axis.add_patch(
+                PathPatch(
+                    path,
+                    facecolor="none",
+                    edgecolor=GREY,
+                    linewidth=1.3,
+                    capstyle="round",
+                    zorder=1,
+                )
+            )
+        else:
+            axis.plot(
+                [route[0][0], route[-1][0]],
+                [route[0][1], route[-1][1]],
+                color=GREY,
+                linewidth=1.3,
+                solid_capstyle="round",
+                zorder=1,
+            )
         _draw_endpoint(
             axis,
-            start,
-            end,
+            route[0],
+            route[1],
             str(edge["endpoint_x"]),
         )
         _draw_endpoint(
             axis,
-            end,
-            start,
+            route[-1],
+            route[-2],
             str(edge["endpoint_y"]),
         )
 
     for node in nodes:
         x_value, y_value = positions[node]
         label = node.replace("_", " ")
-        width = max(0.18, min(0.36, 0.013 * len(label) + 0.14))
         patch = FancyBboxPatch(
-            (x_value - width / 2, y_value - 0.04),
-            width,
-            0.08,
-            boxstyle="round,pad=0.012,rounding_size=0.012",
+            (x_value - PAG_NODE_WIDTH / 2, y_value - PAG_NODE_HEIGHT / 2),
+            PAG_NODE_WIDTH,
+            PAG_NODE_HEIGHT,
+            boxstyle="round,pad=2,rounding_size=9",
             facecolor="#f8fafc",
             edgecolor=INK,
             linewidth=1.0,
@@ -1648,22 +1693,6 @@ def _draw_pag(
             zorder=4,
             clip_on=False,
         )
-
-
-def _trim_segment(
-    start: tuple[float, float],
-    end: tuple[float, float],
-    radius: float,
-) -> tuple[tuple[float, float], tuple[float, float]]:
-    dx = end[0] - start[0]
-    dy = end[1] - start[1]
-    length = math.hypot(dx, dy) or 1.0
-    ux = dx / length
-    uy = dy / length
-    return (
-        (start[0] + ux * radius, start[1] + uy * radius),
-        (end[0] - ux * radius, end[1] - uy * radius),
-    )
 
 
 def _draw_endpoint(
@@ -1693,20 +1722,21 @@ def _draw_endpoint(
         )
     elif endpoint == "TAIL":
         axis.plot(
-            [x_value - px * 0.015, x_value + px * 0.015],
-            [y_value - py * 0.015, y_value + py * 0.015],
+            [x_value - px * 7.0, x_value + px * 7.0],
+            [y_value - py * 7.0, y_value + py * 7.0],
             color=GREY,
             linewidth=1.6,
+            solid_capstyle="round",
             zorder=2,
         )
     elif endpoint == "ARROW":
-        base_x = x_value - ux * 0.032
-        base_y = y_value - uy * 0.032
+        base_x = x_value - ux * 15.0
+        base_y = y_value - uy * 15.0
         triangle = Polygon(
             [
                 (x_value, y_value),
-                (base_x + px * 0.015, base_y + py * 0.015),
-                (base_x - px * 0.015, base_y - py * 0.015),
+                (base_x + px * 7.0, base_y + py * 7.0),
+                (base_x - px * 7.0, base_y - py * 7.0),
             ],
             closed=True,
             facecolor=GREY,
