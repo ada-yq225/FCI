@@ -29,9 +29,7 @@ tmp/
 /case_studies/tennessee_star/data/raw/STAR_Students.tab
 /case_studies/tennessee_star/data/raw/STAR.csv
 
-# PPT Master transient exports and visual-QA renders. The editable SVG source,
-# design lock, notes, source bundle, and stable output/ppt deliverables remain
-# versioned.
+# PPT Master transient exports and visual-QA renders.
 /projects/*/backup/
 /projects/*/exports/
 /projects/*/live_preview/
