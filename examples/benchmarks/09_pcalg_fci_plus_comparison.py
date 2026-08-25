@@ -14,8 +14,9 @@ from fci_engine import (
 )
 from fci_engine.metrics import BenchmarkResult, aggregate_benchmark_results
 
-HTML_PATH = Path(__file__).with_name("pcalg_fci_plus_comparison.html")
-CSV_PATH = Path(__file__).with_name("pcalg_fci_plus_comparison.csv")
+OUTPUT_DIRECTORY = Path(__file__).resolve().parents[1] / "generated"
+HTML_PATH = OUTPUT_DIRECTORY / "pcalg_fci_plus_comparison.html"
+CSV_PATH = OUTPUT_DIRECTORY / "pcalg_fci_plus_comparison.csv"
 
 
 def main() -> None:
@@ -38,6 +39,8 @@ def main() -> None:
         ]
 
     results = run_pcalg_comparison_benchmark(cases)
+    args.html.parent.mkdir(parents=True, exist_ok=True)
+    args.csv.parent.mkdir(parents=True, exist_ok=True)
     args.html.write_text(render_report(results), encoding="utf-8")
     write_csv(args.csv, results)
     print(f"Wrote {args.html}")

@@ -45,7 +45,9 @@ def main() -> None:
     print(result.summary())
     print(result.to_pandas_edges().to_string(index=False))
 
-    output_directory = Path(__file__).resolve().parent / "fci_plus_output"
+    output_directory = (
+        Path(__file__).resolve().parents[1] / "generated" / "fci_plus_output"
+    )
     paths = result.save_artifacts(
         output_directory,
         stem="practical_example",

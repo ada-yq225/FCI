@@ -158,6 +158,7 @@ def test_pcalg_comparison_report_renderer_smoke(tmp_path) -> None:
     module_path = (
         Path(__file__).resolve().parents[1]
         / "examples"
+        / "benchmarks"
         / ("09_pcalg_fci_plus_comparison.py")
     )
     spec = importlib.util.spec_from_file_location("pcalg_report", module_path)

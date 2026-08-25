@@ -56,7 +56,12 @@ def main():
     print("\n4. Generating the interactive report...")
     report_html = render_interactive_report(result, title="Custom Data CI/PAG Analysis")
 
-    output_path = Path("custom_data_report.html")
+    output_path = (
+        Path(__file__).resolve().parents[1]
+        / "generated"
+        / "custom_data_report.html"
+    )
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(report_html, encoding="utf-8")
 
     print(f"\nReport generated: {output_path.absolute()}")

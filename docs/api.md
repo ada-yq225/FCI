@@ -265,7 +265,7 @@ print(format_benchmark_leaderboard(pcalg_results))
 The same focused comparison can be written as HTML and CSV:
 
 ```bash
-PYTHONPATH=src python examples/09_pcalg_fci_plus_comparison.py
+PYTHONPATH=src python examples/benchmarks/09_pcalg_fci_plus_comparison.py
 ```
 
 The benchmark runner compares `fci_engine.fci`, `fci_engine.fci_plus`, optional
@@ -312,7 +312,7 @@ To generate the HTML report with side-by-side true and learned PAGs plus
 edge-level difference explanations:
 
 ```bash
-PYTHONPATH=src python examples/08_visual_benchmark_report.py
+PYTHONPATH=src python examples/benchmarks/08_visual_benchmark_report.py
 ```
 
 ## Background Knowledge

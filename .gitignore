@@ -16,6 +16,10 @@ tmp/
 # Local reports and TeX build products that are not package sources.
 /IRP_Project_Plan.*
 /custom_data_report.html
+/examples/generated/custom_data_report.html
+/examples/generated/fci_plus_output/
+/examples/generated/pcalg_fci_plus_comparison.csv
+/examples/generated/pcalg_fci_plus_comparison.html
 /missfont.log
 /output/pdf/*.aux
 /output/pdf/*.lof

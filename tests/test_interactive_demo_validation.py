@@ -1,4 +1,4 @@
-from interactive_demo import generate_medical_data
+from examples.tutorials.interactive_demo import generate_medical_data
 from fci_engine import fci
 
 

@@ -17,6 +17,7 @@ def showcase():
     path = (
         Path(__file__).resolve().parents[1]
         / "examples"
+        / "showcases"
         / "10_fci_plus_advisor_showcase.py"
     )
     spec = importlib.util.spec_from_file_location("advisor_showcase", path)

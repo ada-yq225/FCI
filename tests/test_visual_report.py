@@ -10,6 +10,7 @@ def _load_report_module():
     path = (
         Path(__file__).resolve().parents[1]
         / "examples"
+        / "benchmarks"
         / "08_visual_benchmark_report.py"
     )
     spec = importlib.util.spec_from_file_location("visual_benchmark_report", path)

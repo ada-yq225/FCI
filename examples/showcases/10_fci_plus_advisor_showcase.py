@@ -30,7 +30,9 @@ from fci_engine.metrics import (
     aggregate_benchmark_results,
 )
 
-REPORT_PATH = Path(__file__).with_name("advisor_showcase.html")
+REPORT_PATH = (
+    Path(__file__).resolve().parents[1] / "generated" / "advisor_showcase.html"
+)
 
 PAPER_URL = "https://auai.org/uai2013/prints/papers/121.pdf"
 ZHANG_URL = "https://doi.org/10.1016/j.artint.2008.08.001"
@@ -519,8 +521,8 @@ def render_citations() -> str:
 def render_reproducibility(context: ShowcaseContext) -> str:
     config = " · ".join(f"{key}={value}" for key, value in PAPER_CONFIG.items())
     command = (
-        "PYTHONPATH=src python examples/10_fci_plus_advisor_showcase.py "
-        "--no-external --output examples/advisor_showcase.html"
+        "PYTHONPATH=src python examples/showcases/10_fci_plus_advisor_showcase.py "
+        "--no-external --output examples/generated/advisor_showcase.html"
     )
     tests = (
         "python -m pytest -q tests/test_published_reference_graphs.py "

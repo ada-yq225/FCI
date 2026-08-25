@@ -1,4 +1,4 @@
-from examples.basic_pag_demo import expected_pag_for_toy_data, format_demo
+from examples.tutorials.basic_pag_demo import expected_pag_for_toy_data, format_demo
 
 
 def test_basic_pag_demo_output_contains_expected_edges() -> None:

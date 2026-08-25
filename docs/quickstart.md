@@ -206,8 +206,8 @@ remove systematic CI-test bias.
 For a larger sanity check on known synthetic structures:
 
 ```bash
-PYTHONPATH=src python examples/08_visual_benchmark_report.py
+PYTHONPATH=src python examples/benchmarks/08_visual_benchmark_report.py
 ```
 
-Open `examples/realistic_benchmark_report.html` to inspect aggregate scores,
+Open `examples/generated/realistic_benchmark_report.html` to inspect aggregate scores,
 semantic PAG compatibility metrics, and side-by-side true versus learned PAGs.

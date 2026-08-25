@@ -22,7 +22,11 @@ from fci_engine.simulation import (
     realistic_oracle_cases,
 )
 
-REPORT_PATH = Path(__file__).with_name("realistic_benchmark_report.html")
+REPORT_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "generated"
+    / "realistic_benchmark_report.html"
+)
 COLORS = {
     "fci_engine.fci": "#2563eb",
     "fci_engine.fci_plus": "#059669",
@@ -54,6 +58,7 @@ def main() -> None:
         include_pcalg=not args.no_external,
     )
     html_text = render_report(cases, results)
+    args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(html_text, encoding="utf-8")
     print(f"Wrote {args.output}")
 

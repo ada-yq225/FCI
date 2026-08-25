@@ -21,7 +21,7 @@ finite-sample instability, and production audit requirements.
 - **Validation**: published oracle PAG cases, variable-order checks, seeded
   latent-SEM integration tests, discrete/nonlinear/missing-data paths, optional
   reference-package comparisons, and a Python 3.9-3.13 CI matrix.
-- **Advisor view**: [open the committed evidence-first showcase](examples/advisor_showcase.html)
+- **Advisor view**: [open the committed evidence-first showcase](examples/generated/advisor_showcase.html)
   or regenerate it from the current checkout.
 
 ```mermaid
@@ -340,13 +340,13 @@ python -m mypy
 Current validation is checked by Pytest, Ruff, strict MyPy, a wheel build, and
 an installed-wheel smoke test. GitHub Actions runs Pytest independently on
 Python 3.9, 3.10, 3.11, 3.12, and 3.13.
-Local validation for this revision: **365 passed** on Python 3.13 with the
+Local validation for this revision: **367 passed** on Python 3.13 with the
 optional `causal-learn` reference dependency installed. CI remains the
 cross-version authority for the full Python matrix and strict MyPy environment.
 The full graphs, diagnostics, same-data FCI baseline, configuration, and
 limitations are collected in the
-[advisor showcase](examples/advisor_showcase.html). Its metrics are computed by
-[`examples/10_fci_plus_advisor_showcase.py`](examples/10_fci_plus_advisor_showcase.py),
+[advisor showcase](examples/generated/advisor_showcase.html). Its metrics are computed by
+[`examples/showcases/10_fci_plus_advisor_showcase.py`](examples/showcases/10_fci_plus_advisor_showcase.py),
 not entered by hand.
 
 ## Benchmark Snapshot
@@ -355,8 +355,8 @@ The visual benchmark report compares hand-written oracle PAGs, `fci_engine`
 outputs, and optional R `pcalg::fciPlus` outputs:
 
 ```bash
-PYTHONPATH=src python examples/08_visual_benchmark_report.py
-open examples/realistic_benchmark_report.html
+PYTHONPATH=src python examples/benchmarks/08_visual_benchmark_report.py
+open examples/generated/realistic_benchmark_report.html
 ```
 
 The report includes:
@@ -749,7 +749,7 @@ print(format_benchmark_leaderboard(pcalg_results))
 To write the focused FCI+ versus `pcalg::fciPlus` comparison as HTML and CSV:
 
 ```bash
-PYTHONPATH=src python examples/09_pcalg_fci_plus_comparison.py
+PYTHONPATH=src python examples/benchmarks/09_pcalg_fci_plus_comparison.py
 ```
 
 For an advisor-facing showcase that explains the Algorithm 2 alignment,
@@ -757,8 +757,8 @@ FCI+ D-SEP diagnostics, reference comparisons, and the user API in one HTML
 page:
 
 ```bash
-PYTHONPATH=src python examples/10_fci_plus_advisor_showcase.py
-open examples/advisor_showcase.html
+PYTHONPATH=src python examples/showcases/10_fci_plus_advisor_showcase.py
+open examples/generated/advisor_showcase.html
 ```
 
 The benchmark output includes both strict exact-edge F1 and compatibility-aware
@@ -769,7 +769,7 @@ You can generate the visual benchmark report with highlighted true/learned
 differences and per-edge orientation-rule traces:
 
 ```bash
-PYTHONPATH=src python examples/08_visual_benchmark_report.py
+PYTHONPATH=src python examples/benchmarks/08_visual_benchmark_report.py
 ```
 
 ## Assumptions, interpretation, and non-goals

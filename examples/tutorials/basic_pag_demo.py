@@ -1,7 +1,7 @@
 """Show a small hand-specified data-to-PAG demonstration.
 
 This example keeps the PAG fixed to explain endpoint meanings. For a full FCI
-run from data, see ``examples/01_basic_fci.py``.
+run from data, see ``examples/tutorials/01_basic_fci.py``.
 """
 
 from __future__ import annotations
