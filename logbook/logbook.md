@@ -129,10 +129,8 @@ of that commit, which can be inspected in this repository.
 - `3c9ba76` (26 July) Add the source-verified FCI/FCI+ research dossier
   with claim-evidence locators.
 - `4a56a8f` (26 July) Repair research evidence locators.
-- `13580f8` (26 July) Benchmark established FCI software (causal-learn
-  and `pcalg`) on committed known-truth cases.
-- `1541a27` (26 July) Preserve external benchmark failures instead of
-  silently skipping them.
+- `13580f8` (26 July) Benchmark established FCI software (causal-learn and `pcalg`) on committed known-truth cases.
+- `1541a27` (26 July) Preserve external benchmark failures instead of silently skipping them.
 - `c45dfa0` (26 July) Add algorithm and software comparison figures.
 - `bc18f47` (26 July) Keep research figures fully vector.
 - `dec3fe2` (26 July) Rewrite the full LaTeX research report.
@@ -152,10 +150,17 @@ of that commit, which can be inspected in this repository.
 
 ### Phase 8 — Report figure quality and condensed report (15 August)
 
-- `1de2c5b` (15 Aug) Improve STAR report PAG edge routing: separated
-  node ports, curved detours around collinear nodes, wider tier
-  spacing, and routing regression tests.
-- `4121496` (15 Aug) Reuse the same routing geometry in the PDF report
-  figures so the HTML and PDF views cannot drift apart.
-- `7457796` (15 Aug) Add the condensed 20-page research report
-  alongside the full report.
+- `1de2c5b` (15 Aug) Improve STAR report PAG edge routing: separated node ports, curved detours around collinear nodes, wider tier spacing, and routing regression tests.
+- `4121496` (15 Aug) Reuse the same routing geometry in the PDF report figures so the HTML and PDF views cannot drift apart.
+- `7457796` (15 Aug) Add the condensed 20-page research report alongside the full report.
+
+### Phase 9 — Final submission and repository consolidation (15–25 August)
+
+- `2d0596a` (15 Aug) Add a temporary local checker for the final-report word, figure/table, abstract, filename, and PDF-size limits.
+- `6ed70e1` (15 Aug) Add the first final-report draft under the required deliverable filename.
+- `0ff99ef` (15 Aug) Revise that draft against the IRP final-report content guidance.
+- `942d7cc` (15 Aug) Withdraw the first draft after reviewing the course policy, preserving the decision and its rationale in the Git history.
+- `68ba7c2` (22 Aug) Add the submitted Final Report PDF and LaTeX source and remove the temporary report-checking script.
+- `e6636c4` (24 Aug) Consolidate the repository for final submission by removing obsolete report exports, the short draft, and advisor-deck materials while retaining code, tests, evidence, and mandatory course files.
+- `1ec0942` (25 Aug) Reorganize runnable project examples into tutorials, benchmarks, showcases, and generated outputs; update documentation and regression-test paths without changing the 367-test suite.
+- `571e3bd` (25 Aug) Apply the final Ruff formatting correction required by the CI workflow after the example reorganization.
