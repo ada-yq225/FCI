@@ -11,6 +11,9 @@ research question, implementation, validation evidence, STAR results, and
 interpretation limits. Its editable source is
 [also committed](deliverables/yq225-final-report.tex).
 
+The accompanying [AI Usage Disclosure](AI_USAGE_DISCLOSURE.md) records the
+generative-AI assistance used during this project.
+
 For reviewers, the project can be summarized as follows:
 
 - **Problem:** recover defensible causal-structure information from
