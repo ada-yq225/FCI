@@ -154,17 +154,13 @@ educational study whose observed data are affected by attrition and
 selection?
 
 \paragraph{Significance.}
-Public tools in the FCI family generally return a completed graph while
-providing limited visibility into the evidence behind each oriented endpoint.
-Among the interfaces examined in \cref{sec:background}, none offers a Python
-implementation of Claassen's \FCIplus{} with paper-profile control and a
-structured audit trail. By linking every graph mark to recorded CI decisions,
-the implementation supports applied researchers who must defend structural
-claims, methodologists seeking a typed reference for differential testing,
-and instructors distinguishing design-based evidence from discovery-based
-evidence. From an applied perspective, STAR remains a canonical source of
-evidence on class size, while selective attrition continues to be an
-important methodological issue in longitudinal experiments.
+Public FCI-family tools generally provide limited visibility into the
+evidence behind oriented endpoints. Among the interfaces examined in
+\cref{sec:background}, none offers a Python implementation of Claassen's
+\FCIplus{} with paper-profile control and a structured audit trail. Linking
+each graph mark to recorded CI decisions supports defensible structural
+claims and differential testing. STAR also provides a canonical application
+in which selective attrition complicates longitudinal inference.
 
 \paragraph{Objectives and contributions.}
 Four measurable objectives address the auditability and finite-sample gaps
@@ -193,19 +189,12 @@ chronology, and sensitivity audits, with conclusions promoted only through a
 pre-specified evidence hierarchy.
 \end{description}
 
-C1 and C4 are intentionally separated. The algorithm therefore remains
-reusable and domain-neutral, whereas the application makes its coding,
-selection, clustering, and interpretation choices explicit.
-
-Together, these objectives address the overarching question of whether
-source-faithful FCI and \FCIplus{} can be implemented and validated well
-enough to support transparent, appropriately bounded structural claims about
-STAR. \Cref{sec:background} defines the source and software gap;
+C1 and C4 are separated so the algorithm remains domain-neutral while the
+application states its coding, selection, clustering, and interpretation
+choices. \Cref{sec:background} defines the source and software gap;
 \cref{sec:method,sec:results} evaluate O1--O4; and
-\cref{sec:interpretation,sec:conclusions} separate supported conclusions from
-exploratory patterns. Controlled evidence is presented before the
-application, ensuring that patterns in real data are not treated as evidence
-of algorithmic fidelity.
+\cref{sec:interpretation,sec:conclusions} distinguish supported conclusions
+from exploratory patterns.
 
 \section{Preliminaries and Related Work}
 \label{sec:background}
@@ -319,13 +308,12 @@ arrowhead; the pattern only \emph{proposes} a candidate, and independence
 evidence determines whether deletion is warranted. Conditioning sets are
 drawn from the recursive hierarchy \(\mathrm{HIE}(X, I)\), defined as the
 fixed point obtained by repeatedly adding the recorded minimal separators of
-its members. Since candidates may depend on one another, every successful
-removal triggers reconstruction of both the augmented skeleton and the
-candidate list (\cref{fig:workflow}). The abstract of the arXiv supplement
-states \(N^{2(k+1)}\), whereas its theorem and proof agree with the UAI
-paper's \(N^{2(k+2)}\); this discrepancy is documented rather than
-reconciled. Algorithm~2 invokes complete FCI orientation instead of deriving
-it anew, so its completed-output claim depends on
+its members. Since candidates may depend on one another, each successful
+removal rebuilds the augmented skeleton and candidate list
+(\cref{fig:workflow}). The arXiv supplement's abstract states
+\(N^{2(k+1)}\), but its theorem and proof agree with the UAI paper's
+\(N^{2(k+2)}\). Algorithm~2 invokes complete FCI orientation, so its
+completed-output claim depends on
 \citet{zhang2008completeness}.
 
 \begin{figure}[!t]
@@ -414,17 +402,15 @@ colliders, and the historical \code{spirtes\_2000} closure;
 \code{FCIPlusConfig.paper(k)} requires an explicit \(k\) for both
 conditioning depth and sparsity bound, disables Possible-D-SEP, and selects
 the complete \code{standard} closure required by Algorithm~2's output claim.
-These profiles govern execution but do not validate the assumptions of the
-theorems: setting \(k=3\) does not demonstrate that the true MAG has maximum
-degree three.
+These profiles govern execution but do not validate theorem assumptions;
+setting \(k=3\) does not establish the true MAG's degree.
 
 The \code{PAG} class stores a mark at both ends of every adjacency, explicitly
 representing tails, arrowheads, circles, and absence. All searches share the
 \code{CITest.test(data, x, y, cond\_set)} interface, with built-in Fisher-Z,
-missing-value Fisher-Z, chi-square, G-square, and kernel tests. Query
-canonicalisation in the cache distinguishes the \emph{logical} CI requests
-generated by the control flow from cache hits and executed statistics, which
-is the distinction required by a theorem that counts oracle queries.
+missing-value Fisher-Z, chi-square, G-square, and kernel tests. Cache
+canonicalisation distinguishes logical CI requests from cache hits and
+executed statistics, as required when counting oracle queries.
 
 \code{FCI.fit} makes the source-prescribed stage order visible and labels
 Possible-D-SEP removals with the source \code{pdsep}.
@@ -432,10 +418,9 @@ Possible-D-SEP removals with the source \code{pdsep}.
 initial skeleton instead to the Algorithm~2 sequence: augmented-skeleton
 construction, bidirected witness patterns, paired endpoint bases, hierarchy
 fixed points, separator testing and minimisation, graph updating, and
-candidate rebuilding. Its diagnostic record counts candidates, revisits,
-hierarchy queries, D-SEP-stage CI requests, and the largest conditioning set.
-These are empirical accounting measures rather than a mechanised proof of the
-bound. A single dispatcher provides
+candidate rebuilding. Its diagnostics count candidates, revisits, hierarchy
+and D-SEP queries, and the largest conditioning set; these are accounting
+measures, not a proof of the bound. A single dispatcher provides
 five orientation schedules: \code{spirtes\_2000}, the historical closure
 used by the standard-FCI paper profile; \code{standard}, the modern complete
 schedule required by the \FCIplus{} paper profile; and \code{conservative},
@@ -449,16 +434,12 @@ CI and orientation traces; \code{explain\_edge} returns every decision
 behind a pair, so a plotted arrow cannot detach from the profile, test,
 threshold, and rule that created it.
 
-All code was developed specifically for this project. It comprises a
-9,559-line algorithm package across 38 modules, 367 tests in 44 modules
-(5,929 lines), a 3,052-line STAR application with an independent 396-line R
-runner, and supporting benchmark and figure scripts---approximately 25,300
-lines in total. The package includes \code{py.typed} and passes Ruff, strict
-MyPy, wheel building, and Pytest on Python 3.9--3.13. The repository's
-extended report maintains a complete concept-to-symbol-to-test traceability
-matrix. These checks demonstrate consistency of the interfaces and packaging;
-they do not, by themselves, establish source faithfulness, true sparsity, or
-any empirical causal conclusion.
+The project comprises a 9,559-line, 38-module algorithm package, 367 tests,
+a 3,052-line STAR application, an independent 396-line R runner, and
+supporting scripts. It includes \code{py.typed} and passes Ruff, strict MyPy,
+wheel building, and Pytest on Python 3.9--3.13. These checks establish
+interface and packaging consistency, not source faithfulness, sparsity, or
+empirical conclusions.
 
 The practical profile exchanges additional computation for greater stability.
 Stable deletion reduces order dependence; max-\(p\) separators use more CI
@@ -483,11 +464,8 @@ orientation-rule reference graph associated with
 evaluated on 15 deterministic latent-SEM cases: five graph families, three
 seeds per family, 2,500 observations, and known oracle PAGs.
 
-The software comparison distinguishes interface inspection from empirical
-execution. \Cref{sec:background} reports the capability comparison, whereas
-the executed comparison evaluates identical committed data under recorded
-settings. The
-benchmark reuses the 15 known-truth runs, every
+The executed software comparison evaluates identical committed data under
+recorded settings. The benchmark reuses the 15 known-truth runs, every
 method receiving the same numeric matrix and variable order. Fixed paper and
 reference rows use Fisher-Z at \(\alpha = 0.001\); robust \FCIplus{} uses
 its documented sample-size rule, which resolves to \(\alpha = 0.01\) here
@@ -496,10 +474,8 @@ Algorithm~2 reproduction. Exact F1 requires both endpoint marks to match;
 semantic F1 additionally credits endpoint patterns compatible with the
 target ancestral constraints; endpoint accuracy scores individual marks. The
 common conversion represents each edge as an unordered pair with two semantic
-marks, rather than as a generic directed edge. Where interfaces permit, data,
-variable order, alpha, and CI semantics are held constant throughout. All
-mismatches are disclosed, and distinct algorithms within the FCI family are
-not presented as if they were identical.
+marks. Where interfaces permit, data, order, alpha, and CI semantics are
+fixed; remaining interface mismatches are disclosed.
 
 \subsection{STAR data and panels}
 
@@ -640,13 +616,11 @@ threshold.
 Across the 15 cases (the first three rows of
 \cref{tab:executed-software-benchmark}), the robust profile achieves higher
 mean skeleton and endpoint scores at approximately 2.04 times the CI cost of
-paper \FCIplus{}. This does not establish universal superiority. It does,
-however, show that the STAR stability gain reported below is not obtained by
-simply discarding structure, and it illustrates why fewer CI tests need not
-produce greater accuracy: after the initial skeleton, the algorithms follow
-different logical paths and make different errors. Oracle tests support the
-correctness of the pipeline under exact CI information, while finite-sample
-results remain constrained by CI-test error and tuning choices.
+paper \FCIplus{}. This is not universal superiority, but shows that the STAR
+stability gain is not obtained simply by discarding structure. Fewer CI tests
+need not improve accuracy because the algorithms follow different paths after
+the initial skeleton. Finite-sample results remain sensitive to CI error and
+tuning despite exact-oracle validation.
 
 \begin{table}[!t]
 \caption{Executed known-truth comparison: means over 15 completed runs
@@ -670,13 +644,10 @@ R \code{pcalg} \FCIplus{} \mbox{2.7-12} & 0.979 & 0.536 & 0.951 & 0.744 & 0.500 
 \subsection{Comparison with established software}
 
 The identical aggregate scores for local paper-\FCIplus{}, causal-learn, and
-\code{pcalg} in \cref{tab:executed-software-benchmark} provide useful
-differential evidence, but do not prove equivalence. Local and causal-learn
-timings are measured in process, whereas the R timing includes process
-startup, and \code{pcalg::fciPlus} does not expose an identical degree-bound
-control. The executed comparison therefore supports C3 by demonstrating
-matched aggregate behaviour where the interfaces overlap, while retaining
-the integration limitations documented in \cref{sec:background}.
+\code{pcalg} provide differential evidence, not equivalence. Local timings
+exclude process startup, whereas R includes it, and
+\code{pcalg::fciPlus} lacks an identical degree-bound control. The comparison
+therefore demonstrates matched behaviour only where interfaces overlap.
 
 \subsection{Observed randomized-arm outcomes}
 
@@ -733,11 +704,9 @@ independent of early achievement and measured context. The endpoint
 interpretations nevertheless diverge. Standard FCI produces the impossible
 \emph{grade-3 observation \(\rightarrow\) kindergarten achievement};
 self-\FCIplus{} retains a circle; and R-\FCIplus{} produces the temporally
-admissible direction. Although the R result is more plausible, the identity
-of the software package cannot establish statistical correctness. The
-attrition PAG also does not prove any particular missingness mechanism; a
-formal analysis would require an explicit estimand and additional
-assumptions.
+admissible direction. Although the R result is more plausible, software
+identity cannot establish correctness. Nor does the PAG prove a missingness
+mechanism, which requires an explicit estimand and additional assumptions.
 
 \begin{figure}[!t]
 \centering
@@ -754,23 +723,21 @@ kindergarten/grade-3 achievement adjacency, which also appears in all 100
 bootstrap samples for each local profile. None of the full-data PAGs retains a direct
 class-assignment/grade-3 adjacency once kindergarten achievement is
 included, yet that adjacency reappears in 71\% of FCI, 79\% of paper
-\FCIplus{}, and 80\% of robust-profile bootstrap fits. This indicates that
-conservative orientation and order invariance do not eliminate sensitivity
-to school resampling. Both \FCIplus{} implementations orient
+\FCIplus{}, and 80\% of robust-profile bootstrap fits. Thus order invariance
+does not eliminate sensitivity to school resampling. Both \FCIplus{}
+implementations orient
 grade-3 achievement toward kindergarten achievement, which is temporally
 impossible if read causally, while standard FCI leaves that endpoint
-unresolved. Agreement between implementations is not sufficient to override
-chronology, since both may be reproducing the same finite-sample CI pattern
-under complete-case selection.
+unresolved. Agreement cannot override chronology because both may reproduce
+the same CI pattern under complete-case selection.
 
 Excluding kindergarten achievement changes the result. All three algorithms
 return the same 10-edge PAG, rather than merely the same skeleton, including
 \(\mathit{K\_Class} \leftrightarrow \mathit{Grade3\_Achievement}\)
 (\cref{fig:pag-focused}), an adjacency appearing in 92\%, 85\%, and 96\% of
-the FCI, paper, and robust bootstraps, respectively. Independent exact
-replication strengthens the credibility of this conditional-independence
-pattern, but does not justify a literal interpretation in terms of latent
-confounding. Kindergarten class assignment was randomized, whereas the
+the FCI, paper, and robust bootstraps, respectively. Exact replication
+strengthens this conditional-independence pattern but does not establish
+latent confounding. Kindergarten class assignment was randomized, whereas the
 focused panel conditions on observed grade-3 outcomes and omits early
 post-assignment achievement. Selection on observation, school-level
 dependence, omitted post-randomization variables, and CI-test error could all
@@ -806,15 +773,15 @@ three or four quantile bins or \(k = 2, 3, 4\) is used for \FCIplus{}.}
 
 \subsection{Robust application profile, agreement, and cost}
 
-The robust profile should be understood as a finite-sample decision layer,
-not as a fourth paper implementation. Across the three panels it returns 17,
+The robust profile is a finite-sample decision layer, not a fourth paper
+implementation. Across the three panels it returns 17,
 12, and 10 edges, with
 target relations
 \(\mathit{K\_Achievement} \circ\!-\!\circ \mathit{Grade3\_Observed}\),
 \(\mathit{K\_Achievement} \circ\!-\!\circ \mathit{Grade3\_Achievement}\),
 and \(\mathit{K\_Class} \circ\!-\!\circ \mathit{Grade3\_Achievement}\). It
-preserves the target skeleton information while avoiding both the chronology
-reversal and an over-interpretation of the bidirected edge.
+preserves target skeletons while avoiding the chronology reversal and
+over-interpretation of the bidirected edge.
 
 In the cyclic-order audit, paper self-\FCIplus{} reproduces the exact
 full-data PAG for 9 of 9 attrition shifts, 5 of 9 longitudinal shifts, and 6
@@ -898,18 +865,14 @@ Panel & Algorithm & Edges & CI & Sec. \\
 
 \subsection{Evidence hierarchy}
 
-An explicit evidence hierarchy ensures that an apparently definite PAG mark
-does not outweigh the experimental design. Tier 1 comprises randomized
-assignment with a school-cluster contrast and permits a bounded causal
-statement about the analysed observed outcome. Tier 2 covers adjacencies
-replicated across methods, resamples, variable orders, and sensitivity
-settings, supporting a robust skeleton-level claim but neither magnitude nor
-direction. Tier 3 contains stable skeletons with circles or endpoint
-disagreement, for which adjacency is more credible than orientation. Tier 4
-includes endpoints that depend on implementation, ordering, or chronology
-and therefore provide diagnostic evidence only. Tier 5 consists of
-threshold-sensitive or complete-case exploratory patterns that require
-external validation.
+The evidence hierarchy prevents a definite PAG mark from outweighing the
+experimental design. Tier 1 is randomized assignment with a school-cluster
+contrast. Tier 2 comprises adjacencies replicated across methods, resamples,
+orders, and sensitivity settings, supporting skeleton-level claims but not
+magnitude or direction. Tier 3 contains stable skeletons with circles or
+endpoint disagreement. Tier 4 includes implementation-, order-, or
+chronology-dependent endpoints and is diagnostic only. Tier 5 contains
+threshold-sensitive or complete-case patterns requiring external validation.
 
 \subsection{What can and cannot be concluded}
 
@@ -998,17 +961,13 @@ circles, robust \FCIplus{} avoids these literal reversals at 1.64--1.85 times
 the CI cost of the paper profile. This improves reliability without improving
 identifiability.
 
-The principal engineering challenge was to translate ordered Possible-D-SEP
-pools and the hierarchy and revisit semantics of Algorithm~2 into executable
-invariants, and then to diagnose endpoint instability in finite samples. The
-most effective practices were oracle-first validation, a strict separation
-between algorithm and application, and the commitment of every seed and
-artifact. Because literal paper profiles did not yield sufficiently stable
-endpoints on the real data, that limitation is reported explicitly rather
-than being concealed through chronological constraints. No method performs
-best in every respect: paper \FCIplus{} remains the subject of fidelity and
-query-efficiency evaluation, whereas robust \FCIplus{} is preferred for this
-application under the stated audits.
+The main engineering challenge was translating ordered Possible-D-SEP pools
+and Algorithm~2's hierarchy and revisit semantics into executable invariants.
+Oracle-first validation, separation of algorithm from application, and
+committed seeds and artifacts proved most effective. Literal paper profiles
+produced unstable endpoints on real data, so robust \FCIplus{} is preferred
+for this application; paper \FCIplus{} remains the fidelity and
+query-efficiency reference.
 
 The central contribution is an auditable account of conditional-independence
 constraints and modelling sensitivity, rather than a rediscovered causal
