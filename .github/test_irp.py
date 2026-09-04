@@ -15,7 +15,17 @@ logbook_dir = pathlib.Path("./logbook")
 def username():
     """Extract username from the repo name."""
     repo_name = pathlib.Path(__file__).parents[1].name
-    return re.search(r"-(.*)", repo_name).group(1)
+    match = re.fullmatch(r"irp-(.+)", repo_name)
+    if match:
+        return match.group(1)
+
+    reports = list(deliverables_dir.glob("*-final-report.pdf"))
+    if len(reports) == 1:
+        return reports[0].name.removesuffix("-final-report.pdf")
+
+    pytest.fail(
+        "Could not determine the username from the repository name or final report"
+    )
 
 
 @pytest.fixture(scope="session")
